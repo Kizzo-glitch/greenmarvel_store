@@ -1,0 +1,1 @@
+web gunicorn marvel.wsgi:application --log-file -

@@ -1,0 +1,141 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Green Marvel</title>
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="{% static 'products/assets/gm.jpeg' %}" />
+        <!-- Bootstrap icons-->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="{% static 'products/css/styles.css' %}" rel="stylesheet" />
+        <!-- jquery cdm-->
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="#!">Green Marvel</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                        <li class="nav-item"><a class="nav-link active" aria-current="page" href="{% url 'landing' %}">Home</a></li>
+                        <li class="nav-item"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">Products</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                  {{message}}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %} 
+        <!-- Header-->
+        <header class="bg-success py-5">
+            <div class="container px-4 px-lg-5 my-5">
+                <div class="text-center text-white">
+                    <h1 class="display-4 fw-bolder">Processing Order</h1>
+                    <p class="lead fw-normal text-white-50 mb-0">This is only temporary.... Thank you for trusting us</p>
+                </div>
+            </div>
+        </header>
+        <br/><br/>
+            
+        <div class="container">
+            <div class="row">
+                
+                    <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">Order Summary</div>
+                  <div class="card-body">
+                    {% for product in cart_products %}
+                        {{ product.name }}: 
+                            {% if product.sale %}
+                                ${{ product.sale_price }}
+                            {% else %}
+                                ${{ product.price }}
+                        {% endif %}
+
+                        <br/>
+                        <small>Quantity: 
+                        {% for key, value in quantities.items %}
+                            {% if key == product.id|slugify %}
+                                {{ value }}
+                            {% endif %}
+                        {% endfor %}</small>
+                        <br/><br/>
+
+                    {% endfor %}
+                    Total:  ${{ totals }}
+                    <br/><br/>
+                    <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-primary">Update Items</a>
+                  </div>
+            </div>
+                    <br/><br/>
+                        
+                        <div class="card">
+                          <div class="card-header">Shipping Info</div>
+                          <div class="card-body">
+                          
+                                Name: {{ shipping_info.shipping_full_name }}<br/>
+                                Email: {{ shipping_info.shipping_email }}<br/>
+                                Address 1: {{ shipping_info.shipping_address1 }}<br/>
+                                Apartment: {{ shipping_info.shipping_apartment }}<br/>
+                                City: {{ shipping_info.shipping_city }}<br/>
+                                Province/State: {{ shipping_info.shipping_province }}<br/>
+                                Zipcode: {{ shipping_info.shipping_zipcode }}<br/>
+                                Country: {{ shipping_info.shipping_country }}<br/>
+                                <br/>
+
+                                <a href="{% url 'checkout' %}" class="btn btn-outline-secondary">Update Shipping</a>
+
+                          </div>
+                        </div>
+                        <br/>
+
+                        <div class="card">
+                              <div class="card-header">
+                                Billing Info
+                              </div>
+                              <div class="card-body">
+                              
+                                <form method="POST" action="{% url 'process_order' %}">
+                                    {% csrf_token %}
+                                    {{ billing_form.as_p }}
+                                <button type="submit" class="btn btn-secondary">Pay Now With Payfast</button>
+                                </form>
+
+                                
+
+                                
+                              </div>
+                            </div>
+                            <br/>
+
+                        
+
+                        <br/><br/>
+                    </div>
+                </div>
+            </div>
+          
+     
+        <!-- Footer-->
+        <footer class="py-5 bg-dark">
+            <div class="container"><p class="m-0 text-center text-white">Copyright &copy; Green Marvel 2024</p></div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="{% static 'products/js/scripts.js' %}"></script>
+    </body>
+</html>
