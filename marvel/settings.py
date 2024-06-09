@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     'greenmarv',
     'cart',
     'payment',
-    'payfast',
     'paypal.standard.ipn'
 ]
 
@@ -83,10 +82,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'dc645lc6nk94ho',
-        'USER': 'Bu8k42ape33t6md',
+        'USER': 'u8k42ape33t6md',
         'PASSWORD': 'p8b539b7c92c3e5ff7150a3e05894a0a6abd5c4e78569630b2fc27fd62e624cbe',
         'HOST': 'c8lj070d5ubs83.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
-        'PORT': '5432'
+        'PORT': '5432',
     }
 }
 
@@ -140,8 +139,5 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-PAYFAST_MERCHANT_ID = '10033849'
-PAYFAST_MERCHANT_KEY = 'dmhcbmfg6r2hh'
-PAYFAST_URL_BASE = 'https://sandbox.payfast.co.za/eng/process'
 
 django_heroku.settings(locals())
