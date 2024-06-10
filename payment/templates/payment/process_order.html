@@ -60,9 +60,9 @@
                     {% for product in cart_products %}
                         {{ product.name }}: 
                             {% if product.sale %}
-                                ${{ product.sale_price }}
+                                R{{ product.sale_price }}
                             {% else %}
-                                ${{ product.price }}
+                                R{{ product.price }}
                         {% endif %}
 
                         <br/>
@@ -75,7 +75,7 @@
                         <br/><br/>
 
                     {% endfor %}
-                    Total:  ${{ totals }}
+                    Total:  R{{ totals }}
                     <br/><br/>
                     <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-primary">Update Items</a>
                   </div>
@@ -111,19 +111,14 @@
                                 <form method="POST" action="{% url 'process_order' %}">
                                     {% csrf_token %}
                                     {{ billing_form.as_p }}
-                                <button type="submit" class="btn btn-secondary">Pay Now With Payfast</button>
-                                </form>
-
-                                
-
+                                <button type="submit" class="btn btn-secondary">Pay Now</button>
+                                </form>                             
                                 
                               </div>
                             </div>
                             <br/>
 
-                        
-
-                        <br/><br/>
+                     <br/><br/>
                     </div>
                 </div>
             </div>
