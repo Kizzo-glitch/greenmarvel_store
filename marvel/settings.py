@@ -141,3 +141,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 django_heroku.settings(locals())
+
+
+PAYFAST_MERCHANT_ID = '10033849'
+PAYFAST_MERCHANT_KEY = 'dmhcbmfg6r2hh'
+PAYFAST_PASSPHRASE = 'Marvelousgreen2024'

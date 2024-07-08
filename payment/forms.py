@@ -33,6 +33,14 @@ class PaymentForm(forms.Form):
 
 
 
+class PayfastPaymentForm(forms.Form):
+    amount = forms.DecimalField(decimal_places=2, max_digits=10)
+    order_id = forms.CharField(max_length=100)
+    name_first = forms.CharField(max_length=100)
+    name_last = forms.CharField(max_length=100)
+    email_address = forms.EmailField()
+
+
 
 #class UploadForm(forms.ModelForm):
 #	class Meta:
