@@ -41,7 +41,6 @@ class PayfastPaymentForm(forms.Form):
     email_address = forms.EmailField()
 
 
-
 #class UploadForm(forms.ModelForm):
 #	class Meta:
 #		model = Order

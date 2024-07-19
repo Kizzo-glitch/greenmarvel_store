@@ -10,9 +10,10 @@ urlpatterns = [
     path('not_shipped_dash', views.not_shipped_dash, name="not_shipped_dash"),
     path('orders/<int:pk>', views.orders, name='orders'),
 
-    path('initiate/', views.initiate_payment, name='initiate_payment'),
+    #path('initiate_payment/<int:pk>', views.initiate_payment, name='initiate_payment'),
     path('success/', views.payment_success, name='payment_success'),
     path('cancel/', views.payment_cancel, name='payment_cancel'),
     path('notify/', views.payment_notify, name='payment_notify'),
+    
     #path('upload_payment/', views.upload_payment, name="upload_payment"),
 ]

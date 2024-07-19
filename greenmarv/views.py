@@ -148,7 +148,7 @@ def login_user(request):
 				for key,value in converted_cart.items():
 					cart.db_add(product=key, quantity=value)
 
-			messages.success(request, ('You have been logged in'))
+			#messages.success(request, ('You have been logged in'))
 			return redirect('landing')
 		else:
 			messages.success(request, ('There was an Error, please try again'))

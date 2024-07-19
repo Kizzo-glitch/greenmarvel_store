@@ -102,6 +102,7 @@
                         </div>
                         <br/>
 
+
                         <!--<div class="card">
                               <div class="card-header">
                                 Billing Info
@@ -112,45 +113,27 @@
                                   {% csrf_token %}
                                 {{ billing_form.as_p }}
                                 
+                               <button type="submit" class="btn btn-secondary">
+                                  Pay Now
+                                </button>
+                            </form>
                               </div>
                             </div>-->
-                            <div class="card">
-                              <div class="card-header">
-                                Account Details 
-                              </div>
-                              <div class="card-body">
-                              Account Number: 5647873643
-                              <br/>
-                              Bank: Capitec 
-                              <br/>
-                              Branch code: 49087
-                              <br/>
-                              Name: Green Marvel
-
                             
-                                
-                              </div>
-                            </div>
-                            <br/>
-                            <div class="card">
-                              <div class="card-header">
-                                Upload Proof of Payment 
-                              </div>
-                              <div class="card-body">
-                              
-                                <form method="POST" action="{% url 'process_order' %}">
+                            <br/>                                      
 
-                                    {% csrf_token %}
-                                  <input type="file" class="form-control" id="customFile" />
-                                  <br/>
-                                  <center>
-                                  <button type="submit" class="btn btn-secondary">Send details</button>
-                                  </center>
+                        <div class="card">
+                              <div class="card-header">
+                                Powered By Payfast
+                              </div>
+                              <div class="card-body">                              
+                                <form method="post" action="{% url 'process_order' %}">
+                                    {% csrf_token %}                                  
+                                    <button type="submit">Pay Now</button>
                                 </form>
                                 
                               </div>
                             </div>
-                            <br/>
 
                         <br/><br/>
 

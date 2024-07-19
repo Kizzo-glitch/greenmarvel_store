@@ -15,7 +15,6 @@ def cart_summary(request):
 	return render(request, "cart_summary.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals})
 
 
-
 def cart_add(request):
 	# Get the Cart
 	cart = Cart(request)
@@ -37,8 +36,9 @@ def cart_add(request):
 
 		# Return a response
 		#response = JsonResponse({'Product Name: ': product.name})
-		messages.success(request, ("Item Added to Cart..."))
+		
 		response = JsonResponse({'qty': cart_quantity})
+		messages.success(request, ("Item Added to Cart..... Click Cart to see added products"))
 		return response
 
 

@@ -1,13 +1,16 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
-import django_heroku
-import dj_database_url
+#import django_heroku
+#import dj_database_url
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+load_dotenv()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -18,7 +21,8 @@ SECRET_KEY = 'django-insecure-7q=e=s$%((zp6g374w=8j^4@y7)^8_!ywyg4wrqg@gdu#3%8*b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['greenmarvel.heroku.com']
+#ALLOWED_HOSTS = ['greenmarvel.heroku.com']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -33,7 +37,8 @@ INSTALLED_APPS = [
     'greenmarv',
     'cart',
     'payment',
-    'paypal.standard.ipn'
+    'paypal.standard.ipn',
+    'whitenoise.runserver_nostatic',
 ]
 
 MIDDLEWARE = [
@@ -44,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'marvel.urls'
@@ -70,22 +76,22 @@ WSGI_APPLICATION = 'marvel.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
+ 
 #DATABASES = {
-#   'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': BASE_DIR / 'db.sqlite3',
-#    }
+ #  'default': {
+  #      'ENGINE': 'django.db.backends.sqlite3',
+   #     'NAME': BASE_DIR / 'db.sqlite3',
+    #}
 #}
 
 DATABASES = {
-    'default': {
+   'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'dc645lc6nk94ho',
-        'USER': 'u8k42ape33t6md',
-        'PASSWORD': 'p8b539b7c92c3e5ff7150a3e05894a0a6abd5c4e78569630b2fc27fd62e624cbe',
-        'HOST': 'c8lj070d5ubs83.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
-        'PORT': '5432',
+        'NAME': 'railway',
+        'USER': 'postgres',
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': 'monorail.proxy.rlwy.net',
+        'PORT': '58664',
     }
 }
 
@@ -133,6 +139,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_ROOT = os.path.join(BASE_DIR,  'staticfiles')
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
+# White noise static stuff
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -140,7 +150,7 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-django_heroku.settings(locals())
+#django_heroku.settings(locals())
 
 
 PAYFAST_MERCHANT_ID = '10033849'

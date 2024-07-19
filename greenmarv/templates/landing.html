@@ -21,14 +21,7 @@
         <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     </head>
     <body id="page-top">
-        <!--{% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                  {{message}}
-                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %} -->
+        
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
             <div class="container">
@@ -43,14 +36,13 @@
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                         {% if user.is_authenticated %} 
-                        <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
-                        <!--<li class="nav-item"><a class="nav-link" href="{% url 'update_user' %}">Profile</a></li>-->
+                        <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>                      
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Profile</a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="{% url 'update_user' %}">My profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'update_user' %}">My Login Details</a></li>
                                 <li><hr class="dropdown-divider" /></li>
-                                <li><a class="dropdown-item" href="{% url 'update_info' %}">Update profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'update_info' %}">My Profile Details</a></li>
                                 
                             </ul>
                         </li> 
@@ -133,10 +125,9 @@
                     </div>
                 </div>
             </div>
-
         </section>
-        <!-- Portfolio Grid-->
-        
+
+        <!-- Products Grid-->       
         <section class="page-section bg-light" id="portfolio">
             <div class="container">
                 <div class="text-center">
@@ -149,9 +140,9 @@
                         <!-- Portfolio item 1-->
 
                         <div class="portfolio-item">
-                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal1">
+                            <a class="portfolio-link" data-bs-toggle="modal"  href="#portfolioModal1">
                                 <div class="portfolio-hover">
-                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
+                                    <div class="portfolio-hover-content"><i class="fa-solid fa-circle-info fa-3x"></i></div>
                                 </div>
                                 <img class="img-fluid" src="{% static 'landing/assets/hairspray_fl.jpeg' %}" alt="..." />
                             </a>
@@ -162,11 +153,12 @@
                         </div>
                     </div>
                     <div class="col-lg-4 col-sm-6 mb-4">
-                        <!-- Portfolio item 2-->
+
+                        <!-- Portfolio item 2--> 
                         <div class="portfolio-item">
                             <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal2">
                                 <div class="portfolio-hover">
-                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
+                                    <div class="portfolio-hover-content"><i class="fa-solid fa-circle-info fa-3x"></i></div>
                                 </div>
                                 <img class="img-fluid" src="{% static 'landing/assets/hairfood2.jpeg' %}" alt="..." />
                             </a>
@@ -284,10 +276,10 @@
                         <div class="timeline-image"><img class="rounded-circle img-fluid" src="{% static 'landing/assets/img/about/4.jpg' %}" alt="..." /></div>
                         <div class="timeline-panel">
                             <div class="timeline-heading">
-                                <h4>2024</h4>
+                                <h4>2024 on wards</h4>
                                 <h4 class="subheading">Expansion</h4>
                             </div>
-                            <div class="timeline-body"><p class="text-muted">Following the success of the clinical phase, we ventured into mass production of the our Vitality Spray!</p></div>
+                            <div class="timeline-body"><p class="text-muted">Following the success of the clinical phase, we ventured into mass production of the our Vitality Spray and Hair Food!</p></div>
                         </div>
                     </li>
                     <li class="timeline-inverted">
@@ -320,7 +312,6 @@
                             <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-twitter"></i></a>
                             <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-facebook-f"></i></a>
                             <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-instagram"></i></a>
-                            <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-whatsapp"></i></a>
                             <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-linkedin-in"></i></a>
                         </div>
                     </div>
@@ -332,19 +323,17 @@
                             <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-twitter"></i></a>
                             <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-facebook-f"></i></a>
                             <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-instagram"></i></a>
-                            <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-whatsapp"></i></a>
                             <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-linkedin-in"></i></a>
                         </div>
                     </div>
                     <div class="col-lg-4">
                         <div class="team-member">
-                            <img class="mx-auto rounded-circle" src="{% static 'landing/assets/khotso.jpeg' %}" alt="..." />
+                            <img class="mx-auto rounded-circle" src="{% static 'landing/assets/khotso.jpg' %}" alt="..." />
                             <h4>Khotso Daniel Serabele</h4>
                             <p class="text-muted">Pharmaceutical Scientist</p>
                             <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-twitter"></i></a>
                             <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-facebook-f"></i></a>
                             <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-instagram"></i></a>
-                            <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-whatsapp"></i></a>
                             <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-linkedin-in"></i></a>
                         </div>
                     </div>
@@ -443,10 +432,11 @@
                 <div class="row align-items-center">
                     <div class="col-lg-4 text-lg-start">Copyright &copy; Green Marvel 2024</div>
                     <div class="col-lg-4 my-3 my-lg-0">
-                        <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Twitter"><i class="fab fa fa-envelope"></i></a>
+                        <a class="btn btn-dark btn-social mx-2" href="https://admin@greenmarvel.co.za" aria-label="Email"><i class="fab fa fa-envelope"></i></a>
                         <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
                         <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                         <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Tiktok"><i class="fab fa-tiktok"></i></a>
                     </div>
                     <div class="col-lg-4 text-lg-end">
                         <a class="link-dark text-decoration-none me-3" href="#!">Privacy Policy</a>
@@ -455,7 +445,7 @@
                 </div>
             </div>
         </footer>
-        <!-- Portfolio Modals
+        <!-- Portfolio Modals-->
        
         <div class="portfolio-modal modal fade" id="portfolioModal1" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog">
@@ -468,22 +458,49 @@
                                     
                                     <h2 class="text-uppercase">Vitality Spray</h2>
                                     <p class="item-intro text-muted">Promotes hair growth, Prevents breakage and infections.</p>
-                                    <img class="img-fluid d-block mx-auto" src="{% static 'landing/assets/img/portfolio/1.jpg' %}" alt="..." />
-                                    <p>This is the first line product, thoroughly tested for safety and efficacy</p>
+                                    <img class="img-fluid d-block mx-auto" src="{% static 'landing/assets/img/follicles.png' %}" alt="..." />
+                                    <!--<p>Also Revitalises hair follicles and roots</p>-->
                                     <ul class="list-inline">
                                         <li>
-                                            <strong>Client:</strong>
-                                            Threads
-                                        </li>
+                                            <strong>Ingredients:</strong><br/>
+                                            <strong>Active:</strong> Herbal Extract<br/>
+                                            <strong>Essential oils:</strong> Rosemary; Vitamin E; Grapeseed; Cedarwood; Lavendar Oil; Castor Oil<br/>
+                                            <strong>Preservative:</strong> Denatured Organic Alcohol
+                                        </li><br/><br>
                                         <li>
-                                            <strong>Category:</strong>
-                                            Illustration
+                                            <strong>Benefits:</strong>
+                                            <br/>
+<strong>Natural Ingredients: </strong> The use of herbal and organic ingredients reduces the risk of exposure to harmful chemicals, making it safer for both hair and scalp.<br/><br>
+
+<strong>Nourishment and Strengthening:</strong> Herbal extracts provide essential nutrients that help strengthen hair from the roots, reducing breakage and promoting healthier growth.<br/><br>
+
+<strong>Moisturizing Properties:</strong> Herbs and organic ingredients have natural moisturizing properties help maintain the hair's natural moisture balance, preventing dryness and frizz.<br/><br>
+
+
+<strong>Environmentally Friendly: </strong> This organic formulation is more environmentally friendly, reducing the ecological footprint due to the absence of synthetic chemicals.<br/><br>
+
+<strong>Improved Hair Texture: </strong>Regular use improves hair texture, making it softer, shinier, and more manageable without the heavy buildup associated with conventional hair sprays.<br/><br>
+
+<strong>Natural Hold and Styling: </strong>Provides a natural hold that keeps hairstyles in place without making the hair stiff or sticky, allowing for flexible and touchable styles.<br/><br>
+
+<strong>Reduced Allergic Reactions: </strong>The absence of synthetic fragrances and harsh chemicals can reduce the likelihood of allergic reactions, making it suitable for sensitive skin and scalps.<br/><br>
+
+<strong>Antioxidant Protection: </strong> Contains antioxidants that protect hair from environmental damage, such as UV rays and pollution.<br/><br>
+
+<strong>Pleasant Natural Fragrance: </strong>The natural fragrance from herbs and essential oils provide a pleasant, subtle scent without the overpowering artificial smell of conventional hair sprays.<br/><br>
+
+<strong>Infection Protection and Eradication: </strong>Anti-bacterial and antifungal properties of the essential oils and organic alcohol effectively remove all sorts of infections.<br/><br>
                                         </li>
                                     </ul>
-                                    <button class="btn btn-primary btn-xl text-uppercase" data-bs-dismiss="modal" type="button">
+                                    <!--<button class="btn btn-primary btn-xl text-uppercase" data-bs-dismiss="modal" type="button">
                                         <i class="fas fa-xmark me-1"></i>
                                         Close Project
-                                    </button>
+                                    </button>-->
+                                    <a class="btn btn-primary btn-xl text-uppercase" href="{% url 'home' %}">Go Shopping</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <strong>OR</strong>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <button class="btn btn-dark btn-xl text-lowercase" data-bs-dismiss="modal" type="button">
+                                        <i class="fas fa-xmark me-1"></i>
+                                        Close 
                                 </div>
                             </div>
                         </div>
@@ -492,7 +509,7 @@
             </div>
         </div>
         
-        <div class="portfolio-modal modal fade" id="portfolioModal2" tabindex="-1" role="dialog" aria-hidden="true">
+         <div class="portfolio-modal modal fade" id="portfolioModal2" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="close-modal" data-bs-dismiss="modal"><img src="{% static 'landing/assets/img/close-icon.svg' %}" alt="Close modal" /></div>
@@ -501,23 +518,48 @@
                             <div class="col-lg-8">
                                 <div class="modal-body">
                                     
-                                    <h2 class="text-uppercase">Project Name</h2>
-                                    <p class="item-intro text-muted">Lorem ipsum dolor sit amet consectetur.</p>
-                                    <img class="img-fluid d-block mx-auto" src="{% static 'landing/assets/img/portfolio/2.jpg' %}" alt="..." />
-                                    <p>Use this area to describe your project. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Est blanditiis dolorem culpa incidunt minus dignissimos deserunt repellat aperiam quasi sunt officia expedita beatae cupiditate, maiores repudiandae, nostrum, reiciendis facere nemo!</p>
+                                    <h2 class="text-uppercase">Hair Food</h2>
+                                    <p class="item-intro text-muted">Soothes the Scalp, Repairs Damages and Locks in Moisture.</p>
+                                    <img class="img-fluid d-block mx-auto" src="{% static 'landing/assets/img/scalp.jpeg' %}" alt="..." />
+                                    <!--<p>Revitalises the hair follicles and hair roots</p>-->
                                     <ul class="list-inline">
                                         <li>
-                                            <strong>Client:</strong>
-                                            Explore
-                                        </li>
+                                            <strong>Ingredients:</strong><br/>
+                                            <strong>Active:</strong> Herbal Extract<br/>
+                                            <strong>Essentials:</strong> Shear butter; Sweet Almond; Rosemary; Grapeseed; Lavendar Oil; Castor Oil<br/>
+                                            <strong>Preservative:</strong> Denatured Organic Alcohol
+                                        </li><br/><br>
                                         <li>
-                                            <strong>Category:</strong>
-                                            Graphic Design
-                                        </li>
-                                    </ul>
-                                    <button class="btn btn-primary btn-xl text-uppercase" data-bs-dismiss="modal" type="button">
+                                            <strong>Benefits:</strong>
+                                            <br/>
+<strong>Enhanced Hair Growth: </strong> Rich in vitamins, minerals, and proteins that nourish hair follicles, promoting healthier and faster hair growth.<br/><br>
+
+<strong>Strengthens Hair:</strong> Natural oils help strengthen the hair shaft, reducing breakage and split ends.<br/><br>
+
+<strong>Deep Conditioning:</strong> Provides intense hydration and conditioning, making hair softer, smoother, and more manageable.<br/><br>
+
+<strong>Scalp Health: </strong> Soothes and nourishes the scalp, reducing issues like dryness, dandruff, and itching.<br/><br>
+
+<strong>Improved Shine and Luster: </strong> Adds a healthy shine and luster to the hair, enhancing its natural beauty.<br/><br>
+
+<strong>Repair Damaged Hair: </strong>Helps repair and restore damaged hair, especially from heat styling, coloring, and environmental factors.<br/><br>
+
+<strong>Detangling Properties: </strong>Makes hair easier to comb and style, reducing tangles and knots.<br/><br>
+
+<strong>Protects Against Environmental Damage: </strong>Antioxidants and natural oils create a protective barrier around the hair, shielding it from pollutants, UV rays, and harsh weather conditions.<br/><br>
+
+<strong>Reduced Frizz: </strong> Hydrating ingredients help to smooth the hair cuticle, reducing frizz and flyaways for a sleeker look.<br/><br>
+
+<strong>Infection Protection and Eradication: </strong>. Shields the sculp from infections, removes dead cells and enhences scalp healing.<br/><br>
+                                    <!--<button class="btn btn-primary btn-xl text-uppercase" data-bs-dismiss="modal" type="button">
                                         <i class="fas fa-xmark me-1"></i>
                                         Close Project
+                                    </button>-->
+                                    <a class="btn btn-primary btn-xl text-uppercase" href="{% url 'home' %}">Go Shopping</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <strong>OR</strong>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <button class="btn btn-dark btn-xl text-lowercase" data-bs-dismiss="modal" type="button">
+                                        <i class="fas fa-xmark me-1"></i>
+                                        Close 
                                     </button>
                                 </div>
                             </div>
@@ -525,7 +567,7 @@
                     </div>
                 </div>
             </div>
-        </div>-->
+        </div>
         
         
         
