@@ -23,7 +23,7 @@ DEBUG = True
 
 #ALLOWED_HOSTS = ['greenmarvel.heroku.com']
 ALLOWED_HOSTS = ['web-production-9df9.up.railway.app', 'https//web-production-9df9.up.railway.app']
-CSRF_TRUSTED_ORIGINS = ['web-production-9df9.up.railway.app', 'https//web-production-9df9.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https//web-production-9df9.up.railway.app']
 
 
 # Application definition
