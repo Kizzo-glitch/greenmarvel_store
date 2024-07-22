@@ -443,7 +443,7 @@ def payment_notify(request):
 			payment.status = 'Failed'
 		payment.save()
     
-	return render(request, 'payments/payment_success.html')
+	return render(request, 'payments/payment_notify.html')
 
 
 

@@ -1,0 +1,107 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Green Marvel</title>
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="{% static 'products/assets/gm.jpeg' %}" />
+        <!-- Bootstrap icons-->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="{% static 'products/css/styles.css' %}" rel="stylesheet" />
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="#!">Green Marvel</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                        <li class="nav-item"><a class="nav-link active" aria-current="page" href="{% url 'landing' %}">Home</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Header-->
+        <header class="bg-dark py-5">
+            <div class="container px-4 px-lg-5 my-5">
+                <div class="text-center text-white">
+                    <h1 class="display-4 fw-bolder">Payment Notification</h1>
+                    <p class="lead fw-normal text-white-50 mb-0">Payment was successful</p>
+                </div>
+            </div>
+        </header>
+
+        <br/><br/>
+        <div class="container">
+            <div class="row">
+                <center>
+                    <div class="col-8">
+                        <br/><br/>
+                    <div class="card">
+                      <div class="card-header">
+                        Order {{ order.id}} Total - R{{order.amount_paid}}
+                      </div>
+                      <div class="card-body">
+                        Email: {{ order.email}}<br/>
+                        {% if order.date_shipped %}
+                          Date Shipped: {{ order.date_shipped}}
+                        {% else %}
+                         Date Ordered: {{ order.date_ordered}}
+                        {% endif %}
+                        <br/><br/>
+                        {{ order.full_name }}<br/>
+                        <pre>{{ order.shipping_address }}
+                        </pre>
+                        {% for item in items %}
+                          {{ item.product.name }}: {{ item.quantity }} - For R{{ item.price }} each<br/>
+                        {% endfor %}
+
+                        <br/><br/>
+                        <!--{% if not order.shipped %}
+                        <form method="POST">
+                          {% csrf_token %}
+                          <input type="hidden" name="shipping_status" value="true">
+                          <button type="Submit" class="btn btn-success">Mark As Shipped</button>
+                        </form>
+
+                        {% else %}
+                        <form method="POST">
+                          {% csrf_token %}
+                          <input type="hidden" name="shipping_status" value="false">
+                          <button type="Submit" class="btn btn-danger">Mark As Not Shipped</button>
+                        </form>
+                        {% endif %}-->
+
+                      </div>
+                    </div>
+                    <br/>
+
+                    <br/><br/>
+                  </div>
+                </center>
+            </div>
+        </div>
+    
+
+    <br/><br/>
+    <br/><br>
+    <br/><br>
+
+       
+        <!-- Footer-->
+        <footer class="py-5 bg-dark">
+            <div class="container"><p class="m-0 text-center text-white">Copyright &copy; Green Marvel 2024</p></div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="{% static 'products/js/scripts.js' %}"></script>
+    </body>
+</html>

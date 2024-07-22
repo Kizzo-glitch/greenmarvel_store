@@ -22,7 +22,7 @@ SECRET_KEY = 'django-insecure-7q=e=s$%((zp6g374w=8j^4@y7)^8_!ywyg4wrqg@gdu#3%8*b
 DEBUG = True
 
 #ALLOWED_HOSTS = ['greenmarvel.heroku.com']
-ALLOWED_HOSTS = [ 'http://0.0.0.0:8080','greenmarvelstore-production.up.railway.app', 'https://greenmarvelstore-production.up.railway.app']
+ALLOWED_HOSTS = ['greenmarvelstore-production.up.railway.app', 'https://greenmarvelstore-production.up.railway.app']
 CSRF_TRUSTED_ORIGINS = ['https://greenmarvelstore-production.up.railway.app']
 
 
