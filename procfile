@@ -1,3 +1,4 @@
-web: gunicorn marvel.wsgi --log-file -
-web: python manage.py migrate && gunicorn marvel.wsg
+web: gunicorn greenmarv.wsgi --log-file 
+web: python manage.py migrate && gunicorn greenmarv.wsg
 
+web: gunicorn main:app
