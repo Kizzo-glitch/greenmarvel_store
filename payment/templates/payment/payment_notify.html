@@ -49,19 +49,7 @@
                         Order {{ order.id}} Total - R{{order.amount_paid}}
                       </div>
                       <div class="card-body">
-                        Email: {{ order.email}}<br/>
-                        {% if order.date_shipped %}
-                          Date Shipped: {{ order.date_shipped}}
-                        {% else %}
-                         Date Ordered: {{ order.date_ordered}}
-                        {% endif %}
-                        <br/><br/>
-                        {{ order.full_name }}<br/>
-                        <pre>{{ order.shipping_address }}
-                        </pre>
-                        {% for item in items %}
-                          {{ item.product.name }}: {{ item.quantity }} - For R{{ item.price }} each<br/>
-                        {% endfor %}
+                        
 
                         <br/><br/>
                         <!--{% if not order.shipped %}

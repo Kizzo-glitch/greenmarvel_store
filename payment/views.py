@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+#from django.contrib.auth.decorators import login_required
+
 from cart.cart import Cart
 from payment.forms import ShippingForm, PaymentForm
 from payment.models import ShippingAddress, Order, OrderItem, PayfastPayment
@@ -8,11 +9,12 @@ from django.contrib import messages
 from greenmarv.models import Product, Profile
 import datetime
 
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 import hashlib
 import urllib.parse
 from django.conf import settings
 from .forms import PayfastPaymentForm
-
 
 
 
@@ -48,7 +50,7 @@ def orders(request, pk):
 		return redirect('home')
 
 
-
+#For Admin View
 def not_shipped_dash(request):
 	if request.user.is_authenticated and request.user.is_superuser:
 		orders = Order.objects.filter(shipped=False)
@@ -71,7 +73,7 @@ def not_shipped_dash(request):
 		messages.success(request, "Access Denied")
 		return redirect('home')
 
-
+#For Admin View
 def shipped_dash(request):
 	if request.user.is_authenticated and request.user.is_superuser:
 		orders = Order.objects.filter(shipped=True)
@@ -94,8 +96,8 @@ def shipped_dash(request):
 		return redirect('home')
 
 
-
-def process_order2(request):
+#Process Order and Initiate Payfast payment
+def process_order(request):
 	if request.POST:
 		# Get the cart
 		cart = Cart(request)
@@ -117,20 +119,25 @@ def process_order2(request):
 		shipping_address = f"{my_shipping['shipping_address1']}\n{my_shipping['shipping_apartment']}\n{my_shipping['shipping_city']}\n{my_shipping['shipping_province']}\n{my_shipping['shipping_zipcode']}\n{my_shipping['shipping_country']}"
 		amount_paid = totals
 
-		user = request.user
+		#user = request.user
 		# Create Order
-		create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
-		create_order.save()
+		#create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
+		#create_order.save()
 
 		# Add order items
 			
 		# Get the order ID
-		order_id = create_order.pk
+		#order_id = create_order.pk
 
 		# Create an Order
 		if request.user.is_authenticated:
 			# logged in
 			#user = request.user
+			user = request.user
+			# Create Order
+			order_id = create_order.pk
+			create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
+			create_order.save()
 			
 			
 			# Get product Info
@@ -150,30 +157,63 @@ def process_order2(request):
 						create_order_item = OrderItem(order_id=order_id, product_id=product_id, user=user, quantity=value, price=price)
 						create_order_item.save()
 
-			# Delete our cart
+
+			payment = PayfastPayment.objects.create(
+            	order_id=order_id,
+            	amount=amount_paid,
+            	status='Pending',
+            	name_first = user.first_name,
+	        	name_last = user.last_name,
+	        	email = create_order.email
+	        	)
+
+			data = {
+            	'merchant_id': settings.PAYFAST_MERCHANT_ID,
+            	'merchant_key': settings.PAYFAST_MERCHANT_KEY,
+            	'return_url': 'https://greenmarvelstore-production.up.railway.app/home/',  
+            	'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
+            	'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
+
+            	'name_first': payment.name_first, #full_name.split()[0],  # Assuming first name is the first part of full_name
+            	'name_last': payment.name_last, #full_name.split()[-1],  # Assuming last name is the last part of full_name
+            	'email_address': payment.email,
+
+            	'm_payment_id': payment.order_id,
+            	'amount': payment.amount,
+            	'item_name': 'Order Product',
+            	}
+			signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
+			data['signature'] = signature
+
+			payfast_url = "https://sandbox.payfast.co.za/eng/process?"
+			#payment_url = payfast_url + urllib.parse.urlencode(data).replace('%2B', '+')
+			payment_url = payfast_url + urllib.parse.urlencode(data)
+
+			# Clear the cart
 			for key in list(request.session.keys()):
 				if key == "session_key":
-					# Delete the key
 					del request.session[key]
 
-			# Delete Cart from Database (old_cart field)
-			current_user = Profile.objects.filter(user__id=request.user.id)
-			# Delete shopping cart in database (old_cart field)
-			current_user.update(old_cart="")
+			if user:
+				current_user = Profile.objects.filter(user__id=request.user.id)
+				current_user.update(old_cart="")
 
-			messages.success(request, "Order Placed!")
-			return redirect('home')			
+
+			return redirect(payment_url)
+
+			#messages.success(request, "Order Placed!")
+			#return redirect('home')			
 
 		else:
 			# not logged in
 			# Create Order
-			#create_order = Order(full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
-			c#reate_order.save()
+			create_order = Order(full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
+			create_order.save()
 
 			# Add order items
 			
 			# Get the order ID
-			#order_id = create_order.pk
+			order_id = create_order.pk
 			
 			# Get product Info
 			for product in cart_products():
@@ -192,46 +232,70 @@ def process_order2(request):
 						create_order_item = OrderItem(order_id=order_id, product_id=product_id, quantity=value, price=price)
 						create_order_item.save()
 
+			payment = PayfastPayment.objects.create(
+            	order_id=order_id,
+            	amount=amount_paid,
+            	status='Pending',
+            	name_first = create_order.full_name.split()[0],
+	        	name_last = create_order.full_name.split()[-1],
+	        	email = create_order.email
+            )
 
-			# Delete our cart
+			data = {
+            	'merchant_id': settings.PAYFAST_MERCHANT_ID,
+            	'merchant_key': settings.PAYFAST_MERCHANT_KEY,
+            	'return_url': 'http://127.0.0.1:8000/home/',#'https://greenmarvelstore-production.up.railway.app/home/',  
+            	'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
+            	'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
+
+            	'name_first': payment.name_first,  # Assuming first name is the first part of full_name
+            	'name_last':  payment.name_last,   # Assuming last name is the last part of full_name
+            	'email_address': payment.email,
+
+            	'm_payment_id': payment.order_id,
+            	'amount': payment.amount,
+            	'item_name': 'Order Product',
+            	}
+			signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
+			data['signature'] = signature
+
+			payfast_url = "https://sandbox.payfast.co.za/eng/process?"
+			#payment_url = payfast_url + urllib.parse.urlencode(data).replace('%2B', '+')
+			payment_url = payfast_url + urllib.parse.urlencode(data)
+
+			# Clear the cart
 			for key in list(request.session.keys()):
 				if key == "session_key":
-					# Delete the key
 					del request.session[key]
 
-			messages.success(request, "Order Placed!")
-			return redirect('home')
+			#if user:
+			#	current_user = Profile.objects.filter(user__id=request.user.id)
+			#	current_user.update(old_cart="")
 
+			#messages.success(request, "Order Placed!")		
+			#return redirect('home')
 
-		payment = PayfastPayment.objects.create(
-            order_id=order_id,
-            amount=create_order.amount_paid,
-            status='Pending')
-
-		data = {
-            'merchant_id': settings.PAYFAST_MERCHANT_ID,
-            'merchant_key': settings.PAYFAST_MERCHANT_KEY,
-            'return_url': request.build_absolute_uri('/payments/templates/success/'),
-            'cancel_url': request.build_absolute_uri('/payments/cancel/'),
-            'notify_url': request.build_absolute_uri('/payments/notify/'),
-            'm_payment_id': payment.order_id,
-            'amount': format(payment.amount, '.2f'),
-            'item_name': 'Order Payment',
-            'name_first': full_name.split()[0],  # Assuming first name is the first part of full_name
-            'name_last': full_name.split()[-1],  # Assuming last name is the last part of full_name
-            'email_address': email,}
-		signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
-		data['signature'] = signature
-
-		payfast_url = "https://www.sandbox.payfast.co.za/eng/process?"
-		payment_url = payfast_url + urllib.parse.urlencode(data).replace('%2B', '+')
-
-		return redirect(payment_url)
+			return redirect(payment_url)
+			
+			
     
 
-	else:
-		messages.success(request, "Access Denied")
-		return redirect('home')
+	#else:
+	#	messages.success(request, "Access Denied")
+	#	return redirect('home')
+
+
+#Generate Payfast Signature
+def generate_signature(dataArray, passPhrase = ''):
+	payload = ""
+	for key in dataArray:
+        # Get all the data from Payfast and prepare parameter string
+		payload += key + "=" + urllib.parse.quote_plus(str(dataArray[key]).replace("+", " ")) + "&"
+    # After looping through, cut the last & or append your passphrase
+	payload = payload[:-1]
+	if passPhrase != '':
+		payload += f"&passphrase={passPhrase}"
+	return hashlib.md5(payload.encode()).hexdigest()
 
 
 
@@ -292,34 +356,15 @@ def checkout(request):
 def payment_success(request):
 	return render(request, "payment/payment_success.html", {})
 
-
-
-def generate_signature2(data, passphrase=''):
-    pf_output = ''
-    for key in sorted(data.keys()):
-        if data[key] != '':
-            pf_output += f'{key}={urllib.parse.quote(str(data[key]).strip()).replace("%20", "+")}&' 
-    get_string = pf_output[:-1]
-    if passphrase:    	
-        get_string += f'&passphrase={urllib.parse.quote(passphrase.strip()).replace("%20", "+")}'
-    
-    return hashlib.md5(get_string.encode()).hexdigest()
-
-
-
 def payment_success(request):
     return render(request, 'payments/payment_success.html')
 
 def payment_cancel(request):
     return render(request, 'payment/payment_cancel.html')
 
-def payment_notify(request):
-    # Verify the payment and update the payment status
-    pass
 
 
-
-def generate_signature(dataArray, passPhrase = ''):
+def generate_signature2(dataArray, passPhrase = ''):
 	payload = ""
 	for key in dataArray:
         # Get all the data from Payfast and prepare parameter string
@@ -332,8 +377,8 @@ def generate_signature(dataArray, passPhrase = ''):
 
 
 
-@login_required
-def process_order(request):
+
+def process_order2(request):
 	if request.POST:
         # Get the cart
 		cart = Cart(request)
@@ -430,9 +475,51 @@ def process_order(request):
 		messages.error(request, "Access Denied")
 		return redirect('home')
 
-
-
+@csrf_exempt
 def payment_notify(request):
+	if request.method == 'POST':
+		data = request.POST.dict()
+		received_signature = data.pop('signature', None)
+		generated_signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
+
+
+		if generated_signature == received_signature:
+			payment_status = data.get('payment_status')
+			order_id = data.get('m_payment_id')
+
+			try:
+				payment = PayfastPayment.objects.get(order_id=order_id)
+				#order = Order.objects.get(order_id=order_id)
+
+				if payment_status == 'COMPLETE':
+					payment.status = 'Completed'
+					#order.status = 'Completed'
+				else:
+					payment.status = 'Failed'
+					#order.status = 'Failed'
+
+				payment.save()
+				#order.save()
+
+				# Optionally, store order_id and amount_paid in session for success view
+				#request.session['order_id'] = order_id
+				#request.session['amount_paid'] = order.amount_paid
+
+				return HttpResponse('Payment notification processed', status=200)
+
+			except (Payment.DoesNotExist, Order.DoesNotExist):
+				return HttpResponse('Order or payment not found', status=400)
+
+		else:
+			return HttpResponse('Signature mismatch', status=400)
+
+	return HttpResponse('Invalid request method', status=400)
+
+
+
+
+
+def payment_notify2(request):
 	data = request.POST.dict()
 	signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
     
