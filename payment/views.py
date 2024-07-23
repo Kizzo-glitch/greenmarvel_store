@@ -394,8 +394,8 @@ def process_order(request):
             'merchant_id': settings.PAYFAST_MERCHANT_ID,
             'merchant_key': settings.PAYFAST_MERCHANT_KEY,
             'return_url': 'https://greenmarvelstore-production.up.railway.app/home/',  
-            'cancel_url': request.build_absolute_uri('/payments/cancel/'),
-            'notify_url': request.build_absolute_uri('/payments/notify/'),
+            'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payments/cancel/',
+            'notify_url': 'https://greenmarvelstore-production.up.railway.app/payments/notify/',
 
             'name_first': payment.name_first, #full_name.split()[0],  # Assuming first name is the first part of full_name
             'name_last': payment.name_last, #full_name.split()[-1],  # Assuming last name is the last part of full_name
