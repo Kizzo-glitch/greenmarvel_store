@@ -35,8 +35,9 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
-                        {% if user.is_authenticated %} 
-                        <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>                      
+                        {% if user.is_authenticated %}                        
+                        <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+                        {% if not user.is_superuser %}                      
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Profile</a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
@@ -46,6 +47,8 @@
                                 
                             </ul>
                         </li> 
+                        {% endif %}
+                        
                         {% if user.is_superuser %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Orders</a>
@@ -53,7 +56,8 @@
                                 <li><a class="dropdown-item" href="{% url 'shipped_dash' %}">Shipped Orders</a></li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li><a class="dropdown-item" href="{% url 'not_shipped_dash' %}">Unshipped Orders</a></li>
-                                <li><a class="dropdown-item" href="{% url 'payment_notify' %}">Payment Notifications</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" href="{% url 'payment_notify' %}">Payfast Notifications</a></li>
                                 
                             </ul>
                         </li> 

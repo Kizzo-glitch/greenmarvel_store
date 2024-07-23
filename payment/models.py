@@ -13,6 +13,7 @@ class ShippingAddress(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 	shipping_full_name = models.CharField(max_length=255)
 	shipping_email = models.CharField(max_length=255)
+	shipping_phone = models.CharField(max_length=20)
 	shipping_address1 = models.CharField(max_length=255)
 	shipping_apartment = models.CharField(max_length=255, null=True, blank=True)
 	shipping_city = models.CharField(max_length=255)
@@ -28,7 +29,6 @@ class ShippingAddress(models.Model):
 
 	def __str__(self):
 		return f'Shipping Address - {str(self.id)}'
-
 
 
 
@@ -53,7 +53,7 @@ class Order(models.Model):
 	date_ordered = models.DateTimeField(auto_now_add=True)	
 	shipped = models.BooleanField(default=False)
 	date_shipped = models.DateTimeField(blank=True, null=True)
-	proof_of_payment = models.FileField(default=False, upload_to="media/uploads/payments/")
+	#proof_of_payment = models.FileField(default=False, upload_to="media/uploads/payments/")
 	
 	def __str__(self):
 		return f'Order - {str(self.id)}'
@@ -76,8 +76,10 @@ class PayfastPayment(models.Model):
 	amount = models.DecimalField(max_digits=10, decimal_places=2)
 	email = models.EmailField(max_length=250)
 	status = models.CharField(max_length=20, default='Pending')
-	created_at = models.DateTimeField(auto_now_add=True)
-	updated_at = models.DateTimeField(auto_now=True)
+	created_at = models.DateField(default=datetime.datetime.today)
+	updated_at = models.DateField(default=datetime.datetime.today)
+	itn_payload = models.TextField(null=True, blank=True)
+	phone = models.CharField(max_length=20, blank=True)
 
 	def __str__(self):
 		return f'PayfastPayment - {self.order_id}'
