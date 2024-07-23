@@ -308,10 +308,10 @@ def generate_signature2(data, passphrase=''):
 
 
 def payment_success(request):
-    return render(request, 'payments/success.html')
+    return render(request, 'payments/payment_success.html')
 
 def payment_cancel(request):
-    return render(request, 'payments/cancel.html')
+    return render(request, 'payment/payment_cancel.html')
 
 def payment_notify(request):
     # Verify the payment and update the payment status
@@ -444,7 +444,7 @@ def payment_notify(request):
 			payment.status = 'Failed'
 		payment.save()
     
-	return render(request, 'payments/payment_notify.html')
+	return render(request, 'payment/payment_notify.html')
 
 
 
