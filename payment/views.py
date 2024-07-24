@@ -115,6 +115,46 @@ def payment_success(request):
     	})
 
 
+@csrf_exempt
+def payment_notify(request):
+	if request.method == 'POST':
+		data = request.POST.dict()
+		received_signature = data.pop('signature', None)
+		generated_signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
+
+
+		if generated_signature == received_signature:
+			payment_status = data.get('payment_status')
+			order_id = data.get('m_payment_id')
+
+			try:
+				payment = PayfastPayment.objects.get(order_id=order_id)
+
+				if payment_status == 'COMPLETE':
+					payment.status = 'Completed'
+					
+				else:
+					payment.status = 'Failed'
+					
+				payment.itn_payload = request.POST.urlencode()
+				payment.save()
+				
+
+				# Optionally, store order_id and amount_paid in session for success view
+				#request.session['order_id'] = order_id
+				#request.session['amount_paid'] = payment.amount_paid
+				#request.session['itn_payload'] = request.POST.urlencode()
+
+				return HttpResponse('Payment notification processed', status=200)
+
+			except (Payment.DoesNotExist, Order.DoesNotExist):
+				return HttpResponse('Order or payment not found', status=400)
+
+		else:
+			return HttpResponse('Signature mismatch', status=400)
+
+	return HttpResponse('Invalid request method', status=400)
+
 
 #Process Order and Initiate Payfast payment
 def process_order(request):
@@ -387,45 +427,7 @@ def payment_cancel(request):
 
 
 
-@csrf_exempt
-def payment_notify(request):
-	if request.method == 'POST':
-		data = request.POST.dict()
-		received_signature = data.pop('signature', None)
-		generated_signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 
-
-		if generated_signature == received_signature:
-			payment_status = data.get('payment_status')
-			order_id = data.get('m_payment_id')
-
-			try:
-				payment = PayfastPayment.objects.get(order_id=order_id)
-
-				if payment_status == 'COMPLETE':
-					payment.status = 'Completed'
-					
-				else:
-					payment.status = 'Failed'
-					
-				payment.itn_payload = request.POST.urlencode()
-				payment.save()
-				
-
-				# Optionally, store order_id and amount_paid in session for success view
-				#request.session['order_id'] = order_id
-				#request.session['amount_paid'] = payment.amount_paid
-				#request.session['itn_payload'] = request.POST.urlencode()
-
-				return HttpResponse('Payment notification processed', status=200)
-
-			except (Payment.DoesNotExist, Order.DoesNotExist):
-				return HttpResponse('Order or payment not found', status=400)
-
-		else:
-			return HttpResponse('Signature mismatch', status=400)
-
-	return HttpResponse('Invalid request method', status=400)
 
 
 
