@@ -408,7 +408,7 @@ def payment_notify(request):
 				else:
 					payment.status = 'Failed'
 					
-				#payment.itn_payload = request.POST.urlencode()
+				payment.itn_payload = request.POST.urlencode()
 				payment.save()
 				
 
