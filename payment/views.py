@@ -401,21 +401,20 @@ def payment_notify(request):
 
 			try:
 				payment = PayfastPayment.objects.get(order_id=order_id)
-				order = Order.objects.get(order_id=order_id)
 
 				if payment_status == 'COMPLETE':
 					payment.status = 'Completed'
-					order.status = 'Completed'
+					
 				else:
 					payment.status = 'Failed'
-					order.status = 'Failed'
+					
 				payment.itn_payload = request.POST.urlencode()
 				payment.save()
-				order.save()
+				
 
 				# Optionally, store order_id and amount_paid in session for success view
 				request.session['order_id'] = order_id
-				request.session['amount_paid'] = order.amount_paid
+				request.session['amount_paid'] = payment.amount_paid
 				request.session['itn_payload'] = request.POST.urlencode()
 
 				return HttpResponse('Payment notification processed', status=200)
