@@ -79,7 +79,7 @@ class PayfastPayment(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 	itn_payload = models.TextField(null=True, blank=True)
-	phone = models.CharField(max_length=100, blank=True)
+	phone = models.CharField(max_length=100, blank=True, null=True,)
 
 	def __str__(self):
 		return f'PayfastPayment - {self.order_id}'
