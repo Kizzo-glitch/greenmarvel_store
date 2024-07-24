@@ -145,18 +145,16 @@ def process_order(request):
 		#create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
 		#create_order.save()
 
-		# Add order items
 			
-		# Get the order ID
-		#order_id = create_order.pk
-
-		# Create an Order
+		
+		
 		if request.user.is_authenticated:
-			# logged in
-			#user = request.user
+			# logged in			
 			user = request.user
+			# Add order items	
 			# Create Order			
 			create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
+			# Get the order ID
 			order_id = create_order.pk
 			create_order.save()
 			

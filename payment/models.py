@@ -76,10 +76,10 @@ class PayfastPayment(models.Model):
 	amount = models.DecimalField(max_digits=10, decimal_places=2)
 	email = models.EmailField(max_length=250)
 	status = models.CharField(max_length=20, default='Pending')
-	created_at = models.DateField(default=datetime.datetime.today)
-	updated_at = models.DateField(default=datetime.datetime.today)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
 	itn_payload = models.TextField(null=True, blank=True)
-	phone = models.CharField(max_length=20, blank=True)
+	phone = models.CharField(max_length=100, blank=True)
 
 	def __str__(self):
 		return f'PayfastPayment - {self.order_id}'
