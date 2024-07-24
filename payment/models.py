@@ -70,7 +70,7 @@ def set_shipped_date_on_update(sender, instance, **kwargs):
 
 
 class PayfastPayment(models.Model):
-	order_id = models.CharField(max_length=100)
+	order_id = models.CharField(max_length=100, null=True)
 	name_first = models.CharField(max_length=100)
 	name_last = models.CharField(max_length=100)
 	amount = models.DecimalField(max_digits=10, decimal_places=2)
