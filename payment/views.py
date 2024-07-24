@@ -419,8 +419,7 @@ def checkout(request):
 def payment_success(request):
 	return render(request, "payment/payment_success.html", {})
 
-def payment_success(request):
-    return render(request, 'payments/payment_success.html')
+
 
 def payment_cancel(request):
     return render(request, 'payment/payment_cancel.html')
