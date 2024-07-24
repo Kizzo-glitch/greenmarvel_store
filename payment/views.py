@@ -155,9 +155,9 @@ def process_order(request):
 			# logged in
 			#user = request.user
 			user = request.user
-			# Create Order
-			order_id = create_order.pk
+			# Create Order			
 			create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
+			order_id = create_order.pk
 			create_order.save()
 			
 			
