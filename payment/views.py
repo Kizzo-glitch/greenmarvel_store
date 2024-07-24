@@ -413,9 +413,9 @@ def payment_notify(request):
 				
 
 				# Optionally, store order_id and amount_paid in session for success view
-				request.session['order_id'] = order_id
-				request.session['amount_paid'] = payment.amount_paid
-				request.session['itn_payload'] = request.POST.urlencode()
+				#request.session['order_id'] = order_id
+				#request.session['amount_paid'] = payment.amount_paid
+				#request.session['itn_payload'] = request.POST.urlencode()
 
 				return HttpResponse('Payment notification processed', status=200)
 
