@@ -98,7 +98,7 @@ def shipped_dash(request):
 
 #For Admin View
 def payment_success(request):
-	if request.user.is_authenticated and request.user.is_superuser:
+	if request.user.is_superuser:
 		#payment = get_object_or_404(PayfastPayment, payment_id=order_id)
 		payment = PayfastPayment.objects.get(itn_payload)
 		
