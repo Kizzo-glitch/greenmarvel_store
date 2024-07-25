@@ -95,22 +95,17 @@ def shipped_dash(request):
 		messages.success(request, "Access Denied")
 		return redirect('home')
 
+
 #For Admin View
-def payment_success(request):
+def payment_success(request, payment_id):
 	if request.user.is_authenticated and request.user.is_superuser:
-		order_id = request.session.get('order_id')
-		amount_paid = request.session.get('amount_paid')
-		itn_payload = request.session.get('itn_payload')
-
-		request.session.pop('order_id', None)
-		request.session.pop('amount_paid', None)
-		request.session.pop('itn_payload', None)
-
-		itn_data = dict(urllib.parse.parse_qsl(itn_payload)) if itn_payload else {}
+		payment = get_object_or_404(PayfastPayment, payment_id=order_id)
+		
+		itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) if payment.itn_payload else {}
     
 		return render(request, 'payment/payment_success.html', {
-        	'order_id': order_id,
-        	'amount_paid': amount_paid,
+        	'order_id': payment.order.id,
+        	'amount_paid': payment.amount,
         	'itn_data': itn_data,
     	})
 
@@ -185,8 +180,7 @@ def process_order(request):
 		#create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
 		#create_order.save()
 
-			
-		
+					
 		
 		if request.user.is_authenticated:
 			# logged in			
