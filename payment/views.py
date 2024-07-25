@@ -216,8 +216,8 @@ def process_order(request):
             	order_id=order_id,
             	amount=amount_paid,
             	status='Pending',
-            	name_first = user.first_name,
-	        	name_last = user.last_name,
+            	name_first = create_order.full_name.split()[0],
+	        	name_last = create_order.full_name.split()[-1],
 	        	email = create_order.email,
 	        	phone = phone,
 	        	)
