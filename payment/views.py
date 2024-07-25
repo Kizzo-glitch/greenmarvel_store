@@ -97,15 +97,16 @@ def shipped_dash(request):
 
 
 #For Admin View
-def payment_success(request, payment_id):
+def payment_success(request):
 	if request.user.is_authenticated and request.user.is_superuser:
-		payment = get_object_or_404(PayfastPayment, payment_id=order_id)
+		#payment = get_object_or_404(PayfastPayment, payment_id=order_id)
+		payment = PayfastPayment.objects.get(itn_payload)
 		
-		itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) if payment.itn_payload else {}
+		itn_data = dict(urllib.parse.parse_qsl(itn_payload)) #if payment.itn_payload else {}
     
 		return render(request, 'payment/payment_success.html', {
-        	'order_id': payment.order.id,
-        	'amount_paid': payment.amount,
+        	#'order_id': payment.order.id,
+        	#'amount_paid': payment.amount,
         	'itn_data': itn_data,
     	})
 
