@@ -18,7 +18,6 @@ from django.conf import settings
 
 
 
-
 def orders(request, pk):
 	if request.user.is_authenticated and request.user.is_superuser:
 		# Get the order
@@ -253,6 +252,11 @@ def process_order(request):
 			if user:
 				current_user = Profile.objects.filter(user__id=request.user.id)
 				current_user.update(old_cart="")
+
+			# Delete Cart from Database (old_cart field)
+			#current_user = Profile.objects.filter(user__id=request.user.id)
+			# Delete shopping cart in database (old_cart field)
+			#current_user.update(old_cart="")
 
 
 			return redirect(payment_url)
