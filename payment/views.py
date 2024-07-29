@@ -299,7 +299,7 @@ def process_order(request):
             	name_first = create_order.full_name.split()[0],
 	        	name_last = create_order.full_name.split()[-1],
 	        	email = create_order.email,
-	        	phone = phone,
+	        	#phone = phone,
             )
 
 			data = {
@@ -312,7 +312,7 @@ def process_order(request):
             	'name_first': payment.name_first,  # Assuming first name is the first part of full_name
             	'name_last':  payment.name_last,   # Assuming last name is the last part of full_name
             	'email_address': payment.email,
-            	'cell_number': payment.phone,
+            	#'cell_number': payment.phone,
 
             	'm_payment_id': payment.order_id,
             	'amount': payment.amount,
