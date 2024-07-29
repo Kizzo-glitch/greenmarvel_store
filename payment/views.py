@@ -96,17 +96,17 @@ def shipped_dash(request):
 
 
 #For Admin View
-def payment_success(request):
+def payment_success(request, pk):
 	if request.user.is_superuser:
 		#payment = get_object_or_404(PayfastPayment, payment_id=order_id)
-		payment = PayfastPayment.objects.get(itn_payload)
+		payment = PayfastPayment.objects.get(order_id=pk)
 		
-		itn_data = dict(urllib.parse.parse_qsl(itn_payload)) #if payment.itn_payload else {}
+		#itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) #if payment.itn_payload else {}
     
 		return render(request, 'payment/payment_success.html', {
         	#'order_id': payment.order.id,
         	#'amount_paid': payment.amount,
-        	'itn_data': itn_data,
+        	'payment': payment,
     	})
 
 
@@ -218,7 +218,7 @@ def process_order(request):
             	name_first = create_order.full_name.split()[0],
 	        	name_last = create_order.full_name.split()[-1],
 	        	email = create_order.email,
-	        	phone = phone,
+	        	#phone = phone,
 	        	)
 
 			data = {
@@ -231,7 +231,7 @@ def process_order(request):
             	'name_first': payment.name_first, #full_name.split()[0],  # Assuming first name is the first part of full_name
             	'name_last': payment.name_last, #full_name.split()[-1],  # Assuming last name is the last part of full_name
             	'email_address': payment.email,
-            	'cell_number': payment.phone,
+            	#'cell_number': payment.phone,
 
             	'm_payment_id': payment.order_id,
             	'amount': payment.amount,
