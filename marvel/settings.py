@@ -22,7 +22,7 @@ SECRET_KEY = 'django-insecure-7q=e=s$%((zp6g374w=8j^4@y7)^8_!ywyg4wrqg@gdu#3%8*b
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['127.0.0.1', 'greenmarvelstore-production.up.railway.app', 'https://greenmarvelstore-production.up.railway.app']
+ALLOWED_HOSTS = ['greenmarvelstore-production.up.railway.app', 'https://greenmarvelstore-production.up.railway.app']
 CSRF_TRUSTED_ORIGINS = ['https://greenmarvelstore-production.up.railway.app']
 
 #'127.0.0.1',
@@ -79,23 +79,23 @@ WSGI_APPLICATION = 'marvel.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
  
-#DATABASES = {
-#   'default': {
- #       'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': BASE_DIR / 'db.sqlite3',
- #   }
-#}
-
 DATABASES = {
-   'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER': 'postgres',
-        'PASSWORD': os.environ['DB_PASSWORD'],
-        'HOST': 'monorail.proxy.rlwy.net',
-        'PORT': '58664',
+  'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+#DATABASES = {
+#   'default': {
+ #       'ENGINE': 'django.db.backends.postgresql',
+ #       'NAME': 'railway',
+ #       'USER': 'postgres',
+ #       'PASSWORD': os.environ['DB_PASSWORD'],
+ #       'HOST': 'monorail.proxy.rlwy.net',
+ #       'PORT': '58664',
+  #  }
+#}
 
 
 # Password validation
