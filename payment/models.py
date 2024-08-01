@@ -53,7 +53,7 @@ class Order(models.Model):
 	date_ordered = models.DateTimeField(auto_now_add=True)	
 	shipped = models.BooleanField(default=False)
 	date_shipped = models.DateTimeField(blank=True, null=True)
-	#proof_of_payment = models.FileField(default=False, upload_to="media/uploads/payments/")
+	
 	
 	def __str__(self):
 		return f'Order - {str(self.id)}'
@@ -71,6 +71,8 @@ def set_shipped_date_on_update(sender, instance, **kwargs):
 
 class PayfastPayment(models.Model):
 	order_id = models.CharField(max_length=100, null=True)
+	#order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
+	#m_payment_id = models.CharField(max_length=100, null=True)
 	name_first = models.CharField(max_length=100)
 	name_last = models.CharField(max_length=100)
 	amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -83,6 +85,9 @@ class PayfastPayment(models.Model):
 
 	def __str__(self):
 		return f'PayfastPayment - {self.order_id}'
+
+	#def __str__(self):
+	#	return f"PayfastPayment {self.id} - Order {self.order.id}"
 
 
 # Create Order Items Model

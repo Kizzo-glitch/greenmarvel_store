@@ -24,6 +24,7 @@ def orders(request, pk):
 		order = Order.objects.get(id=pk)
 		# Get the order items
 		items = OrderItem.objects.filter(order=pk)
+		
 
 		if request.POST:
 			status = request.POST['shipping_status']
@@ -64,7 +65,7 @@ def not_shipped_dash(request):
 			order.update(shipped=True, date_shipped=now)
 			# redirect
 			messages.success(request, "Shipping Status Updated")
-			return redirect('home')
+			return redirect('payment/shipped_dash.html')
 
 		return render(request, "payment/not_shipped_dash.html", {"orders":orders})
 		
@@ -87,7 +88,7 @@ def shipped_dash(request):
 			order.update(shipped=False)
 			# redirect
 			messages.success(request, "Shipping Status Updated")
-			return redirect('home')
+			return redirect('payment/not_shipped_dash.html')
 
 		return render(request, "payment/shipped_dash.html", {"orders":orders})
 	else:
@@ -95,18 +96,21 @@ def shipped_dash(request):
 		return redirect('home')
 
 
+
 #For Admin View
-def payment_success(request, pk):
+def payment_success(request, payment_id):
 	if request.user.is_superuser:
-		#payment = get_object_or_404(PayfastPayment, payment_id=order_id)
-		payment = PayfastPayment.objects.get(order_id=pk)
+		# Retrieve the payment instance based on the payment_id
+		payment = get_object_or_404(PayfastPayment, payment_id=order_id)
 		
-		#itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) #if payment.itn_payload else {}
+		#payment = PayfastPayment.objects.get(order_id)
+		
+		itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) if payment.itn_payload else {}
     
 		return render(request, 'payment/payment_success.html', {
-        	#'order_id': payment.order.id,
-        	#'amount_paid': payment.amount,
-        	'payment': payment,
+        	'order_id': payment.order.id,
+        	'amount_paid': payment.amount,
+        	'itn_data': itn_data
     	})
 
 
@@ -177,8 +181,12 @@ def process_order(request):
 
 		#user = request.user
 		# Create Order
-		#create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
-		#create_order.save()
+		create_order = Order(full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
+		create_order.save()
+
+		# Get the order ID
+		order_id = create_order.pk
+		create_order.save()
 
 					
 		
@@ -187,10 +195,10 @@ def process_order(request):
 			user = request.user
 			# Add order items	
 			# Create Order			
-			create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
+			#create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
 			# Get the order ID
-			order_id = create_order.pk
-			create_order.save()
+			#order_id = create_order.pk
+			#create_order.save()
 			
 			
 			# Get product Info
@@ -218,7 +226,7 @@ def process_order(request):
             	name_first = create_order.full_name.split()[0],
 	        	name_last = create_order.full_name.split()[-1],
 	        	email = create_order.email,
-	        	#phone = phone,
+	        	phone = phone,
 	        	)
 
 			data = {
@@ -267,13 +275,13 @@ def process_order(request):
 		else:
 			# not logged in
 			# Create Order
-			create_order = Order(full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
-			create_order.save()
+			#create_order = Order(full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
+			#create_order.save()
 
 			# Add order items
 			
 			# Get the order ID
-			order_id = create_order.pk
+			#order_id = create_order.pk
 			
 			# Get product Info
 			for product in cart_products():
@@ -299,7 +307,7 @@ def process_order(request):
             	name_first = create_order.full_name.split()[0],
 	        	name_last = create_order.full_name.split()[-1],
 	        	email = create_order.email,
-	        	#phone = phone,
+	        	phone = phone,
             )
 
 			data = {

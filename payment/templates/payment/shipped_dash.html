@@ -59,6 +59,7 @@
                         <tr>
                           <th scope="col">Order</th>
                           <th scope="col">Price</th>
+                          <th scope="col">Customer name</th>
                           <th scope="col">Customer Email</th>
                           <th scope="col">Date Shipped</th>
                           <th scope="col">Shipped</th>
@@ -69,6 +70,7 @@
                         <tr>
                           <td><a href="{% url 'orders' item.id %}">{{ item.id }}</a></td>
                           <td>R{{ item.amount_paid }}</td>
+                          <td>{{ item.full_name }}</td>
                           <td>{{ item.email }}</td>
                           <td>{{ item.date_shipped }}</td>
                           <td>

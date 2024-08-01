@@ -134,9 +134,15 @@ def login_user(request):
 			login(request, user)
 
 			# Do some shopping cart stuff
-			current_user = Profile.objects.get(user__id=request.user.id)
+			#current_user = Profile.objects.get(user__id=request.user.id)
+
+
+			# Ensure the Profile exists for the user
+			profile, created = Profile.objects.get_or_create(user=user)
+
+
 			# Get their saved cart from database
-			saved_cart = current_user.old_cart
+			saved_cart = profile.old_cart
 			# Convert database string to python dictionary
 			if saved_cart:
 				# Convert to dictionary using JSON

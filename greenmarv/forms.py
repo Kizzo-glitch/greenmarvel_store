@@ -76,7 +76,7 @@ class UpdateUserForm(UserChangeForm):
 
 class UserInfoForm(forms.ModelForm):
 	phone = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Phone'}), required=False)
-	address1 = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Address 1'}), required=False)
+	address1 = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Street Name'}), required=False)
 	apartment = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Apartment'}), required=False)
 	city = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'City'}), required=False)
 	province = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Province'}), required=False)
