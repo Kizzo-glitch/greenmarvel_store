@@ -5,7 +5,7 @@ class ShippingForm(forms.ModelForm):
 	shipping_full_name = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Full Name'}), required=True)
 	shipping_email = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Email Address'}), required=True)
 	shipping_phone = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Phone Number'}), required=True)
-	shipping_address1 = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Address1'}), required=True)
+	shipping_address1 = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Street Name'}), required=True)
 	shipping_apartment = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Apartment'}), required=False)
 	shipping_city = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'City'}), required=True)
 	shipping_province = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Province'}), required=False)
