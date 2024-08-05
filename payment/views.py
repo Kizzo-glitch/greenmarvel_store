@@ -239,8 +239,7 @@ def process_order(request):
             	'name_first': payment.name_first, #full_name.split()[0],  # Assuming first name is the first part of full_name
             	'name_last': payment.name_last, #full_name.split()[-1],  # Assuming last name is the last part of full_name
             	'email_address': payment.email,
-            	#'cell_number': payment.phone,
-
+            	
             	'm_payment_id': payment.order_id,
             	'amount': payment.amount,
             	'item_name': 'Order Product',
@@ -248,7 +247,7 @@ def process_order(request):
 			signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 			data['signature'] = signature
 
-			payfast_url = "https://sandbox.payfast.co.za/eng/process?"
+			payfast_url = "www.payfast.co.za" #"https://sandbox.payfast.co.za/eng/process?"
 			#payment_url = payfast_url + urllib.parse.urlencode(data).replace('%2B', '+')
 			payment_url = payfast_url + urllib.parse.urlencode(data)
 
@@ -319,8 +318,7 @@ def process_order(request):
 
             	'name_first': payment.name_first,  # Assuming first name is the first part of full_name
             	'name_last':  payment.name_last,   # Assuming last name is the last part of full_name
-            	'email_address': payment.email,
-            	#'cell_number': payment.phone,
+            	'email_address': payment.email,         	
 
             	'm_payment_id': payment.order_id,
             	'amount': payment.amount,
@@ -329,7 +327,7 @@ def process_order(request):
 			signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 			data['signature'] = signature
 
-			payfast_url = "https://sandbox.payfast.co.za/eng/process?"
+			payfast_url = "www.payfast.co.za" #"https://sandbox.payfast.co.za/eng/process?"
 			#payment_url = payfast_url + urllib.parse.urlencode(data).replace('%2B', '+')
 			payment_url = payfast_url + urllib.parse.urlencode(data)
 
