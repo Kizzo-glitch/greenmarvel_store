@@ -98,7 +98,7 @@ def shipped_dash(request):
 
 
 #For Admin View
-def payment_success(request):
+def payment_success2(request):
 	if request.user.is_superuser:
 		# Retrieve the payment instance
 		payment = PayfastPayment.objects.all()
@@ -112,6 +112,29 @@ def payment_success(request):
         	#'itn_data': itn_data
         	'payment': payment
     	})
+
+
+
+def payment_success(request, order_id):
+    # Retrieve the payment instance based on the order_id
+	payment = get_object_or_404(PayfastPayment, order_id=order_id)
+    
+    # Parse the ITN payload for display, if it exists
+	itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) if payment.itn_payload else {}
+
+    # Pass the payment details to the template
+	context = {
+        'order_id': payment.order_id,
+        'name_first': payment.name_first,
+        'name_last': payment.name_last,
+        'amount_paid': payment.amount,
+        'email': payment.email,
+        'status': payment.status,
+        'itn_data': itn_data,
+        'phone': payment.phone,
+		}
+
+	return render(request, 'payment/payment_success.html', context)
 
 
 @csrf_exempt

@@ -46,11 +46,14 @@
                         <br/><br/>
                     <div class="card">
                       <div class="card-header">
-                        ID:</strong> {{ payment.order_id }}
+                        <p>Thank you for your payment, {{ name_first }} {{ name_last }}.</p>
                       </div>
                       <div class="card-body">
                         
-                        Paid:</strong> R{{ payment.amount }}
+                        <p><strong>Order ID:</strong> {{ order_id }}</p>
+                        <p><strong>Amount Paid:</strong> R{{ amount_paid }}</p>
+                        <p><strong>Status:</strong> {{ status }}</p>
+                        <p><strong>Email:</strong> {{ email }}</p>
 
                         <br/><br/>
                         <h2>Payment Details</h2>

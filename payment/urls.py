@@ -11,7 +11,7 @@ urlpatterns = [
     path('orders/<int:pk>', views.orders, name='orders'),
 
     #path('initiate_payment/<int:pk>', views.initiate_payment, name='initiate_payment'),
-    path('payment_success/<int:payment_id>/', views.payment_success, name='payment_success'),
+    path('payment_success/<str:order_id>/', views.payment_success, name='payment_success'),
     path('payment_cancel/', views.payment_cancel, name='payment_cancel'),
     path('payment_notify/', views.payment_notify, name='payment_notify'),
     
