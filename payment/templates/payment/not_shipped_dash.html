@@ -71,6 +71,7 @@
                             <tr>
                               <td><a href="{% url 'orders' item.id %}">{{ item.id }}</a></td>
                               <td>R{{ item.amount_paid }}</td>
+                              <td>{{ item.full_name }}</td>
                               <td>{{ item.email }}</td> 
                               <td>{{ item.full_name }}</td>
                               <td>{{ item.date_ordered }}</td>
