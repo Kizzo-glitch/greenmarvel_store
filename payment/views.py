@@ -41,7 +41,7 @@ def orders(request, pk):
 				# Update the status
 				order.update(shipped=False)
 			messages.success(request, "Shipping Status Updated")
-			return redirect('home')
+			return redirect('shipped_dash')
 
 		return render(request, 'payment/orders.html', {"order":order, "items":items})
 
@@ -65,7 +65,7 @@ def not_shipped_dash(request):
 			order.update(shipped=True, date_shipped=now)
 			# redirect
 			messages.success(request, "Shipping Status Updated")
-			return redirect('payment/shipped_dash.html')
+			return redirect('shipped_dash')
 
 		return render(request, "payment/not_shipped_dash.html", {"orders":orders})
 		
@@ -88,7 +88,7 @@ def shipped_dash(request):
 			order.update(shipped=False)
 			# redirect
 			messages.success(request, "Shipping Status Updated")
-			return redirect('payment/not_shipped_dash.html')
+			return redirect('not_shipped_dash')
 
 		return render(request, "payment/shipped_dash.html", {"orders":orders})
 	else:
@@ -104,7 +104,7 @@ def payment_success2(request):
 		payment = PayfastPayment.objects.all()
 		
 		
-		itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) if payment.itn_payload else {}
+		#itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) if payment.itn_payload else {}
     
 		return render(request, 'payment/payment_success.html', {
         	#'order_id': payment.order.id,
@@ -114,27 +114,44 @@ def payment_success2(request):
     	})
 
 
+def payment_success3(request, order_id):
+	print(f"View called with order_id: {order_id}")
+	if request.user.is_authenticated and request.user.is_superuser:
+		
+    	# Retrieve the payment instance based on the order_id
+		payment = get_object_or_404(PayfastPayment, order_id=order_id)
 
-def payment_success(request, order_id):
-    # Retrieve the payment instance based on the order_id
-	payment = get_object_or_404(PayfastPayment, order_id=order_id)
+		#payment = PayfastPayment.objects.filter(order_id=order_id)
     
-    # Parse the ITN payload for display, if it exists
-	itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) if payment.itn_payload else {}
+    	# Parse the ITN payload for display, if it exists
+		itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) if payment.itn_payload else {}
 
-    # Pass the payment details to the template
+    	# Pass the payment details to the template
+		context = {
+        	'order_id': payment.order_id,
+        	'name_first': payment.name_first,
+        	'name_last': payment.name_last,
+        	'amount_paid': payment.amount,
+        	'email': payment.email,
+        	'status': payment.status,
+        	'itn_data': itn_data,
+        	'phone': payment.phone,
+			}
+
+		return render(request, 'payment/payment_success.html', context)
+
+
+
+def payment_success(request):
+    # Retrieve all successful payments (assuming status 'COMPLETE' indicates success)
+	successful_payments = PayfastPayment.objects.filter(status='COMPLETE')
+
+    # Pass the successful payments to the template
 	context = {
-        'order_id': payment.order_id,
-        'name_first': payment.name_first,
-        'name_last': payment.name_last,
-        'amount_paid': payment.amount,
-        'email': payment.email,
-        'status': payment.status,
-        'itn_data': itn_data,
-        'phone': payment.phone,
-		}
+        'successful_payments': successful_payments,
+	}
 
-	return render(request, 'payment/payment_success.html', context)
+	return render(request, 'payments/payment_success.html', context)
 
 
 @csrf_exempt

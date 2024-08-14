@@ -39,7 +39,7 @@
         </header>
 
         <br/><br/>
-        <div class="container">
+        <!--<div class="container">
             <div class="row">
                 <center>
                     <div class="col-8">
@@ -69,7 +69,7 @@
                   </div>
                 </center>
             </div>
-        </div>
+        </div>-->
 
         <div class="container">
             <div class="row">
@@ -90,14 +90,14 @@
                             </tr>
                           </thead>
                           <tbody>
-                            {% for item in context %}
+                            {% for payment in successful_payments %}
                             <tr>
-                              <td>{{ item.order_id }}</td>
-                              <td>R{{ item.amount_paid }}</td>
-                              <td>{{ item.email }}</td> 
-                              <td>{{ item.name_first }}</td>
-                              <td>{{ item.status }}</td>
-                              <td>{{ item.itn_payload }}</td>
+                              <td>{{ payment.order_id }}</td>
+                              <td>R{{ payment.amount_paid }}</td>
+                              <td>{{ payment.email }}</td> 
+                              <td>{{ payment.name_first }}</td>
+                              <td>{{ payment.status }}</td>
+                              <td>{{ payment.itn_payload }}</td>
                               <!--<td>
                                <form method="POST">
                                   {% csrf_token %}

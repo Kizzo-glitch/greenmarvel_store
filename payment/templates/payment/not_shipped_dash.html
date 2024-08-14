@@ -38,6 +38,14 @@
                 </div>
             </div>
         </nav>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                  {{message}}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %} 
         <!-- Header-->
         <header class="bg-dark py-5">
             <div class="container px-4 px-lg-5 my-5">
@@ -63,7 +71,8 @@
                               <th scope="col">Customer Name</th>
                               <th scope="col">Customer Email</th>
                               <th scope="col">Date Ordered</th>
-                              <th scope="col">Shipped</th>
+                              <!--<th scope="col">Shipped</th>-->
+                              <th scope="col">Change Status</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -73,7 +82,7 @@
                               <td>R{{ item.amount_paid }}</td>
                               <td>{{ item.full_name }}</td>
                               <td>{{ item.email }}</td> 
-                              <td>{{ item.full_name }}</td>
+                              <!--<td>{{ item.full_name }}</td>-->
                               <td>{{ item.date_ordered }}</td>
                               <td>
                                <form method="POST">
