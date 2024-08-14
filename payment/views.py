@@ -98,19 +98,19 @@ def shipped_dash(request):
 
 
 #For Admin View
-def payment_success(request, payment_id):
+def payment_success(request):
 	if request.user.is_superuser:
-		# Retrieve the payment instance based on the payment_id
-		payment = get_object_or_404(PayfastPayment, payment_id=order_id)
+		# Retrieve the payment instance
+		payment = PayfastPayment.objects.all()
 		
-		#payment = PayfastPayment.objects.get(order_id)
 		
 		itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) if payment.itn_payload else {}
     
 		return render(request, 'payment/payment_success.html', {
-        	'order_id': payment.order.id,
-        	'amount_paid': payment.amount,
-        	'itn_data': itn_data
+        	#'order_id': payment.order.id,
+        	#'amount_paid': payment.amount,
+        	#'itn_data': itn_data
+        	'payment': payment
     	})
 
 
@@ -247,7 +247,7 @@ def process_order(request):
 			signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 			data['signature'] = signature
 
-			payfast_url = "https://www.payfast.co.za/eng/process?" #"https://sandbox.payfast.co.za/eng/process?"
+			payfast_url = "https://sandbox.payfast.co.za/eng/process?" #"https://www.payfast.co.za/eng/process?" 
 			#payment_url = payfast_url + urllib.parse.urlencode(data).replace('%2B', '+')
 			payment_url = payfast_url + urllib.parse.urlencode(data)
 
@@ -327,7 +327,7 @@ def process_order(request):
 			signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 			data['signature'] = signature
 
-			payfast_url = "https://www.payfast.co.za/eng/process?" #"https://sandbox.payfast.co.za/eng/process?"
+			payfast_url = "https://sandbox.payfast.co.za/eng/process?" #"https://www.payfast.co.za/eng/process?" 
 			#payment_url = payfast_url + urllib.parse.urlencode(data).replace('%2B', '+')
 			payment_url = payfast_url + urllib.parse.urlencode(data)
 

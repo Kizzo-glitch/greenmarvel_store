@@ -54,7 +54,9 @@
 
                         <br/><br/>
                         <h2>Payment Details</h2>
-                        <table>
+
+                    ITN:</strong> R{{ payment.itn_payload }}
+                        <!--<table>
                             <tr>
                                 <th>Key</th>
                                 <th>Value</th>
@@ -65,7 +67,7 @@
                                 <td>{{ value }}</td>
                             </tr>
                             {% endfor %}
-                        </table>
+                        </table>-->
                         <!--{% if not order.shipped %}
                         <form method="POST">
                           {% csrf_token %}
