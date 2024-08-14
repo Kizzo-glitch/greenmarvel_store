@@ -143,15 +143,16 @@ def payment_success3(request, order_id):
 
 
 def payment_success(request):
-    # Retrieve all successful payments (assuming status 'COMPLETE' indicates success)
-	successful_payments = PayfastPayment.objects.filter(status='COMPLETE')
+	if request.user.is_authenticated and request.user.is_superuser:
+    	# Retrieve all successful payments (assuming status 'COMPLETE' indicates success)
+		successful_payments = PayfastPayment.objects.filter(status='COMPLETE')
 
-    # Pass the successful payments to the template
-	context = {
+    	# Pass the successful payments to the template
+		context = {
         'successful_payments': successful_payments,
-	}
+		}
 
-	return render(request, 'payments/payment_success.html', context)
+		return render(request, 'payment/payment_success.html', context)
 
 
 @csrf_exempt
