@@ -95,53 +95,7 @@ def shipped_dash(request):
 		messages.success(request, "Access Denied")
 		return redirect('home')
 
-
-
 #For Admin View
-def payment_success2(request):
-	if request.user.is_superuser:
-		# Retrieve the payment instance
-		payment = PayfastPayment.objects.all()
-		
-		
-		#itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) if payment.itn_payload else {}
-    
-		return render(request, 'payment/payment_success.html', {
-        	#'order_id': payment.order.id,
-        	#'amount_paid': payment.amount,
-        	#'itn_data': itn_data
-        	'payment': payment
-    	})
-
-
-def payment_success3(request, order_id):
-	print(f"View called with order_id: {order_id}")
-	if request.user.is_authenticated and request.user.is_superuser:
-		
-    	# Retrieve the payment instance based on the order_id
-		payment = get_object_or_404(PayfastPayment, order_id=order_id)
-
-		#payment = PayfastPayment.objects.filter(order_id=order_id)
-    
-    	# Parse the ITN payload for display, if it exists
-		itn_data = dict(urllib.parse.parse_qsl(payment.itn_payload)) if payment.itn_payload else {}
-
-    	# Pass the payment details to the template
-		context = {
-        	'order_id': payment.order_id,
-        	'name_first': payment.name_first,
-        	'name_last': payment.name_last,
-        	'amount_paid': payment.amount,
-        	'email': payment.email,
-        	'status': payment.status,
-        	'itn_data': itn_data,
-        	'phone': payment.phone,
-			}
-
-		return render(request, 'payment/payment_success.html', context)
-
-
-
 def payment_success(request):
 	if request.user.is_authenticated and request.user.is_superuser:
     	# Retrieve all successful payments (assuming status 'COMPLETE' indicates success)
@@ -153,6 +107,9 @@ def payment_success(request):
 		}
 
 		return render(request, 'payment/payment_success.html', context)
+
+
+
 
 
 @csrf_exempt
@@ -288,7 +245,7 @@ def process_order(request):
 			signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 			data['signature'] = signature
 
-			payfast_url = "https://sandbox.payfast.co.za/eng/process?" #"https://www.payfast.co.za/eng/process?" 
+			payfast_url = "https://www.payfast.co.za/eng/process?"  #"https://sandbox.payfast.co.za/eng/process?"
 			#payment_url = payfast_url + urllib.parse.urlencode(data).replace('%2B', '+')
 			payment_url = payfast_url + urllib.parse.urlencode(data)
 
@@ -368,7 +325,7 @@ def process_order(request):
 			signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 			data['signature'] = signature
 
-			payfast_url = "https://sandbox.payfast.co.za/eng/process?" #"https://www.payfast.co.za/eng/process?" 
+			payfast_url = "https://www.payfast.co.za/eng/process?" #"https://sandbox.payfast.co.za/eng/process?"
 			#payment_url = payfast_url + urllib.parse.urlencode(data).replace('%2B', '+')
 			payment_url = payfast_url + urllib.parse.urlencode(data)
 
