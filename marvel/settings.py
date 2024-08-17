@@ -19,7 +19,7 @@ load_dotenv()
 SECRET_KEY = 'django-insecure-7q=e=s$%((zp6g374w=8j^4@y7)^8_!ywyg4wrqg@gdu#3%8*b'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 ALLOWED_HOSTS = [ '127.0.0.1','greenmarvelstore-production.up.railway.app', 'https://greenmarvelstore-production.up.railway.app']
