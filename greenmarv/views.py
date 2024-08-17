@@ -55,11 +55,11 @@ def update_info(request):
 			shipping_form.save()
 
 			messages.success(request, "Your Info Has Been Updated!!")
-			return redirect('landing')
+			return redirect('index')
 		return render(request, "update_info.html", {'form':form, 'shipping_form':shipping_form})
 	else:
 		messages.success(request, "You Must Be Logged In To Access That Page!!")
-		return redirect('landing')
+		return redirect('index')
 
 
 
@@ -84,7 +84,7 @@ def update_password(request):
 			return render(request, "update_password.html", {'form':form})
 	else:
 		messages.success(request, "You Must Be Logged In To View That Page...")
-		return redirect('landing')
+		return redirect('index')
 
 
 
@@ -102,7 +102,7 @@ def update_user(request):
 		return render(request, "update_user.html", {'user_form':user_form})
 	else:
 		messages.success(request, "You Must Be Logged In To Access That Page!!")
-		return redirect('landing')
+		return redirect('index')
 
 
 
@@ -113,9 +113,9 @@ def product(request,pk):
 
 
 
-def landing(request):
+def index(request):
 	products = Product.objects.all()
-	return render(request, 'landing.html', {})
+	return render(request, 'index.html', {})
 
 
 
@@ -155,7 +155,7 @@ def login_user(request):
 					cart.db_add(product=key, quantity=value)
 
 			#messages.success(request, ('You have been logged in'))
-			return redirect('landing')
+			return redirect('index')
 		else:
 			messages.success(request, ('There was an Error, please try again'))
 			return redirect('login')
@@ -169,7 +169,7 @@ def login_user(request):
 def logout_user(request):
 	logout(request)
 	#messages.success(request, ('You have been logged out'))
-	return redirect('landing')
+	return redirect('index')
 
 
 

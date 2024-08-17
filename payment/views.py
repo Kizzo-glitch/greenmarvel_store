@@ -394,7 +394,7 @@ def billing_info(request):
 		return render(request, "payment/billing_info.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals, "shipping_form":shipping_form})	
 	else:
 		messages.success(request, "Access Denied")
-		return redirect('landing')
+		return redirect('index')
 
 
 
