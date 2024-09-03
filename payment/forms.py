@@ -33,7 +33,6 @@ class PaymentForm(forms.Form):
 	card_country =  forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Billing Country'}), required=True)
 
 
-
 #class PayfastPaymentForm(forms.Form):
 #    amount = forms.DecimalField(decimal_places=2, max_digits=10)
 #    order_id = forms.CharField(max_length=100)
