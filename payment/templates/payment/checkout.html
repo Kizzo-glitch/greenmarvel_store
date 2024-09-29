@@ -76,6 +76,12 @@
 
                     {% endfor %}
                     Total:  R{{ totals }}
+                    <br/>
+                    
+                    <br/><br/>
+                    {% if discounted_total and discounted_total != totals %}
+                        <h3>Discounted Total: R{{ discounted_total }}</h3>
+                    {% endif %}
                     <br/><br/>
                     <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-primary">Update Items</a>
                   </div>
@@ -94,16 +100,16 @@
 
                         <br/>
 
+                        <br/>
                         <button type="submit" class="btn btn-secondary">Continue To Billing</button>
                         </form>
-
-
                         
                         <br/><br/>
                     </div>
                 </div>
             </div>
-              
+
+            
         <!-- Footer-->
         <footer class="py-5 bg-dark">
             <div class="container"><p class="m-0 text-center text-white">Copyright &copy; Green Marvel 2024</p></div>

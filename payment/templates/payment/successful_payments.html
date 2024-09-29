@@ -24,7 +24,6 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
                         <li class="nav-item"><a class="nav-link active" aria-current="page" href="{% url 'index' %}">Home</a></li>
-                        <li class="nav-item"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">Products</a></li>
                     </ul>
                 </div>
             </div>
@@ -33,8 +32,8 @@
         <header class="bg-dark py-5">
             <div class="container px-4 px-lg-5 my-5">
                 <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">Payment Notification</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">Your Payment was successful</p>
+                    <h1 class="display-4 fw-bolder">Admin Payment Notifications</h1>
+                    <p class="lead fw-normal text-white-50 mb-0">These Payments were successful</p>
                 </div>
             </div>
         </header>
@@ -76,11 +75,42 @@
                 <center>
                     <div class="col-8">
                         <br/><br/>
-                        <div class="alert alert-info mt-3">
-                            <h3>Your Order is Successful and being processed</h3>
-                        </div>
-                                        
-                        
+                        <h3>Successful Orders</h3>
+                        <table class="table table-striped table-hover table-bordered">
+                          <thead class="table-dark">
+                            <tr>
+                              <th scope="col">Order</th>
+                              <th scope="col">Price</th>
+                              <th scope="col">Customer Email</th>
+                              <th scope="col">Customer Name</th>                             
+                              <th scope="col">Status</th>
+                              <th scope="col">itn_payload</th>
+
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for payment in successful_payments %}
+                            <tr>
+                              <td>{{ payment.order_id }}</td>
+                              <td>R{{ payment.amount_paid }}</td>
+                              <td>{{ payment.email }}</td> 
+                              <td>{{ payment.name_first }}</td>
+                              <td>{{ payment.status }}</td>
+                              <td>{{ payment.itn_payload }}</td>
+                              <!--<td>
+                               <form method="POST">
+                                  {% csrf_token %}
+                                  <input type="hidden" name="shipping_status" value="true">
+                                  <input type="hidden" name="num" value={{item.id}}>
+                                  <button type="Submit" class="btn btn-success btn-sm">Mark Shipped</button>
+                                </form>
+                                </td>-->
+                            </tr>
+                            {% endfor %}                        
+                            
+                          </tbody>
+                        </table>
+
                         <br/><br/>
                         <br/><br/>
                     </div>

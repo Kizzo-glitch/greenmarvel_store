@@ -84,9 +84,7 @@ class PayfastPayment(models.Model):
 	def __str__(self):
 		return f'PayfastPayment - {self.order_id}'
 
-	#def __str__(self):
-	#	return f"PayfastPayment {self.id} - Order {self.order.id}"
-
+	
 
 # Create Order Items Model
 class OrderItem(models.Model):

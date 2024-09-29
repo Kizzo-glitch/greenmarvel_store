@@ -61,7 +61,6 @@ class Customer(models.Model):
 
 
 
-
 class Product(models.Model):
 	name = models.CharField(max_length=50)
 	price = models.DecimalField(default=0, decimal_places=2, max_digits=5)
@@ -89,4 +88,23 @@ class Order(models.Model):
 		return self.product
 
 
+
+class Influencer(models.Model):
+	name = models.CharField(max_length=50)
+	email = models.EmailField(max_length=250)
+	commission_rate = models.DecimalField(default=0, decimal_places=2, max_digits=5)  # Percentage rate of commission
+
+	def __str__(self):
+		return self.name
+
+class DiscountCode(models.Model):
+	code = models.CharField(max_length=20, unique=True)
+	influencer = models.ForeignKey(Influencer, on_delete=models.CASCADE, related_name='discount_codes')
+	discount_percentage = models.IntegerField(default=0)  # Discount percentage
+	usage_count = models.DecimalField(default=0, decimal_places=2, max_digits=5)
+	total_before_discount = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=5)
+	is_active = models.BooleanField(default=False)
+
+	def __str__(self):
+		return f'{self.code} ({self.discount_percentage}% discount by {self.influencer.name})'
 

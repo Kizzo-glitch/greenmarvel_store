@@ -57,7 +57,9 @@
             </div>
         </header>
         <br/><br/>
-            <div class="container-md">
+
+
+            <!--<div class="container-md">
                 {% if cart_products %}
                     {% for product in cart_products %}
                 <div class="card mb-3">
@@ -126,7 +128,107 @@
                 <br/><br/>
                 <br/><br/>
                 {% endif %}
+            </div>-->
+
+            <div class="container-md">
+    {% if cart_products %}
+        {% for product in cart_products %}
+        <div class="card mb-3">
+            <div class="row g-0">
+                <div class="col-md-4">
+                    <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="{{ product.name }}">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">{{ product.description }}</p>
+                        <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small></p>
+                        
+                        <!-- Show sale price or normal price -->
+                        {% if product.sale %}
+                        <strike>R{{ product.price }}</strike>&nbsp;
+                        R{{ product.sale_price }}
+                        {% else %}
+                        R{{ product.price }}
+                        {% endif %}
+                        
+                        <br/><br/>
+
+                        <!-- Quantity Selection -->
+                        <div class="col-md-2">Quantity:</div>
+                        <div class="col-md-4">
+                            <select class="form-select" id="select{{product.id}}">
+                                {% for key, value in quantities.items %}
+                                    {% if key == product.id|slugify %}
+                                    <option selected>{{ value }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
+                        </div>
+
+                        <br/><br/>
+
+                        <!-- Update and Remove Buttons -->
+                        <button type="button" data-index="{{ product.id }}" class="btn btn-primary update-cart">Update</button>&nbsp;
+                        <button type="button" data-index="{{ product.id }}" class="btn btn-danger delete-product">Remove</button>
+                    </div>
+                </div>
             </div>
+        </div>
+        {% endfor %}
+
+        <!-- Order Summary -->
+        <center>
+            <h3>Total: R{{ totals }}</h3>
+
+            <!-- Show the discount and updated total if applicable -->
+            {% if discount_amount > 0 %}
+            <h4>Discount: -R{{ discount_amount }}</h4>
+            <h3>Total After Discount: R{{ total_after_discount }}</h3>
+            {% else %}
+            <h3>Total After Discount: R{{ totals }}</h3>
+            {% endif %}
+            
+            <br/><br/>
+            <a href="{% url 'checkout' %}" class="btn btn-success">Checkout</a>
+            <br/><br/>
+        </center>
+
+        <!-- Discount Code Input Form -->
+        <div class="col-md-6 offset-md-3">
+            <form method="POST">
+                {% csrf_token %}
+                <label for="discount_code">Discount Code:</label>
+                <input type="text" name="discount_code" id="discount_code" placeholder="Enter discount code" class="form-control">
+                <br/>
+                <button type="submit" class="btn btn-secondary">Apply Discount</button>
+            </form>
+        </div>
+        <br/>
+
+        <!-- Show influencer commission if applicable -->
+        {% if commission > 0 %}
+        <div class="alert alert-info mt-3">
+            Influencer Commission Earned: R{{ commission }}
+        </div>
+        {% endif %}
+
+    {% else %}
+    <div class="alert alert-info mt-3">
+            There is nothing in your Cart.
+        </div>
+    <!--<div class="alert alert-warning">
+        There is nothing in your Cart.
+    </div>-->
+    {% endif %}
+</div>
+
 
             <script>
             // Update Cart

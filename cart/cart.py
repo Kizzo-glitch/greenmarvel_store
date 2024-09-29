@@ -1,4 +1,7 @@
 from greenmarv.models import Product, Profile
+from decimal import Decimal, ROUND_HALF_UP
+from django.core.exceptions import ObjectDoesNotExist
+from greenmarv.models import DiscountCode, Influencer
 
 class Cart():
 	def __init__(self, request):
@@ -70,29 +73,43 @@ class Cart():
 			current_user.update(old_cart=str(carty))
 
 
-	def cart_total(self):
-		# Get product IDS
+	def cart_total(self, discount_code=None):
+        # Get product IDs
 		product_ids = self.cart.keys()
-		# lookup those keys in our products database model
+        # Lookup those keys in the product database
 		products = Product.objects.filter(id__in=product_ids)
-		# Get quantities
+        # Get quantities
 		quantities = self.cart
-		# Start counting at 0
-		total = 0
+        # Start counting at 0
+		total = Decimal(0)
+		#total = 0
 
+        # Calculate the total price
 		for key, value in quantities.items():
-			# Convert key string into into so we can do math
+            # Convert key string into int so we can do math
 			key = int(key)
 			for product in products:
 				if product.id == key:
 					if product.sale:
-						total = total + (product.sale_price * value)
+						total += product.sale_price * value
 					else:
-						total = total + (product.price * value)
+						total += product.price * value
 
+        # Apply discount if a valid discount code exists
+		discount_amount = Decimal(0)
+		
+		if discount_code:
+			try:
+				discount = DiscountCode.objects.get(code=discount_code, is_active=True)
+                # Apply percentage-based discount
+				discount_amount = Decimal(discount.discount_percentage) / 100 * total
+			except ObjectDoesNotExist:
+				pass  # Ignore if discount code is invalid
+        
+        # Total after discount
+		total_after_discount = total - discount_amount
 
-
-		return total
+		return total_after_discount if discount_amount > 0 else total
 
 
 	def __len__(self):

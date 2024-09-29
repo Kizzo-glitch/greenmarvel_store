@@ -1,10 +1,13 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import certifi
 
 #import django_heroku
 #import dj_database_url
 
+
+os.environ['SSL_CERT_FILE'] = certifi.where()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +24,7 @@ SECRET_KEY = 'django-insecure-7q=e=s$%((zp6g374w=8j^4@y7)^8_!ywyg4wrqg@gdu#3%8*b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-DEBUG_PROPAGATE_EXCEPTIONS = True
+#DEBUG_PROPAGATE_EXCEPTIONS = True
 
 #ALLOWED_HOSTS = []
 ALLOWED_HOSTS = [ '127.0.0.1','greenmarvelstore-production.up.railway.app', 'https://greenmarvelstore-production.up.railway.app']
@@ -42,7 +45,7 @@ INSTALLED_APPS = [
     'cart',
     'payment',
     'paypal.standard.ipn',
-    'whitenoise.runserver_nostatic',
+    #'whitenoise.runserver_nostatic',
 ]
 
 MIDDLEWARE = [
@@ -158,6 +161,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #django_heroku.settings(locals())
 
 
-PAYFAST_MERCHANT_ID = '24614055' #'10033849'
-PAYFAST_MERCHANT_KEY = 'cybdmhnyiv7q6' #'dmhcbmfg6r2hh'
+PAYFAST_MERCHANT_ID =  '24614055'  #'10033849'
+PAYFAST_MERCHANT_KEY = 'cybdmhnyiv7q6'  #'dmhcbmfg6r2hh'
 PAYFAST_PASSPHRASE = 'Marvelousgreen2024'
+
+
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Replace with your email provider's SMTP server
+EMAIL_PORT = 587  # Use the appropriate port
+EMAIL_HOST_USER = 'serabelekd@gmail.com'  # Your email address
+EMAIL_HOST_PASSWORD = 'qlwqzmweqrnunyxc'  # Your email password
+EMAIL_USE_TLS = True
+#DEFAULT_FROM_EMAIL = 'serabelekd@gmail.com'
+EMAIL_USE_SSL = False
+
+
+
