@@ -106,11 +106,13 @@ def successful_payments(request):
 		successful_payments = PayfastPayment.objects.filter(status='COMPLETE')
 
     	# Pass the successful payments to the template
-		context = {
-        'successful_payments': successful_payments,
-		}
+		#context = {
+        #'successful_payments': successful_payments,
+		#}
 
-		return render(request, 'payment/successful_payments.html', context)
+		return render(request, 'payment/successful_payments.html', {
+        	'successful_payments': successful_payments,
+			})
 
 
 
