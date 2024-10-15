@@ -39,36 +39,7 @@
         </header>
 
         <br/><br/>
-        <!--<div class="container">
-            <div class="row">
-                <center>
-                    <div class="col-8">
-                        <br/><br/>
-                    <div class="card">
-                      <div class="card-header">
-                        <p>Thank you for your payment, {{ name_first }} {{ name_last }}.</p>
-                      </div>
-                      <div class="card-body">
-                        
-                        <p><strong>Order ID:</strong> {{ order_id }}</p>
-                        <p><strong>Amount Paid:</strong> R{{ amount_paid }}</p>
-                        <p><strong>Status:</strong> {{ status }}</p>
-                        <p><strong>Email:</strong> {{ email }}</p>
-
-                        <br/><br/>
-                        <h2>Payment Details</h2>
-
-                    ITN:</strong> R{{ payment.itn_payload }}                   
-
-                      </div>
-                    </div>
-                    <br/>
-
-                    <br/><br/>
-                  </div>
-                </center>
-            </div>
-        </div>-->
+        
 
         <div class="container">
             <div class="row">
@@ -91,12 +62,12 @@
                           <tbody>
                             {% for payment in successful_payments %}
                             <tr>
-                              <td>{{ payment.order_id }}</td>
-                              <td>R{{ payment.amount_paid }}</td>
-                              <td>{{ payment.email }}</td> 
-                              <td>{{ payment.name_first }}</td>
-                              <td>{{ payment.status }}</td>
-                              <td>{{ payment.itn_payload }}</td>
+                              <td>{{ successful_payments.order_id }}</td>
+                              <td>R{{ successful_payments.amount_paid }}</td>
+                              <td>{{ successful_payments.email }}</td> 
+                              <td>{{ successful_payments.name_first }}</td>
+                              <td>{{ successful_payments.status }}</td>
+                              <td>{{ successful_payments.itn_payload }}</td>
                               <!--<td>
                                <form method="POST">
                                   {% csrf_token %}
