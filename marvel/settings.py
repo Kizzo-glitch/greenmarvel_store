@@ -33,7 +33,7 @@ ALLOWED_HOSTS = [ '127.0.0.1','www.greenmarvel.co.za','https://greenmarvel.co.za
 
 CSRF_TRUSTED_ORIGINS = ['https://greenmarvel.co.za',
                         
-                            'www.greenmarvel.co.za',
+                            
                                 'https://greenmarvelstore-production.up.railway.app']
 
 #'127.0.0.1',
