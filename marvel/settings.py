@@ -27,8 +27,14 @@ DEBUG = True
 #DEBUG_PROPAGATE_EXCEPTIONS = True
 
 #ALLOWED_HOSTS = []
-ALLOWED_HOSTS = [ '127.0.0.1','https://greenmarvel.co.za','greenmarvel.co.za','greenmarvelstore-production.up.railway.app', 'https://greenmarvelstore-production.up.railway.app']
-CSRF_TRUSTED_ORIGINS = ['https://greenmarvelstore-production.up.railway.app']
+ALLOWED_HOSTS = [ '127.0.0.1','www.greenmarvel.co.za','https://greenmarvel.co.za','greenmarvel.co.za',
+                    'greenmarvelstore-production.up.railway.app', 
+                        'https://greenmarvelstore-production.up.railway.app']
+
+CSRF_TRUSTED_ORIGINS = ['https://greenmarvel.co.za',
+                        'greenmarvel.co.za',
+                            'www.greenmarvel.co.za',
+                                'https://greenmarvelstore-production.up.railway.app']
 
 #'127.0.0.1',
 
