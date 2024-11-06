@@ -73,6 +73,21 @@ class Cart():
 			current_user.update(old_cart=str(carty))
 
 
+	def cart_weight(self):
+		product_ids = self.cart.keys()
+		products = Product.objects.filter(id__in=product_ids)
+		quantities = self.cart
+		total_weight = 0
+
+		for key, value in quantities.items():
+			key = int(key)
+			for product in products:
+				if product.id == key:
+					total_weight += product.weight * value
+
+		return total_weight
+
+
 	def cart_total(self, discount_code=None):
         # Get product IDs
 		product_ids = self.cart.keys()

@@ -77,6 +77,10 @@
                     {% endfor %}
                     Total:  R{{ totals }}
                     <br/><br/>
+                    Shipping cost: R{{ shipping_cost }}
+                    <br/><br/>
+                    Total cost: R{{ total_with_shipping }}
+                    <br/><br/>
                     <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-primary">Update Items</a>
                   </div>
             </div>
@@ -89,7 +93,7 @@
                                 Name: {{ shipping_info.shipping_full_name }}<br/>
                                 Email: {{ shipping_info.shipping_email }}<br/>
                                 Phone: {{ shipping_info.shipping_phone }}<br/>
-                                Address 1: {{ shipping_info.shipping_address1 }}<br/>
+                                Street Address: {{ shipping_info.shipping_address1 }}<br/>
                                 Apartment: {{ shipping_info.shipping_apartment }}<br/>
                                 City: {{ shipping_info.shipping_city }}<br/>
                                 Province/State: {{ shipping_info.shipping_province }}<br/>
@@ -102,6 +106,46 @@
                           </div>
                         </div>
                         <br/>
+                        
+                    
+                        <h3>Courier Details</h3>
+                            {% if rates %}
+                                <table class="table table-striped table-hover table-bordered">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>Service Level</th>
+                                            <th>Service Code</th>
+                                            <th>Rate (Incl. VAT)</th>
+                                            <th>Rate (Excl. VAT)</th>
+                                            <th>Delivery Date From</th>
+                                            <th>Delivery Date To</th>
+                                            <th>Extras</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for rate in rates %}
+                                            <tr>
+                                                <td>{{ rate.service_level }}</td>
+                                                <td>{{ rate.service_code }}</td>
+                                                <td>R{{ rate.rate }}</td>
+                                                <td>R{{ rate.rate_excluding_vat }}</td>
+                                                <td>{{ rate.delivery_date_from }}</td>
+                                                <td>{{ rate.delivery_date_to }}</td>
+                                                <td>
+                                                    {% for extra in rate.extras %}
+                                                        <p>Insurance Charge: R{{ extra.insurance_charge }}</p>
+                                                        <!--<p>VAT: {{ extra.vat }}</p>-->
+                                                    {% endfor %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% else %}
+                                <p>No shipping rates available at this time.</p>
+                            {% endif %}
+                            
+                          
 
 
                         <!--<div class="card">

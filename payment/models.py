@@ -31,7 +31,6 @@ class ShippingAddress(models.Model):
 		return f'Shipping Address - {str(self.id)}'
 
 
-
 # Create a user Shipping Address by default when user signs up
 def create_shipping(sender, instance, created, **kwargs):
 	if created:
@@ -53,6 +52,7 @@ class Order(models.Model):
 	date_ordered = models.DateTimeField(auto_now_add=True)	
 	shipped = models.BooleanField(default=False)
 	date_shipped = models.DateTimeField(blank=True, null=True)
+	total_weight = models.DecimalField(default=0, max_digits=7, decimal_places=2)
 	
 	
 	def __str__(self):
@@ -68,6 +68,16 @@ def set_shipped_date_on_update(sender, instance, **kwargs):
 			instance.date_shipped = now
 
 
+class CourierGuy(models.Model):
+	order = models.OneToOneField(Order, on_delete=models.CASCADE)
+	tracking_number = models.CharField(max_length=100, blank=True, null=True)
+	courier_service = models.CharField(max_length=100, default="Courier Guy")
+	shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+	estimated_delivery = models.DateField(null=True, blank=True)
+	status = models.CharField(max_length=50, default="Pending")
+
+	def __str__(self):
+		return f"Shipping Info - {self.order.id}"
 
 class PayfastPayment(models.Model):
 	order_id = models.CharField(max_length=100, null=True)

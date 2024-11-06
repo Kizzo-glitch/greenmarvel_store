@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from cart.cart import Cart
 from payment.forms import ShippingForm, PaymentForm
-from payment.models import ShippingAddress, Order, OrderItem, PayfastPayment
+from payment.models import ShippingAddress, Order, OrderItem, PayfastPayment, CourierGuy
 from django.contrib.auth.models import User
 from django.contrib import messages
 from greenmarv.models import Product, Profile, DiscountCode, Influencer
@@ -18,6 +18,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 import json
 from decimal import Decimal
+import requests
 
 
 
@@ -29,7 +30,6 @@ def orders(request, pk):
 		# Get the order items
 		items = OrderItem.objects.filter(order=pk)
 		
-
 		if request.POST:
 			status = request.POST['shipping_status']
 			# Check if true or false
@@ -102,16 +102,16 @@ def shipped_dash(request):
 #For Admin View
 def successful_payments(request):
 	if request.user.is_authenticated and request.user.is_superuser:
-    	# Retrieve all successful payments (assuming status 'COMPLETE' indicates success)
+		# Retrieve all successful payments (assuming status 'COMPLETE' indicates success)
 		successful_payments = PayfastPayment.objects.filter(status='COMPLETE')
 
-    	# Pass the successful payments to the template
+		# Pass the successful payments to the template
 		#context = {
-        #'successful_payments': successful_payments,
+		#'successful_payments': successful_payments,
 		#}
 
 		return render(request, 'payment/successful_payments.html', {
-        	'successful_payments': successful_payments,
+			'successful_payments': successful_payments,
 			})
 
 
@@ -167,6 +167,8 @@ def process_order(request):
 		quantities = cart.get_quants
 		
 		total_after_discount = request.session.get('total_after_discount')
+		
+		total_with_shipping = request.session.get('total_with_shipping')
 
 		# Get Billing Info from the last page
 		payment_form = PaymentForm(request.POST or None)
@@ -182,7 +184,7 @@ def process_order(request):
 		# Create Shipping Address from session info
 		shipping_address = f"{my_shipping['shipping_phone']}\n{my_shipping['shipping_address1']}\n{my_shipping['shipping_apartment']}\n{my_shipping['shipping_city']}\n{my_shipping['shipping_province']}\n{my_shipping['shipping_zipcode']}\n{my_shipping['shipping_country']}"
 
-		amount_paid = total_after_discount
+		amount_paid = total_with_shipping
 
 		#user = request.user
 		# Create Order
@@ -217,31 +219,31 @@ def process_order(request):
 
 
 			payment = PayfastPayment.objects.create(
-            	order_id=order_id,
-            	amount=amount_paid,
-            	status='Pending',
-            	name_first = create_order.full_name.split()[0],
-	        	name_last = create_order.full_name.split()[-1],
-	        	email = create_order.email,
-	        	phone = phone,
-	        	)
+				order_id=order_id,
+				amount=amount_paid,
+				status='Pending',
+				name_first = create_order.full_name.split()[0],
+				name_last = create_order.full_name.split()[-1],
+				email = create_order.email,
+				phone = phone,
+				)
 
 			data = {
-            	'merchant_id': settings.PAYFAST_MERCHANT_ID,
-            	'merchant_key': settings.PAYFAST_MERCHANT_KEY,
-            	#'return_url': 'http://127.0.0.1:8000/payment/payment_success/', 
-            	'return_url': 'https://greenmarvelstore-production.up.railway.app/payment_success/',   
-            	'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
-            	'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
+				'merchant_id': settings.PAYFAST_MERCHANT_ID,
+				'merchant_key': settings.PAYFAST_MERCHANT_KEY,
+				#'return_url': 'http://127.0.0.1:8000/payment/payment_success/', 
+				'return_url': 'https://greenmarvelstore-production.up.railway.app/payment_success/',   
+				'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
+				'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
 
-            	'name_first': payment.name_first, #full_name.split()[0],  # Assuming first name is the first part of full_name
-            	'name_last': payment.name_last, #full_name.split()[-1],  # Assuming last name is the last part of full_name
-            	'email_address': payment.email,
-            	
-            	'm_payment_id': payment.order_id,
-            	'amount': payment.amount,
-            	'item_name': 'Order Product',
-            	}
+				'name_first': payment.name_first, #full_name.split()[0],  # Assuming first name is the first part of full_name
+				'name_last': payment.name_last, #full_name.split()[-1],  # Assuming last name is the last part of full_name
+				'email_address': payment.email,
+				
+				'm_payment_id': payment.order_id,
+				'amount': payment.amount,
+				'item_name': 'Order Product',
+				}
 			signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 			data['signature'] = signature
 
@@ -280,31 +282,31 @@ def process_order(request):
 						create_order_item.save()
 
 			payment = PayfastPayment.objects.create(
-            	order_id=order_id,
-            	amount=amount_paid,
-            	status='Pending',
-            	name_first = create_order.full_name.split()[0],
-	        	name_last = create_order.full_name.split()[-1],
-	        	email = create_order.email,
-	        	phone = phone,
-            )
+				order_id=order_id,
+				amount=amount_paid,
+				status='Pending',
+				name_first = create_order.full_name.split()[0],
+				name_last = create_order.full_name.split()[-1],
+				email = create_order.email,
+				phone = phone,
+			)
 
 			data = {
-            	'merchant_id': settings.PAYFAST_MERCHANT_ID,
-            	'merchant_key': settings.PAYFAST_MERCHANT_KEY,
-            	#'return_url': 'http://127.0.0.1:8000/payment/payment_success/', 
-            	'return_url': 'https://greenmarvelstore-production.up.railway.app/payment_success/',  
-            	'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
-            	'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
+				'merchant_id': settings.PAYFAST_MERCHANT_ID,
+				'merchant_key': settings.PAYFAST_MERCHANT_KEY,
+				#'return_url': 'http://127.0.0.1:8000/payment/payment_success/', 
+				'return_url': 'https://greenmarvelstore-production.up.railway.app/payment_success/',  
+				'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
+				'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
 
-            	'name_first': payment.name_first,  # Assuming first name is the first part of full_name
-            	'name_last':  payment.name_last,   # Assuming last name is the last part of full_name
-            	'email_address': payment.email,         	
+				'name_first': payment.name_first,  # Assuming first name is the first part of full_name
+				'name_last':  payment.name_last,   # Assuming last name is the last part of full_name
+				'email_address': payment.email,         	
 
-            	'm_payment_id': payment.order_id,
-            	'amount': payment.amount,
-            	'item_name': 'Order Product',
-            	}
+				'm_payment_id': payment.order_id,
+				'amount': payment.amount,
+				'item_name': 'Order Product',
+				}
 			signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 			data['signature'] = signature
 
@@ -325,9 +327,9 @@ def process_order(request):
 def generate_signature(dataArray, passPhrase = ''):
 	payload = ""
 	for key in dataArray:
-        # Get all the data from Payfast and prepare parameter string
+		# Get all the data from Payfast and prepare parameter string
 		payload += key + "=" + urllib.parse.quote_plus(str(dataArray[key]).replace("+", " ")) + "&"
-    # After looping through, cut the last & or append your passphrase
+	# After looping through, cut the last & or append your passphrase
 	payload = payload[:-1]
 	if passPhrase != '':
 		payload += f"&passphrase={passPhrase}"
@@ -336,9 +338,7 @@ def generate_signature(dataArray, passPhrase = ''):
 
 
 
-
-
-def billing_info(request):
+def billing_info2(request):
 	if request.POST:
 		# Get the cart
 		cart = Cart(request)
@@ -350,6 +350,9 @@ def billing_info(request):
 		# Create a session with Shipping Info
 		my_shipping = request.POST
 		request.session['my_shipping'] = my_shipping
+
+		total_weight = cart.cart_weight()
+		
 
 		# Check to see if user is logged in
 		if request.user.is_authenticated:
@@ -391,14 +394,12 @@ def billing_info(request):
 
 
 
-
-
-
 def checkout(request):
 	# Get the cart
 	cart = Cart(request)
 	cart_products = cart.get_prods
 	quantities = cart.get_quants
+	total_weight = cart.cart_weight()
 
 	# Retrieve discounted total from session
 	discount_code = request.session.get('discount_code')
@@ -415,7 +416,7 @@ def checkout(request):
 		return render(request, "payment/checkout.html", {
 			"cart_products":cart_products, 
 			"quantities":quantities, 
-			#"totals":totals,
+			"total_weight":total_weight,
 			"totals": total_after_discount, 
 			"shipping_form":shipping_form, 
 			'shipping_user': shipping_user 
@@ -426,11 +427,10 @@ def checkout(request):
 		return render(request, "payment/checkout.html", {
 			"cart_products":cart_products, 
 			"quantities":quantities, 
-			#"totals":totals,
+			"total_weight":total_weight,
 			"totals": total_after_discount,  
 			"shipping_form":shipping_form
 			})
-
 
 
 
@@ -468,29 +468,166 @@ def notify_influencer(influencer, total_before_discount, discount_percentage, to
 	subject = "Your Discount Code Was Used!"
 	message = (
 		f"Hello {influencer.name}, \n\n"
-        f"Your discount code: {discount_code}, was used for a purchase of R{total_before_discount}. "
-        f"The customer received a {discount_percentage}% discount.\n"
-        f"Which reduced their order to R{total_after_discount} .\n\n"
-        f"At the commission rate of: {commission_rate}%."
-        f"Your commission for this order is: R{commission}.\n"
-        f"Thank you for your contribution!.\n\n"
-        f"Regards,\n"
-        f"The Green Marvel Sales Team"
-        )
+		f"Your discount code: {discount_code}, was used for a purchase of R{total_before_discount}. "
+		f"The customer received a {discount_percentage}% discount.\n"
+		f"Which reduced their order to R{total_after_discount} .\n\n"
+		f"At the commission rate of: {commission_rate}%."
+		f"Your commission for this order is: R{commission}.\n"
+		f"Thank you for your contribution!.\n\n"
+		f"Regards,\n"
+		f"The Green Marvel Sales Team"
+		)
 
 	send_mail(
-        subject,
-        message,
-        settings.EMAIL_HOST_USER,  # Replace with your store's email
-        [influencer.email],
-        fail_silently=False,
+		subject,
+		message,
+		settings.EMAIL_HOST_USER,  # Replace with your store's email
+		[influencer.email],
+		fail_silently=False,
 	)
 
 
 
 def payment_cancel(request):
-    return render(request, 'payment/payment_cancel.html')
+	return render(request, 'payment/payment_cancel.html')
 
+
+
+
+def send_delivery_request(api_url, api_key, data):
+	try:
+		headers = {"Content-Type": "application/json"}
+		if api_key:
+			headers["Authorization"] = f"Bearer {api_key}"
+
+		response = requests.post(api_url, json=data, headers=headers)
+
+		if response.status_code == 200:
+			response_data = response.json()
+			return response_data
+		else:
+			print(f"Error: API call failed with status code {response.status_code}")
+			return None
+
+	except requests.exceptions.RequestException as e:
+		print(f"Error: {e}")
+		return None
+
+
+def billing_info(request):
+	if request.method == 'POST':
+		# Initialize cart, product details, and calculate total weight and total amount
+		cart = Cart(request)
+		cart_products = cart.get_prods
+		quantities = cart.get_quants
+		total_after_discount = Decimal(request.session.get('total_after_discount', '0'))
+		total_weight = cart.cart_weight()  
+
+		# Define collection address
+		collection_address = {
+			"type": "business",
+			"company": "Green Marvel",
+			"street_address": "620 Park Street",
+			"local_area": "Arcadia",
+			"city": "Pretoria",
+			"zone": "Gauteng",
+			"country": "ZA",
+			"code": "0083",
+			"lat": -25.444674,
+			"lng": 28.131676
+		}
+
+		# Retrieve and set delivery address from session
+		# Create a session with Shipping Info
+		my_shipping = request.POST
+		request.session['my_shipping'] = my_shipping
+		#my_shipping = request.session.get('my_shipping')
+		if my_shipping:
+			delivery_address = {
+				"type": "residential",
+				"company": my_shipping.get("shipping_full_name", ""),
+				"street_address": my_shipping.get("shipping_address1", ""),
+				"local_area": my_shipping.get("shipping_apartment", ""),
+				"city": my_shipping.get("shipping_city", ""),
+				"zone": my_shipping.get("shipping_province", ""),
+				"country": my_shipping.get("shipping_country", "ZA"),
+				"code": my_shipping.get("shipping_zipcode", ""),
+				"lat": float(my_shipping.get("lat", -25.8066558)),
+				"lng": float(my_shipping.get("lng", 28.334732))
+			}
+		else:
+			messages.error(request, "Shipping address not found.")
+			return redirect('cart_summary')
+
+		# Define parcels based on cart items
+		parcels = [
+			{
+				"submitted_length_cm": 20,
+				"submitted_width_cm": 20,
+				"submitted_height_cm": 20,
+				"submitted_weight_kg": float(total_weight)
+			}
+		]
+
+		# Prepare data payload for Shiplogic
+		declared_value = float(total_after_discount)
+		data = {
+			"collection_address": collection_address,
+			"delivery_address": delivery_address,
+			"parcels": parcels,
+			"declared_value": declared_value,
+		}
+
+		# Call send_delivery_request with the API details
+		api_url = "https://api.shiplogic.com/v2/rates"
+		api_key = settings.COURIER_GUY_API_KEY  # Ensure API key is set in your settings
+		shiplogic_response = send_delivery_request(api_url, api_key, data)
+
+		if shiplogic_response:
+			# Extract rates and other relevant information
+			rates = []
+			for rate in shiplogic_response.get("rates", []):
+				# Format rate, rate_excluding_vat to two decimal places and adjust dates
+				formatted_rate = round(rate["rate"], 2)
+				formatted_rate_excluding_vat = round(rate["rate_excluding_vat"], 2)
+				
+				delivery_date_from = rate["service_level"]["delivery_date_from"].split("T")[0]
+				delivery_date_to = rate["service_level"]["delivery_date_to"].split("T")[0]
+				
+				rates.append({
+					"rate": formatted_rate, #rate["rate"],
+					"rate_excluding_vat": formatted_rate_excluding_vat, #rate["rate_excluding_vat"],
+					"service_level": rate["service_level"]["name"],
+					"service_code": rate["service_level"]["code"],
+					"delivery_date_from": delivery_date_from, #rate["service_level"]["delivery_date_from"],
+					"delivery_date_to": delivery_date_to, #rate["service_level"]["delivery_date_to"],
+					"extras": rate.get("extras", [])
+				})
+			shipping_cost = Decimal(shiplogic_response["rates"][0]["rate"]) if rates else Decimal(0)
+			total_with_shipping = total_after_discount + shipping_cost
+
+			# Store shipping and total information in the session
+			request.session['shipping_cost'] = float(shipping_cost)
+			request.session['total_with_shipping'] = float(total_with_shipping)
+
+			# Pass data to the template
+			return render(request, "payment/billing_info.html", {
+				"cart_products": cart_products,
+				"quantities": quantities,
+				"totals": total_after_discount,
+				"total_with_shipping": total_with_shipping,
+				"shipping_info": my_shipping,
+				"shipping_cost": shipping_cost,
+				"rates": rates,
+				"message": shiplogic_response.get("message", "No message")
+			})
+
+		else:
+			messages.error(request, "Failed to retrieve shipping rates from Shiplogic.")
+			return redirect("cart_summary")
+
+	messages.error(request, "Invalid request method.")
+	return redirect('index')
 
 
 

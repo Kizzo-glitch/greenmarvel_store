@@ -184,5 +184,8 @@ EMAIL_USE_TLS = True
 #DEFAULT_FROM_EMAIL = 'serabelekd@gmail.com'
 EMAIL_USE_SSL = False
 
+COURIER_GUY_USERNAME = 'greenmarvel'
+COURIER_GUY_API_KEY = str(os.getenv('COURIER_GUY_API_KEY'))
+
 
 
