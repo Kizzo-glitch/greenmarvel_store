@@ -90,8 +90,9 @@ class Order(models.Model):
 
 
 class Influencer(models.Model):
-	name = models.CharField(max_length=50)
-	email = models.EmailField(max_length=250)
+	name = models.CharField(blank=True, max_length=50)
+	phone = models.CharField(blank=True, max_length=50)
+	email = models.EmailField(blank=True, max_length=250)
 	commission_rate = models.DecimalField(default=0, decimal_places=2, max_digits=5)  # Percentage rate of commission
 
 	def __str__(self):
