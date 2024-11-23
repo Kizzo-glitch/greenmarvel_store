@@ -514,7 +514,7 @@ def send_delivery_request(api_url, api_key, data):
 		return None
 
 
-def billing_info(request):
+def billing_info4(request):
 	if request.method == 'POST':
 		# Initialize cart, product details, and calculate total weight and total amount
 		cart = Cart(request)
@@ -625,6 +625,140 @@ def billing_info(request):
 		else:
 			messages.error(request, "Failed to retrieve shipping rates from Shiplogic.")
 			return redirect("cart_summary")
+
+	messages.error(request, "Invalid request method.")
+	return redirect('index')
+
+
+
+
+def billing_info(request):
+	if request.method == 'POST':
+		# Initialize cart, product details, and calculate total weight and total amount
+		cart = Cart(request)
+		cart_products = cart.get_prods
+		quantities = cart.get_quants
+		total_after_discount = Decimal(request.session.get('total_after_discount', '0'))
+		total_weight = cart.cart_weight()
+
+		# Define collection address
+		collection_address = {
+			"type": "business",
+			"company": "Green Marvel",
+			"street_address": "620 Park Street",
+			"local_area": "Arcadia",
+			"city": "Pretoria",
+			"zone": "Gauteng",
+			"country": "ZA",
+			"code": "0083",
+			"lat": -25.444674,
+			"lng": 28.131676
+		}
+
+		# Retrieve and set delivery address from session
+		my_shipping = request.POST
+		request.session['my_shipping'] = my_shipping
+		if my_shipping:
+			delivery_address = {
+				"type": "residential",
+				"company": my_shipping.get("shipping_full_name", ""),
+				"street_address": my_shipping.get("shipping_address1", ""),
+				"local_area": my_shipping.get("shipping_apartment", ""),
+				"city": my_shipping.get("shipping_city", ""),
+				"zone": my_shipping.get("shipping_province", ""),
+				"country": my_shipping.get("shipping_country", "ZA"),
+				"code": my_shipping.get("shipping_zipcode", ""),
+				"lat": float(my_shipping.get("lat", -25.8066558)),
+				"lng": float(my_shipping.get("lng", 28.334732))
+			}
+		else:
+			messages.error(request, "Shipping address not found.")
+			return redirect('cart_summary')
+
+		# Define parcels based on cart items
+		parcels = [
+			{
+				"submitted_length_cm": 20,
+				"submitted_width_cm": 20,
+				"submitted_height_cm": 20,
+				"submitted_weight_kg": float(total_weight)
+			}
+		]
+
+		# Check if free shipping applies
+		if total_after_discount >= 600:
+			shipping_cost = Decimal(0)  # Free shipping
+			total_with_shipping = total_after_discount
+		else:
+			# Prepare data payload for Shiplogic
+			declared_value = float(total_after_discount)
+			data = {
+				"collection_address": collection_address,
+				"delivery_address": delivery_address,
+				"parcels": parcels,
+				"declared_value": declared_value,
+			}
+
+			# Call send_delivery_request with the API details
+			api_url = "https://api.shiplogic.com/v2/rates"
+			api_key = settings.COURIER_GUY_API_KEY  # Ensure API key is set in your settings
+			shiplogic_response = send_delivery_request(api_url, api_key, data)
+
+			if shiplogic_response:
+				# Extract rates and calculate shipping cost
+				rates = []
+				for rate in shiplogic_response.get("rates", []):
+					formatted_rate = round(rate["rate"], 2)
+					formatted_rate_excluding_vat = round(rate["rate_excluding_vat"], 2)
+
+					delivery_date_from = rate["service_level"]["delivery_date_from"].split("T")[0]
+					delivery_date_to = rate["service_level"]["delivery_date_to"].split("T")[0]
+
+					rates.append({
+						"rate": formatted_rate,
+						"rate_excluding_vat": formatted_rate_excluding_vat,
+						"service_level": rate["service_level"]["name"],
+						"service_code": rate["service_level"]["code"],
+						"delivery_date_from": delivery_date_from,
+						"delivery_date_to": delivery_date_to,
+						"extras": rate.get("extras", [])
+					})
+				shipping_cost = Decimal(shiplogic_response["rates"][0]["rate"]) if rates else Decimal(0)
+				total_with_shipping = total_after_discount + shipping_cost
+
+				# Store shipping and total information in the session
+				request.session['shipping_cost'] = float(shipping_cost)
+				request.session['total_with_shipping'] = float(total_with_shipping)
+
+				# Pass data to the template
+				return render(request, "payment/billing_info.html", {
+					"cart_products": cart_products,
+					"quantities": quantities,
+					"totals": total_after_discount,
+					"total_with_shipping": total_with_shipping,
+					"shipping_info": my_shipping,
+					"shipping_cost": shipping_cost,
+					"rates": rates,
+					"message": shiplogic_response.get("message", "No message")
+				})
+
+			else:
+				messages.error(request, "Failed to retrieve shipping rates from Shiplogic.")
+				return redirect("cart_summary")
+
+		# If free shipping applies, pass data to the template
+		request.session['shipping_cost'] = float(shipping_cost)
+		request.session['total_with_shipping'] = float(total_with_shipping)
+		return render(request, "payment/billing_info.html", {
+			"cart_products": cart_products,
+			"quantities": quantities,
+			"totals": total_after_discount,
+			"total_with_shipping": total_with_shipping,
+			"shipping_info": my_shipping,
+			"shipping_cost": shipping_cost,
+			"rates": [],  # No rates since free shipping applies
+			"message": "Free shipping applied!"
+		})
 
 	messages.error(request, "Invalid request method.")
 	return redirect('index')

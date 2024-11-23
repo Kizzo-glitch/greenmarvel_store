@@ -71,6 +71,9 @@ class Product(models.Model):
 	sale = models.BooleanField(default=False)
 	sale_price = models.DecimalField(default=0, decimal_places=2, max_digits=5)
 
+	def __str__(self):
+		return f'{self.name}'
+
 
 
 
