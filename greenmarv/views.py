@@ -16,7 +16,6 @@ from payment.models import ShippingAddress
 
 
 
-
 # Create your views here.
 
 

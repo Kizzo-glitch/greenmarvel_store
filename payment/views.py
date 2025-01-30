@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-#from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required
 
 from cart.cart import Cart
 from payment.forms import ShippingForm, PaymentForm
@@ -764,6 +764,28 @@ def billing_info(request):
 	return redirect('index')
 
 
+def order_history(request):
+	user_orders = Order.objects.filter(user=request.user).order_by('-date')
+	return render(request, 'order_history.html', {'orders': user_orders})
+
+
+@login_required
+def track_order(request, order_id):
+	try:
+		order = Order.objects.get(id=order_id, customer=request.user)
+		tracking_events = order.tracking_events.order_by('timestamp')
+
+		# Fetch current status from the courier API (optional)
+		# Example: tracking_info = get_tracking_info(order.tracking_number)
+
+		return render(request, "payment/track_order.html", {
+			"order": order,
+			"tracking_events": tracking_events,
+			"current_status": order.shipment_status,  # Optional from API
+		})
+	except Order.DoesNotExist:
+		messages.error(request, "Order not found.")
+		return redirect('order_history')
 
 
 

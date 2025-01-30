@@ -94,6 +94,15 @@ class PayfastPayment(models.Model):
 	def __str__(self):
 		return f'PayfastPayment - {self.order_id}'
 
+
+class TrackingEvent(models.Model):
+	order = models.ForeignKey('Order', on_delete=models.CASCADE, related_name="tracking_events")
+	status = models.CharField(max_length=255, blank=True, null=True)  # e.g., "Collected", "In Transit"
+	description = models.TextField(blank=True, null=True)
+	timestamp = models.DateTimeField()
+
+	def __str__(self):
+		return f"{self.status} at {self.timestamp}"
 	
 
 # Create Order Items Model
