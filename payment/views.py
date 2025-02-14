@@ -77,6 +77,7 @@ def not_shipped_dash(request):
 		messages.success(request, "Access Denied")
 		return redirect('home')
 
+
 #For Admin View
 def shipped_dash(request):
 	if request.user.is_authenticated and request.user.is_superuser:
