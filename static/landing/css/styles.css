@@ -10942,7 +10942,9 @@ p {
     margin-right: 0;
   }
 }
-header.masthead {
+
+
+/*header.masthead {
   padding-top: 10.5rem;
   padding-bottom: 6rem;
   text-align: center;
@@ -10985,7 +10987,55 @@ header.masthead .masthead-heading {
     line-height: 4.5rem;
     margin-bottom: 4rem;
   }
+}*/
+
+header.masthead {
+    position: relative;
+    height: 100vh;
+    color: #04AA6D;
 }
+
+.masthead img {
+    height: 100vh;
+    object-fit: cover;
+}
+
+.carousel-caption {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+    max-width: 80%;
+}
+
+.carousel-caption .masthead-subheading {
+    font-size: 1.8rem;
+    font-style: italic;
+}
+
+.carousel-caption .masthead-heading {
+    font-size: 3.5rem;
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .carousel-caption {
+        top: 40%;
+    }
+    
+    .carousel-caption .masthead-heading {
+        font-size: 2rem;
+    }
+    
+    .carousel-caption .masthead-subheading {
+        font-size: 1.2rem;
+    }
+}
+
+
 #portfolio .portfolio-item {
   max-width: 26rem;
   margin-left: auto;

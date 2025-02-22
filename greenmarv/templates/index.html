@@ -19,6 +19,9 @@
         <link href="{% static 'landing/css/styles.css' %}" rel="stylesheet" />
         <!-- jquery cdm-->
         <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     </head>
     <body id="page-top">
         
@@ -82,13 +85,71 @@
         </nav>
         
         <!-- Masthead-->
-        <header class="masthead">
+        <!--<header class="masthead">
             <div class="container">
                 <div class="masthead-subheading">Welcome To Green Marvel Online.</div>
                 <div class="masthead-heading text-uppercase">Where your time and convinience are valued</div>
                 <a class="btn btn-primary btn-xl text-uppercase" href="{% url 'home' %}">Go Shopping</a>
             </div>
-        </header>
+        </header>-->
+
+
+        <!-- Masthead with Image Slider -->
+            <header id="header-carousel" class="carousel slide masthead" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <!-- Slide 1 -->
+                    <div class="carousel-item active">
+                        <img src="{% static 'landing/assets/img/kat_bg.jpeg' %}" class="d-block w-100" alt="Image 1">
+                    </div>
+                    <!-- Slide 2 -->
+                    <div class="carousel-item">
+                        <img src="{% static 'landing/assets/img/hairfood.jpeg' %}" class="d-block w-100" alt="Image 2">
+                    </div>
+                    <!-- Slide 3 -->
+                    <div class="carousel-item">
+                        <img src="{% static 'landing/assets/img/oil.jpeg' %}" class="d-block w-100" alt="Image 3">
+                    </div>
+                    <!-- Slide 4 -->
+                    <div class="carousel-item">
+                        <img src="{% static 'landing/assets/img/oil_spray.jpeg' %}" class="d-block w-100" alt="Image 4">
+                    </div>
+                    <!-- Slide 5 -->
+                    <div class="carousel-item">
+                        <img src="{% static 'landing/assets/img/oil_hairfood_spray.jpeg' %}" class="d-block w-100" alt="Image 5">
+                    </div>
+                    <!-- Slide 4 -->
+                    <div class="carousel-item">
+                        <img src="{% static 'landing/assets/img/combo.jpeg' %}" class="d-block w-100" alt="Image 4">
+                    </div>
+                    <!-- Slide 5 -->
+                    <div class="carousel-item">
+                        <img src="{% static 'landing/assets/img/testimony1.jpeg' %}" class="d-block w-100" alt="Image 5">
+                    </div>
+                    <!-- Slide 6 -->
+                    <div class="carousel-item">
+                        <img src="{% static 'landing/assets/img/testimony2.jpeg' %}" class="d-block w-100" alt="Image 6">
+                    </div>
+                </div>
+
+                <!-- Carousel Controls -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#header-carousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#header-carousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+
+                <!-- Overlay Content -->
+                <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                    <h2 class="masthead-subheading">Welcome To Green Marvel Online.</h2>
+                    <h1 class="masthead-heading text-uppercase">Where your time and convenience are valued</h1>
+                    <a class="btn btn-primary btn-xl text-uppercase" href="{% url 'home' %}">Go Shopping</a>
+                </div>
+            </header>
+
+
         <!-- Services-->
         <section class="page-section" id="services">
             <div class="container">
