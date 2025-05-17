@@ -96,66 +96,50 @@
                 </div>
             </div>
         </header>
-        <!-- Section-->
-        <section class="py-5">
-            <div class="container px-4 px-lg-5 mt-5">
-                <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-                    
-                    
-                    {% for product in products %}
-                        {% if product.sale %}
-                        <div class="col">
-                        <div class="card h-100">
-                            <!-- Sale Badge -->
-                            <div class = "badge bg-dark text-white position-absolute" style="top: 0.5rem;right: 0.5rem;"> Sale
-                            </div>
-                            <!-- Product image-->
-                            <img class="card-img-top" src="{{ product.image.url }}" alt="..." />
-                            <!-- Product details-->
-                            <div class="card-body p-4">
-                                <div class="text-center">
-                                    <!-- Product name-->
-                                    <h5 class="fw-bolder">{{ product.name }}</h5>
-                                    <!-- Product price-->
-                                        <strike>
-                                        R{{ product.price }}
-                                    </strike>
-                                    &nbsp;
-                                    R{{ product.sale_price }}
-                                </div>
-                            </div>
-                            <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="{% url 'product' product.id %}">View Product</a></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {% else %}
-                    <div class="col mb-5">
-                        <div class="card h-100">
-                            <!-- Product image-->
-                            <img class="card-img-top" src="{{ product.image.url }}" alt="..." />
-                            <!-- Product details-->
-                            <div class="card-body p-4">
-                                <div class="text-center">
-                                    <!-- Product name-->
-                                    <h5 class="fw-bolder">{{ product.name }}</h5>
-                                    <!-- Product price-->
-                                        R{{ product.price }}
-                                </div>
-                            </div>
-                            <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="{% url 'product' product.id %}">View Product</a></div>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Product Section-->
+<section class="py-5">
+    <div class="container px-4 px-lg-5 mt-5">
+        <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+            {% for product in products %}
+            <div class="col mb-5">
+                <div class="card h-100 clickable-card" data-url="{% url 'product' product.id %}">
+                    {% if product.sale %}
+                    <!-- Sale Badge -->
+                    <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem;">Sale</div>
                     {% endif %}
-                    {% endfor %}                        
+
+                    <!-- Product image-->
+                    <img class="card-img-top" src="{{ product.image.url }}" alt="{{ product.name }}" />
+
+                    <!-- Product details-->
+                    <div class="card-body p-4">
+                        <div class="text-center">
+                            <!-- Product name-->
+                            <h5 class="fw-bolder">{{ product.name }}</h5>
+                            <!-- Product price-->
+                            {% if product.sale %}
+                                <strike>R{{ product.price }}</strike>
+                                &nbsp;R{{ product.sale_price }}
+                            {% else %}
+                                R{{ product.price }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Product actions-->
+                    <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                        <div class="text-center">
+                            <a class="btn btn-outline-dark mt-auto view-product-btn" href="{% url 'product' product.id %}">View Product</a>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </section>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+
 
         <!-- Remarkable Results -->
             <section class="page-section" id="results">
@@ -244,7 +228,31 @@ header.bg-success {
   justify-content: space-between;
 }
 
+.clickable-card {
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.clickable-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
 </style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".clickable-card").forEach(function (card) {
+            card.addEventListener("click", function (e) {
+                // Prevent click if it's the View Product button
+                if (!e.target.closest('.view-product-btn')) {
+                    window.location.href = card.getAttribute("data-url");
+                }
+            });
+        });
+    });
+</script>
+
 
 
         <!-- Footer-->
