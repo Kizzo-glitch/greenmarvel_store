@@ -116,6 +116,7 @@
                         <div class="text-center">
                             <!-- Product name-->
                             <h5 class="fw-bolder">{{ product.name }}</h5>
+
                             <!-- Product price-->
                             {% if product.sale %}
                                 <strike>R{{ product.price }}</strike>
@@ -123,8 +124,12 @@
                             {% else %}
                                 R{{ product.price }}
                             {% endif %}
+                            <br/><br>
+
+                            <p class="card-text">{{ product.description }}</p>
                         </div>
                     </div>
+
 
                     <!-- Product actions-->
                     <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
