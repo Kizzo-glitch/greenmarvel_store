@@ -56,6 +56,9 @@
                 </div>
                 <div class="col-md-8">
                   <div class="card-body">
+                    <!--<div class="card-header">
+                        {{ product.name }}
+                        </div>-->
                     <h5 class="card-title">{{ product.name }}</h5>
                     <p class="card-text">{{ product.description }}</p>
                     <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small></p>
@@ -99,6 +102,28 @@
                 </div>
               </div>
             </div>
+            </div>
+            <br/><br>
+
+            <div class="container">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        Product Details
+                    </div>
+                    <div class="card-body">
+                    <div class="product-section">
+                      <h3>Ingredients:</h3>
+                      {{ product.ingredients|safe }}
+                    </div>
+
+                    <br/><br>
+
+                    <div class="product-section">
+                      <h3>Benefits:</h3>
+                      {{ product.benefits|safe }}
+                    </div>
+                    </div>
+                </div>
             </div>
 
 
