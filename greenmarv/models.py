@@ -68,6 +68,7 @@ class Product(models.Model):
 	description = models.CharField(max_length=500, default='', blank=True, null=True)
 	ingredients = models.TextField(max_length=500, default='', blank=True, null=True)
 	benefits = models.TextField(max_length=1000, default='', blank=True, null=True)
+	use = models.TextField(max_length=1000, default='', blank=True, null=True)
 	image = models.ImageField(upload_to='uploads/product/')
 	weight = models.DecimalField(default=0, max_digits=5, decimal_places=2)  # Weight in grams
 	sale = models.BooleanField(default=False)
