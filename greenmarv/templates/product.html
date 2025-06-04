@@ -116,14 +116,10 @@
                       {{ product.ingredients|safe }}
                     </div>
 
-                    <br/><br>
-
                     <div class="product-section">
                       <h3>Benefits:</h3>
                       {{ product.benefits|safe }}
                     </div>
-
-                    <br/><br>
 
                     <div class="product-section">
                       <h3>How To Use:</h3>
@@ -167,6 +163,47 @@
     color: white;
     border-color: #228B22;
 }
+
+  .product-section {
+    margin-top: 2rem;
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #fdfcfb 0%, #e2e1e0 100%);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .product-section:hover {
+    background: linear-gradient(135deg, #ffffff 0%, #f1f1f1 100%);
+  }
+
+  .product-section h4 {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #8bc34a;
+    padding-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .product-section ul {
+    padding-left: 1.5rem;
+    list-style: disc;
+    color: #4a4a4a;
+  }
+
+  .product-section li {
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .product-section li strong {
+    color: #388e3c;
+  }
+
 </style>
 
 <!-- Footer-->
