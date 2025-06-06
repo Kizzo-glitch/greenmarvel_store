@@ -171,8 +171,28 @@ def logout_user(request):
 	return redirect('index')
 
 
-
 def register_user(request):
+	if request.method == 'POST':
+		form = SignUpForm(request.POST)
+		if form.is_valid():
+			form.save()
+			username = form.cleaned_data['username']
+			password = form.cleaned_data['password1']
+
+			user = authenticate(username=username, password=password)
+			login(request, user)
+			messages.success(request, 'You have created your Username Successfully - Please complete the form below')
+			return redirect('update_info')
+		else:
+			messages.error(request, 'Oops, there was a problem registering. Please correct the errors below.')
+			return render(request, 'register.html', {'form': form})  # <- don't redirect
+	else:
+		form = SignUpForm()
+		return render(request, 'register.html', {'form': form})
+
+
+
+def register_user2(request):
 	form = SignUpForm()
 	if request.method == 'POST':
 		form = SignUpForm(request.POST)

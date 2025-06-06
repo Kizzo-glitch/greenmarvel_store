@@ -11,15 +11,15 @@ import datetime
 
 class ShippingAddress(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-	shipping_full_name = models.CharField(max_length=255)
-	shipping_email = models.CharField(max_length=255)
-	shipping_phone = models.CharField(max_length=20)
-	shipping_address1 = models.CharField(max_length=255)
+	shipping_full_name = models.CharField(max_length=255, null=True, blank=True)
+	shipping_email = models.CharField(max_length=255, null=True, blank=True)
+	shipping_phone = models.CharField(max_length=20, null=True, blank=True)
+	shipping_address1 = models.CharField(max_length=255, null=True, blank=True)
 	shipping_apartment = models.CharField(max_length=255, null=True, blank=True)
-	shipping_city = models.CharField(max_length=255)
+	shipping_city = models.CharField(max_length=255, null=True, blank=True)
 	shipping_province = models.CharField(max_length=255, null=True, blank=True)
 	shipping_zipcode = models.CharField(max_length=255, null=True, blank=True)
-	shipping_country = models.CharField(max_length=255)
+	shipping_country = models.CharField(max_length=255, null=True, blank=True)
 
 
 	# Don't pluralize address
