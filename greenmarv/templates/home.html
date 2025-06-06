@@ -1,95 +1,14 @@
+
+{% extends 'base.html' %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
-        <title>Green Marvel</title>
-        <!-- Favicon-->
-        <link rel="icon" type="image/x-icon" href="{% static 'products/assets/gm.jpeg' %}" />
-        <!-- Bootstrap icons-->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
-        <!-- Core theme CSS (includes Bootstrap)-->
-        <link href="{% static 'products/css/styles.css' %}" rel="stylesheet" />
-        <!-- jquery cdm-->
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    </head>
-    <body>
-        <!-- Navigation-->
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="container px-4 px-lg-5">
-                <a class="navbar-brand" href="{% url 'index' %}">Green Marvel</a>
-                
-
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
-                        <li class="nav-item"><a class="nav-link active" aria-current="page" href="{% url 'index' %}">Get To know us</a></li>
-                        
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Shop</a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="#!">All Products</a></li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li><a class="dropdown-item" href="#!">Popular Items</a></li>
-                                <li><a class="dropdown-item" href="#!">New Arrivals</a></li>
-                            </ul>
-                        </li>
-                         <li class="nav-item"><a class="nav-link active" aria-current="page" href="{% url 'search' %}">Search</a></li>
-                    </ul>
-                    <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
-                {% if user.is_authenticated %}                        
-                        <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
-                            
-                            {% if not user.is_superuser %} 
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Profile</a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item" href="{% url 'update_user' %}">My Login Details</a></li>
-                                    <li><hr class="dropdown-divider" /></li>
-                                    <li><a class="dropdown-item" href="{% url 'update_info' %}">My Profile Details</a></li> 
-                                </ul>
-                            </li>
-                            {% else %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Orders</a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item" href="{% url 'shipped_dash' %}">Shipped Orders</a></li>
-                                    <li><hr class="dropdown-divider" /></li>
-                                    <li><a class="dropdown-item" href="{% url 'not_shipped_dash' %}">Unshipped Orders</a></li>
-                                    <li><hr class="dropdown-divider" /></li>
-                                    <li><a class="dropdown-item" href="{% url 'successful_payments' %}">Payfast Notifications</a></li>
-                                </ul>
-                            </li> 
-                            {% endif %}
-
-                        {% else %}                         
-                        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li> 
-
-                        {% endif %}        
-
-</ul>
-                    <form class="d-flex">
-                        <a href="{% url 'cart_summary' %}"
-                         class="btn btn-outline-dark" type="submit">
-                            <i class="bi-cart-fill me-1"></i>
-                            Cart
-                            <span class="badge bg-dark text-white ms-1 rounded-pill" 
-                                id="cart_quantity">{{ cart|length }}</span></a>
-                    </form>
-                </div>
-            </div>
-        </nav>
-        <!-- Header-->
+{% block content %}
+<!-- Header-->
         <header class="bg-success py-5">
             <div class="container px-4 px-lg-5 my-5">
                 <div class="text-center text-white">
                     <h1 class="display-4 fw-bolder">Shop and Be in Style</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">With our 100% organic products</p>
+                    <p class="lead fw-normal text-white-50 mb-0">With our 100% organic products | Scientifically Approved | Formulated by Pharmaceutical Scientists</p>
                     <br>
                     <p class="lead fw-normal text-white-50 mb-0"><em>
                     Buy for R600 and more to get free shipping</em></p>
@@ -179,95 +98,4 @@
             </section>
             <br><br>
 
-
-<style>
-.card {
-    border-radius: 1rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    transition: transform 0.2s ease;
-
-}
-
-.card-img-top {
-  
-  object-fit: cover;
-  border-top-left-radius: 1rem;
-  border-top-right-radius: 1rem;
-}
-
-.badge {
-    font-size: 0.75rem;
-    padding: 0.5em 0.75em;
-    background-color: crimson !important;
-}
-.card:hover {
-    transform: scale(1.03);
-}
-
-h5.fw-bolder {
-    font-size: 1.1rem;
-    color: #333;
-    margin-bottom: 0.5rem;
-}
-
-strike {
-    color: #999;
-    font-size: 0.9rem;
-}
-
-header.bg-success {
-    background: linear-gradient(120deg, #2e8b57, #228B22);
-    color: white;
-    padding: 4rem 0;
-    text-align: center;
-}
-
-.btn-outline-dark:hover {
-    background-color: #228B22;
-    color: white;
-    border-color: #228B22;
-}
-
-.card.h-100 {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.clickable-card {
-    cursor: pointer;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.clickable-card:hover {
-    transform: scale(1.02);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-}
-
-</style>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".clickable-card").forEach(function (card) {
-            card.addEventListener("click", function (e) {
-                // Prevent click if it's the View Product button
-                if (!e.target.closest('.view-product-btn')) {
-                    window.location.href = card.getAttribute("data-url");
-                }
-            });
-        });
-    });
-</script>
-
-
-
-        <!-- Footer-->
-        <footer class="py-5 bg-dark">
-            <div class="container"><p class="m-0 text-center text-white">Copyright &copy; Green Marvel 2024</p></div>
-        </footer>
-        <!-- Bootstrap core JS-->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-        <!-- Core theme JS-->
-        <script src="{% static 'products/js/scripts.js' %}"></script>
-    </body>
-</html>
+            {% endblock %}
