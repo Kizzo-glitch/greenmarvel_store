@@ -53,6 +53,7 @@ class Order(models.Model):
 	shipped = models.BooleanField(default=False)
 	date_shipped = models.DateTimeField(blank=True, null=True)
 	total_weight = models.DecimalField(default=0, max_digits=7, decimal_places=2)
+	session_key = models.CharField(max_length=100, null=True, blank=True)
 	
 	
 	def __str__(self):

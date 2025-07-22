@@ -190,6 +190,14 @@ def process_order(request):
 		#user = request.user
 		# Create Order
 		create_order = Order(full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
+		
+		if request.user.is_authenticated:
+			create_order.user = request.user
+		else:
+			if not request.session.session_key:
+				request.session.create()
+			create_order.session_key = request.session.session_key
+		
 		create_order.save()
 
 		# Get the order ID
@@ -233,7 +241,7 @@ def process_order(request):
 				'merchant_id': settings.PAYFAST_MERCHANT_ID,
 				'merchant_key': settings.PAYFAST_MERCHANT_KEY,
 				#'return_url': 'http://127.0.0.1:8000/payment/payment_success/', 
-				'return_url': 'https://greenmarvelstore-production.up.railway.app/',   
+				'return_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_success/',   
 				'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
 				'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
 
@@ -296,7 +304,7 @@ def process_order(request):
 				'merchant_id': settings.PAYFAST_MERCHANT_ID,
 				'merchant_key': settings.PAYFAST_MERCHANT_KEY,
 				#'return_url': 'http://127.0.0.1:8000/payment/payment_success/', 
-				'return_url': 'https://greenmarvelstore-production.up.railway.app/',  
+				'return_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_success/',  
 				'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
 				'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
 
@@ -337,63 +345,6 @@ def generate_signature(dataArray, passPhrase = ''):
 
 
 
-
-def billing_info2(request):
-	if request.POST:
-		# Get the cart
-		cart = Cart(request)
-		cart_products = cart.get_prods
-		quantities = cart.get_quants
-		#totals = cart.cart_total()
-		total_after_discount = request.session.get('total_after_discount')
-
-		# Create a session with Shipping Info
-		my_shipping = request.POST
-		request.session['my_shipping'] = my_shipping
-
-		total_weight = cart.cart_weight()
-		
-
-		# Check to see if user is logged in
-		if request.user.is_authenticated:
-			# Get The Billing Form
-			billing_form = PaymentForm()
-			return render(request, "payment/billing_info.html", {
-				"cart_products":cart_products, 
-				"quantities":quantities, 
-				#"totals":totals,
-				"totals": total_after_discount,  
-				"shipping_info":request.POST, 
-				"billing_form":billing_form
-				})
-
-		else:
-			# Not logged in
-			# Get The Billing Form
-			billing_form = PaymentForm()
-			return render(request, "payment/billing_info.html", {
-				"cart_products":cart_products, 
-				"quantities":quantities, 
-				#"totals":totals,
-				"totals": total_after_discount,  
-				"shipping_info":request.POST, 
-				"billing_form":billing_form
-				})
-		
-		shipping_form = request.POST
-		return render(request, "payment/billing_info.html", {
-			"cart_products":cart_products, 
-			"quantities":quantities, 
-			#"totals":totals,
-			"totals": total_after_discount, 
-			"shipping_form":shipping_form
-			})	
-	else:
-		messages.success(request, "Access Denied")
-		return redirect('index')
-
-
-
 def checkout(request):
 	# Get the cart
 	cart = Cart(request)
@@ -431,9 +382,6 @@ def checkout(request):
 			"totals": total_after_discount,  
 			"shipping_form":shipping_form
 			})
-
-
-
 
 
 
@@ -624,7 +572,7 @@ def billing_info(request):
 
 
 def payment_success(request):
-	discount_code = request.session['discount_code']
+	'''discount_code = request.session['discount_code']
 	
 	discount = DiscountCode.objects.get(code=discount_code, is_active=True)
 
@@ -645,13 +593,27 @@ def payment_success(request):
 		# Notify the influencer
 		notify_influencer(discount.influencer, total_before_discount, 
 							discount.discount_percentage, total_after_discount, 
-								discount_code, commission_rate, commission)
+								discount_code, commission_rate, commission)'''
 	
 	return render(request, "payment/payment_success.html", {})
 
 
+
 def order_history(request):
-	user_orders = Order.objects.filter(user=request.user).order_by('-date')
+	if request.user.is_authenticated:
+		orders = Order.objects.filter(user=request.user).order_by('-date_ordered')
+	else:
+		session_key = request.session.session_key
+		if not session_key:
+			request.session.create()  # generate a session key
+			session_key = request.session.session_key
+		orders = Order.objects.filter(session_key=session_key).order_by('-date_ordered')
+
+	return render(request, 'payment/order_history.html', {'orders': orders})
+
+
+def order_history2(request):
+	user_orders = Order.objects.filter(user=request.user).order_by('-date_ordered')
 	return render(request, 'payment/order_history.html', {'orders': user_orders})
 
 
