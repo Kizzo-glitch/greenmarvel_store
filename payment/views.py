@@ -233,12 +233,12 @@ def process_order(request):
 				'merchant_id': settings.PAYFAST_MERCHANT_ID,
 				'merchant_key': settings.PAYFAST_MERCHANT_KEY,
 				#'return_url': 'http://127.0.0.1:8000/payment/payment_success/', 
-				'return_url': 'https://greenmarvelstore-production.up.railway.app/payment_success/',   
+				'return_url': 'https://greenmarvelstore-production.up.railway.app/',   
 				'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
 				'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
 
-				'name_first': payment.name_first, #full_name.split()[0],  # Assuming first name is the first part of full_name
-				'name_last': payment.name_last, #full_name.split()[-1],  # Assuming last name is the last part of full_name
+				'name_first': payment.name_first, 
+				'name_last': payment.name_last, 
 				'email_address': payment.email,
 				
 				'm_payment_id': payment.order_id,
@@ -248,8 +248,8 @@ def process_order(request):
 			signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 			data['signature'] = signature
 
-			payfast_url =  "https://www.payfast.co.za/eng/process?" #"https://sandbox.payfast.co.za/eng/process?" 
-			#payment_url = payfast_url + urllib.parse.urlencode(data).replace('%2B', '+')
+			payfast_url =  "https://www.payfast.co.za/eng/process?" 
+			
 			payment_url = payfast_url + urllib.parse.urlencode(data)
 
 			# Clear the cart
@@ -296,12 +296,12 @@ def process_order(request):
 				'merchant_id': settings.PAYFAST_MERCHANT_ID,
 				'merchant_key': settings.PAYFAST_MERCHANT_KEY,
 				#'return_url': 'http://127.0.0.1:8000/payment/payment_success/', 
-				'return_url': 'https://greenmarvelstore-production.up.railway.app/payment_success/',  
+				'return_url': 'https://greenmarvelstore-production.up.railway.app/',  
 				'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
 				'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
 
-				'name_first': payment.name_first,  # Assuming first name is the first part of full_name
-				'name_last':  payment.name_last,   # Assuming last name is the last part of full_name
+				'name_first': payment.name_first,  
+				'name_last':  payment.name_last,   
 				'email_address': payment.email,         	
 
 				'm_payment_id': payment.order_id,
@@ -312,7 +312,6 @@ def process_order(request):
 			data['signature'] = signature
 
 			payfast_url = "https://www.payfast.co.za/eng/process?" #"https://sandbox.payfast.co.za/eng/process?" 
-			#payment_url = payfast_url + urllib.parse.urlencode(data).replace('%2B', '+')
 			payment_url = payfast_url + urllib.parse.urlencode(data)
 
 			# Clear the cart
@@ -436,32 +435,7 @@ def checkout(request):
 
 
 
-def payment_success(request):
-	discount_code = request.session['discount_code']
-	
-	discount = DiscountCode.objects.get(code=discount_code, is_active=True)
 
-	# Retrieve the total amount before the discount
-	total_before_discount = discount.total_before_discount
-	
-
-	if discount.influencer:
-		# Retrieve discounted total from session
-		discount_code = request.session.get('discount_code')
-		#total_after_discount = cart.cart_total(discount_code=discount_code)
-		total_after_discount = request.session.get('total_after_discount')
-		#totals = request.session.get('totals')
-
-		commission = request.session.get('commission')
-		commission_rate = discount.influencer.commission_rate		
-
-
-		# Notify the influencer
-		notify_influencer(discount.influencer, total_before_discount, 
-							discount.discount_percentage, total_after_discount, 
-								discount_code, commission_rate, commission)
-	
-	return render(request, "payment/payment_success.html", {})
 
 
 
@@ -513,122 +487,6 @@ def send_delivery_request(api_url, api_key, data):
 	except requests.exceptions.RequestException as e:
 		print(f"Error: {e}")
 		return None
-
-
-def billing_info4(request):
-	if request.method == 'POST':
-		# Initialize cart, product details, and calculate total weight and total amount
-		cart = Cart(request)
-		cart_products = cart.get_prods
-		quantities = cart.get_quants
-		total_after_discount = Decimal(request.session.get('total_after_discount', '0'))
-		total_weight = cart.cart_weight()  
-
-		# Define collection address
-		collection_address = {
-			"type": "business",
-			"company": "Green Marvel",
-			"street_address": "620 Park Street",
-			"local_area": "Arcadia",
-			"city": "Pretoria",
-			"zone": "Gauteng",
-			"country": "ZA",
-			"code": "0083",
-			"lat": -25.444674,
-			"lng": 28.131676
-		}
-
-		# Retrieve and set delivery address from session
-		# Create a session with Shipping Info
-		my_shipping = request.POST
-		request.session['my_shipping'] = my_shipping
-		#my_shipping = request.session.get('my_shipping')
-		if my_shipping:
-			delivery_address = {
-				"type": "residential",
-				"company": my_shipping.get("shipping_full_name", ""),
-				"street_address": my_shipping.get("shipping_address1", ""),
-				"local_area": my_shipping.get("shipping_apartment", ""),
-				"city": my_shipping.get("shipping_city", ""),
-				"zone": my_shipping.get("shipping_province", ""),
-				"country": my_shipping.get("shipping_country", "ZA"),
-				"code": my_shipping.get("shipping_zipcode", ""),
-				"lat": float(my_shipping.get("lat", -25.8066558)),
-				"lng": float(my_shipping.get("lng", 28.334732))
-			}
-		else:
-			messages.error(request, "Shipping address not found.")
-			return redirect('cart_summary')
-
-		# Define parcels based on cart items
-		parcels = [
-			{
-				"submitted_length_cm": 20,
-				"submitted_width_cm": 20,
-				"submitted_height_cm": 20,
-				"submitted_weight_kg": float(total_weight)
-			}
-		]
-
-		# Prepare data payload for Shiplogic
-		declared_value = float(total_after_discount)
-		data = {
-			"collection_address": collection_address,
-			"delivery_address": delivery_address,
-			"parcels": parcels,
-			"declared_value": declared_value,
-		}
-
-		# Call send_delivery_request with the API details
-		api_url = "https://api.shiplogic.com/v2/rates"
-		api_key = settings.COURIER_GUY_API_KEY  # Ensure API key is set in your settings
-		shiplogic_response = send_delivery_request(api_url, api_key, data)
-
-		if shiplogic_response:
-			# Extract rates and other relevant information
-			rates = []
-			for rate in shiplogic_response.get("rates", []):
-				# Format rate, rate_excluding_vat to two decimal places and adjust dates
-				formatted_rate = round(rate["rate"], 2)
-				formatted_rate_excluding_vat = round(rate["rate_excluding_vat"], 2)
-				
-				delivery_date_from = rate["service_level"]["delivery_date_from"].split("T")[0]
-				delivery_date_to = rate["service_level"]["delivery_date_to"].split("T")[0]
-				
-				rates.append({
-					"rate": formatted_rate, #rate["rate"],
-					"rate_excluding_vat": formatted_rate_excluding_vat, #rate["rate_excluding_vat"],
-					"service_level": rate["service_level"]["name"],
-					"service_code": rate["service_level"]["code"],
-					"delivery_date_from": delivery_date_from, #rate["service_level"]["delivery_date_from"],
-					"delivery_date_to": delivery_date_to, #rate["service_level"]["delivery_date_to"],
-					"extras": rate.get("extras", [])
-				})
-			shipping_cost = Decimal(shiplogic_response["rates"][0]["rate"]) if rates else Decimal(0)
-			total_with_shipping = total_after_discount + shipping_cost
-
-			# Store shipping and total information in the session
-			request.session['shipping_cost'] = float(shipping_cost)
-			request.session['total_with_shipping'] = float(total_with_shipping)
-
-			# Pass data to the template
-			return render(request, "payment/billing_info.html", {
-				"cart_products": cart_products,
-				"quantities": quantities,
-				"totals": total_after_discount,
-				"total_with_shipping": total_with_shipping,
-				"shipping_info": my_shipping,
-				"shipping_cost": shipping_cost,
-				"rates": rates,
-				"message": shiplogic_response.get("message", "No message")
-			})
-
-		else:
-			messages.error(request, "Failed to retrieve shipping rates from Shiplogic.")
-			return redirect("cart_summary")
-
-	messages.error(request, "Invalid request method.")
-	return redirect('index')
 
 
 
@@ -765,9 +623,36 @@ def billing_info(request):
 	return redirect('index')
 
 
+def payment_success(request):
+	discount_code = request.session['discount_code']
+	
+	discount = DiscountCode.objects.get(code=discount_code, is_active=True)
+
+	# Retrieve the total amount before the discount
+	total_before_discount = discount.total_before_discount
+	
+	if discount.influencer:
+		# Retrieve discounted total from session
+		discount_code = request.session.get('discount_code')
+		#total_after_discount = cart.cart_total(discount_code=discount_code)
+		total_after_discount = request.session.get('total_after_discount')
+		#totals = request.session.get('totals')
+
+		commission = request.session.get('commission')
+		commission_rate = discount.influencer.commission_rate		
+
+
+		# Notify the influencer
+		notify_influencer(discount.influencer, total_before_discount, 
+							discount.discount_percentage, total_after_discount, 
+								discount_code, commission_rate, commission)
+	
+	return render(request, "payment/payment_success.html", {})
+
+
 def order_history(request):
 	user_orders = Order.objects.filter(user=request.user).order_by('-date')
-	return render(request, 'order_history.html', {'orders': user_orders})
+	return render(request, 'payment/order_history.html', {'orders': user_orders})
 
 
 @login_required

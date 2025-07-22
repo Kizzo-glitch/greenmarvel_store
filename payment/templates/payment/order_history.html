@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+        <!-- Header-->
+        <header class="bg-dark py-5">
+            <div class="container px-4 px-lg-5 my-5">
+                <div class="text-center text-white">
+                    <h1 class="display-4 fw-bolder">Order History</h1>
+                    
+                </div>
+            </div>
+        </header>
+
+		<h2>My Orders</h2>
+		{% if orders %}
+		    <ul class="order-history">
+		        {% for order in orders %}
+		            <li>
+		                <strong>Order ID:</strong> {{ order.id }}<br>
+		                <strong>Date:</strong> {{ order.date|date:"Y-m-d H:i" }}<br>
+		                <strong>Status:</strong> {{ order.shipment_status }}<br>
+		                <a href="{% url 'track_order' order.id %}" class="btn btn-outline-secondary">Track Order</a>
+		            </li>
+		        {% endfor %}
+		    </ul>
+		{% else %}
+		    <p>You have no past orders.</p>
+		{% endif %}
+
+		    <br/><br>
+		    <br/><br>
+   
+
+
+  {% endblock %}

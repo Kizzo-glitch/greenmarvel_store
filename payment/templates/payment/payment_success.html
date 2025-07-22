@@ -13,36 +13,7 @@
         </header>
 
         <br/><br/>
-        <!--<div class="container">
-            <div class="row">
-                <center>
-                    <div class="col-8">
-                        <br/><br/>
-                    <div class="card">
-                      <div class="card-header">
-                        <p>Thank you for your payment, {{ name_first }} {{ name_last }}.</p>
-                      </div>
-                      <div class="card-body">
-                        
-                        <p><strong>Order ID:</strong> {{ order_id }}</p>
-                        <p><strong>Amount Paid:</strong> R{{ amount_paid }}</p>
-                        <p><strong>Status:</strong> {{ status }}</p>
-                        <p><strong>Email:</strong> {{ email }}</p>
-
-                        <br/><br/>
-                        <h2>Payment Details</h2>
-
-                    ITN:</strong> R{{ payment.itn_payload }}                   
-
-                      </div>
-                    </div>
-                    <br/>
-
-                    <br/><br/>
-                  </div>
-                </center>
-            </div>
-        </div>-->
+ 
 
         <div class="container">
             <div class="row">
@@ -50,10 +21,12 @@
                     <div class="col-8">
                         <br/><br/>
                         <div class="alert alert-info mt-3">
-                            <h3>Your Order is Successful and being processed</h3>
+                            <p>Thank you for your purchase!</p>
+                            <p>Your order has been confirmed.</p>
                         </div>
-                                        
-                        
+
+                        <a href="{% url 'order_history' %}" class="btn btn-primary">View Order History</a>
+                                                           
                         <br/><br/>
                         <br/><br/>
                     </div>
@@ -64,6 +37,7 @@
     <br/><br/>
     <br/><br>
     <br/><br>
-     
+   
+
 
   {% endblock %}

@@ -178,13 +178,13 @@ PAYFAST_PASSPHRASE = 'Marvelousgreen2024'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # Replace with your email provider's SMTP server
 EMAIL_PORT = 587  # Use the appropriate port
-EMAIL_HOST_USER = 'serabelekd@gmail.com'  # Your email address
-EMAIL_HOST_PASSWORD = 'qlwqzmweqrnunyxc'  # Your email password
+EMAIL_HOST_USER = str(os.getenv("EMAIL_HOST_USER"))  
+EMAIL_HOST_PASSWORD = str(os.getenv("EMAIL_HOST_PASSWORD"))  
 EMAIL_USE_TLS = True
-#DEFAULT_FROM_EMAIL = 'serabelekd@gmail.com'
 EMAIL_USE_SSL = False
 
-COURIER_GUY_USERNAME = 'greenmarvel'
+
+COURIER_GUY_USERNAME = str(os.getenv("COURIER_GUY_USERNAME")) 
 COURIER_GUY_API_KEY = str(os.getenv("COURIER_GUY_API_KEY"))
 
 

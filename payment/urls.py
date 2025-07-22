@@ -16,6 +16,9 @@ urlpatterns = [
     path('payment_success/', views.payment_success, name='payment_success'),
     path('payment_cancel/', views.payment_cancel, name='payment_cancel'),
     path('payment_notify/', views.payment_notify, name='payment_notify'),
+
+    path('order-history/', views.order_history, name='order_history'),
+    path('track-order/<int:order_id>/', views.track_order, name='track_order'),
     
     #path('upload_payment/', views.upload_payment, name="upload_payment"),
 ]
