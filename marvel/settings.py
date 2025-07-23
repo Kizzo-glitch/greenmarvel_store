@@ -170,10 +170,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #django_heroku.settings(locals())
 
-
-PAYFAST_MERCHANT_ID =  os.getenv('PAYFAST_MERCHANT_ID')
-PAYFAST_MERCHANT_KEY = os.getenv('PAYFAST_MERCHANT_ID') 
-PAYFAST_PASSPHRASE = os.getenv('PAYFAST_MERCHANT_ID')
+PAYFAST_MERCHANT_ID = '24614055'
+PAYFAST_MERCHANT_KEY = 'cybdmhnyiv7q6' 
+PAYFAST_PASSPHRASE = 'Marvelousgreen2024'
 
 
 
