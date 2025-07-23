@@ -126,16 +126,19 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+#TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
 USE_TZ = True
+
+TIME_ZONE = 'Africa/Johannesburg'
 
 
 # Static files (CSS, JavaScript, Images)
@@ -168,9 +171,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #django_heroku.settings(locals())
 
 
-PAYFAST_MERCHANT_ID =  '24614055'  #'10033849'
-PAYFAST_MERCHANT_KEY = 'cybdmhnyiv7q6'  #'dmhcbmfg6r2hh'
-PAYFAST_PASSPHRASE = 'Marvelousgreen2024'
+PAYFAST_MERCHANT_ID =  os.getenv('PAYFAST_MERCHANT_ID')
+PAYFAST_MERCHANT_KEY = os.getenv('PAYFAST_MERCHANT_ID') 
+PAYFAST_PASSPHRASE = os.getenv('PAYFAST_MERCHANT_ID')
 
 
 
