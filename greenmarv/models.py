@@ -89,7 +89,6 @@ class Order(models.Model):
 	date = models.DateField(default=datetime.datetime.today)
 	status = models.BooleanField(default=False)
 
-
 	def __str__(self):
 		return self.product
 
@@ -104,14 +103,16 @@ class Influencer(models.Model):
 	def __str__(self):
 		return self.name
 
+
 class DiscountCode(models.Model):
 	code = models.CharField(max_length=20, unique=True)
-	influencer = models.ForeignKey(Influencer, on_delete=models.CASCADE, related_name='discount_codes')
+	influencer = models.ForeignKey(Influencer, on_delete=models.SET_NULL, null=True, blank=True, related_name='discount_codes')
 	discount_percentage = models.IntegerField(default=0)  # Discount percentage
+	amount_off = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	usage_count = models.DecimalField(default=0, decimal_places=2, max_digits=5)
 	total_before_discount = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=5)
 	is_active = models.BooleanField(default=False)
 
 	def __str__(self):
-		return f'{self.code} ({self.discount_percentage}% discount by {self.influencer.name})'
+		return f'{self.code}' #({self.discount_percentage}% discount by {self.influencer.name})
 

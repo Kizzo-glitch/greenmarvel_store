@@ -14,7 +14,61 @@ from django.conf import settings
 
 
 def cart_summary(request):
-    # Get the cart
+	cart = Cart(request)
+	cart_products = cart.get_prods
+	quantities = cart.get_quants
+	totals = cart.cart_total()
+
+	discount_amount = Decimal(0)
+	total_after_discount = totals
+	commission = Decimal(0)
+	discount_code = None
+
+	if request.method == "POST" and 'discount_code' in request.POST:
+		discount_code = request.POST.get('discount_code')
+
+		try:
+			discount = DiscountCode.objects.get(code=discount_code, is_active=True)
+
+			# Determine discount amount
+			if discount.amount_off:
+				discount_amount = Decimal(discount.amount_off).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+			elif discount.discount_percentage:
+				discount_amount = (Decimal(discount.discount_percentage) / 100 * totals).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+			# Cap discount to total to avoid negative values
+			discount_amount = min(discount_amount, totals)
+
+			total_after_discount = (totals - discount_amount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+			# Save the total before the discount
+			discount.total_before_discount = totals
+			discount.save()
+
+			# Influencer commission (if linked)
+			if discount.influencer:
+				commission = (Decimal(discount.influencer.commission_rate) / 100 * totals).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+		except ObjectDoesNotExist:
+			messages.error(request, "Invalid discount code")
+
+	# Store values in session
+	request.session['total_after_discount'] = str(total_after_discount)
+	request.session['commission'] = str(commission)
+	request.session['discount_code'] = discount_code
+
+	return render(request, "cart_summary.html", {
+		"cart_products": cart_products, 
+		"quantities": quantities, 
+		"totals": totals, 
+		"discount_amount": discount_amount,
+		"total_after_discount": total_after_discount,
+		"commission": commission,
+	})
+
+
+def cart_summary2(request):
+	# Get the cart
 	cart = Cart(request)
 	cart_products = cart.get_prods
 	quantities = cart.get_quants
@@ -25,15 +79,15 @@ def cart_summary(request):
 	commission = Decimal(0)
 	
 
-    # Check if a discount code has been applied
+	# Check if a discount code has been applied
 	if request.method == "POST" and 'discount_code' in request.POST:
-		discount_code = request.POST.get('discount_code')
-        
-        # Validate the discount code (assuming you have a Discount model)
+		discount_code = request.POST.get('discount_code').strip().upper()
+		
+		# Validate the discount code (assuming you have a Discount model)
 		try:
 			discount = DiscountCode.objects.get(code=discount_code, is_active=True)
-            
-            # Apply the discount (assumes percentage-based discount)
+			
+			# Apply the discount (assumes percentage-based discount)
 			discount_amount = (Decimal(discount.discount_percentage / 100) * totals).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 			total_after_discount = (totals - discount_amount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
@@ -41,7 +95,7 @@ def cart_summary(request):
 			discount.total_before_discount = totals
 			discount.save()
 
-            # Calculate influencer commission (assuming you store influencer info in the discount model)
+			# Calculate influencer commission (assuming you store influencer info in the discount model)
 			if discount.influencer:
 				commission = (Decimal((discount.influencer.commission_rate) / 100) * totals).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 				commission_rate = discount.influencer.commission_rate
@@ -51,7 +105,7 @@ def cart_summary(request):
 				#notify_influencer(discount.influencer, totals, discount.discount_percentage, total_after_discount, discount_code, commission_rate, commission)
 
 		except ObjectDoesNotExist:
-            # Handle invalid discount code
+			# Handle invalid discount code
 			messages.error(request, "Invalid discount code")
 
 	# Store the Total and Influencer's commition after discount in the session to be accessed 
@@ -62,12 +116,12 @@ def cart_summary(request):
 	request.session['discount_code'] = discount_code if 'discount_code' in request.POST else None
 
 	return render(request, "cart_summary.html", {
-        "cart_products": cart_products, 
-        "quantities": quantities, 
-        "totals": totals, 
-        "discount_amount": discount_amount,
-        "total_after_discount": total_after_discount,
-        "commission": commission,
+		"cart_products": cart_products, 
+		"quantities": quantities, 
+		"totals": totals, 
+		"discount_amount": discount_amount,
+		"total_after_discount": total_after_discount,
+		"commission": commission,
 	})
 
 
@@ -75,21 +129,21 @@ def notify_influencer(influencer, totals, discount_percentage, total_after_disco
 	subject = "Your Discount Code Was Used!"
 	message = (
 		f"Hello {influencer.name}, \n\n"
-        f"Your discount code: {discount_code}, was used for a purchase of R{totals:.2f}. "
-        f"The customer received a {discount_percentage}% discount.\n"
-        f"Which reduced their order to R{total_after_discount} .\n"
-        f"At the commission rate of: {commission_rate}%.\n"
-        f"Your commission for this order is: R{commission:.2f}.\n"
-        f"Thank you for your contribution!.\n"
-        f"Green Marvel Sales Team"
-        )
+		f"Your discount code: {discount_code}, was used for a purchase of R{totals:.2f}. "
+		f"The customer received a {discount_percentage}% discount.\n"
+		f"Which reduced their order to R{total_after_discount} .\n"
+		f"At the commission rate of: {commission_rate}%.\n"
+		f"Your commission for this order is: R{commission:.2f}.\n"
+		f"Thank you for your contribution!.\n"
+		f"Green Marvel Sales Team"
+		)
 
 	send_mail(
-        subject,
-        message,
-        settings.EMAIL_HOST_USER,  # Replace with your store's email
-        [influencer.email],
-        fail_silently=False,
+		subject,
+		message,
+		settings.EMAIL_HOST_USER,  # Replace with your store's email
+		[influencer.email],
+		fail_silently=False,
 	)
 
 
