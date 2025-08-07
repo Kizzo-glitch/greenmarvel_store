@@ -12,6 +12,7 @@ from cart.cart import Cart
 
 from payment.forms import ShippingForm
 from payment.models import ShippingAddress
+from django.utils import timezone
 
 
 
@@ -120,7 +121,9 @@ def index(request):
 
 def home(request):
 	products = Product.objects.all()
-	return render(request, 'home.html', {'products':products})
+	return render(request, 'home.html', {
+		'products':products, 
+		"now": timezone.now(),})
 
 
 

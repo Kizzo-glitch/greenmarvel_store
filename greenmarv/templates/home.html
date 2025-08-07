@@ -15,53 +15,67 @@
                 </div>
             </div>
         </header>
+
+        <div class="promo-banner" style="background: #fbeff9; color: #880e4f; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+            <h2 style="font-weight: bold; font-size: 1.8em;">🎉 Celebrate Women’s Day!</h2>
+            <p style="font-size: 1.2em;">Get <strong>R40 OFF</strong> your order with code: <strong style="color: #d81b60;">women-40</strong></p>
+            
+            <div id="countdown" style="font-size: 1.2em; margin: 15px 0; font-weight: bold;"></div>
+            
+            <!--<form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="discount_code" value="women-40">-->
+                <button class="btn" style="background: #d81b60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Code Only Applicable On Saturday</button>
+            <!--</form>--> 
+        </div>
+
         <!-- Product Section-->
-<section class="py-5">
-    <div class="container px-4 px-lg-5 mt-5">
-        <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-            {% for product in products %}
-            <div class="col mb-5">
-                <div class="card h-100 clickable-card" data-url="{% url 'product' product.id %}">
-                    {% if product.sale %}
-                    <!-- Sale Badge -->
-                    <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem;">Sale</div>
-                    {% endif %}
-
-                    <!-- Product image-->
-                    <img class="card-img-top" src="{{ product.image.url }}" alt="{{ product.name }}" />
-
-                    <!-- Product details-->
-                    <div class="card-body p-4">
-                        <div class="text-center">
-                            <!-- Product name-->
-                            <h5 class="fw-bolder">{{ product.name }}</h5>
-
-                            <!-- Product price-->
+        <section class="py-5">
+            <div class="container px-4 px-lg-5 mt-5">
+                <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+                    {% for product in products %}
+                    <div class="col mb-5">
+                        <div class="card h-100 clickable-card" data-url="{% url 'product' product.id %}">
                             {% if product.sale %}
-                                <strike>R{{ product.price }}</strike>
-                                &nbsp;R{{ product.sale_price }}
-                            {% else %}
-                                R{{ product.price }}
+                            <!-- Sale Badge -->
+                            <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem;">Women's Month Special Sale</div>
                             {% endif %}
-                            <br/><br>
 
-                            <p class="card-text">{{ product.description }}</p>
+                            <!-- Product image-->
+                            <img class="card-img-top" src="{{ product.image.url }}" alt="{{ product.name }}" />
+
+                            <!-- Product details-->
+                            <div class="card-body p-4">
+                                <div class="text-center">
+                                    <!-- Product name-->
+                                    <h5 class="fw-bolder">{{ product.name }}</h5>
+
+                                    <!-- Product price-->
+                                    {% if product.sale %}
+                                        <strike>R{{ product.price }}</strike>
+                                        &nbsp;R{{ product.sale_price }}
+                                    {% else %}
+                                        R{{ product.price }}
+                                    {% endif %}
+                                    <br/><br>
+
+                                    <p class="card-text">{{ product.description }}</p>
+                                </div>
+                            </div>
+
+
+                            <!-- Product actions-->
+                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                                <div class="text-center">
+                                    <a class="btn btn-outline-dark mt-auto view-product-btn" href="{% url 'product' product.id %}">View Product</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-
-                    <!-- Product actions-->
-                    <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                        <div class="text-center">
-                            <a class="btn btn-outline-dark mt-auto view-product-btn" href="{% url 'product' product.id %}">View Product</a>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
-            {% endfor %}
-        </div>
-    </div>
-</section>
+        </section>
 
 
 
@@ -97,5 +111,28 @@
                 </div>
             </section>
             <br><br>
+            <script>
+            // Countdown to August 9
+            const countdown = () => {
+                const eventDate = new Date("August 9, {{ now.year }} 00:00:00").getTime();
+                const now = new Date().getTime();
+                const distance = eventDate - now;
 
+                if (distance < 0) {
+                    document.getElementById("countdown").innerHTML = "Promotion has ended.";
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById("countdown").innerHTML =
+                    `⏳ Starts in: [${days}d ${hours}h ${minutes}m ${seconds}s]`;
+
+                setTimeout(countdown, 1000);
+            };
+            countdown();
+            </script>
             {% endblock %}
