@@ -113,27 +113,40 @@
             </section>
             <br><br>
             <script>
-            // Countdown to August 9
-            const countdown = () => {
-                const eventDate = new Date("August 9, {{ now.year }} 00:00:00").getTime();
-                const now = new Date().getTime();
-                const distance = eventDate - now;
+                // Countdown to August 9
+                const countdown = () => {
+                    const eventDate = new Date("August 9, {{ now.year }} 00:00:00").getTime();
+                    const now = new Date().getTime();
+                    const distance = eventDate - now;
 
-                if (distance < 0) {
-                    document.getElementById("countdown").innerHTML = "Promotion has ended.";
-                    return;
+                    if (distance < 0) {
+                        document.getElementById("countdown").innerHTML = "Promotion has ended.";
+                        return;
+                    }
+
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    document.getElementById("countdown").innerHTML =
+                        `⏳ Starts in: [${days}d ${hours}h ${minutes}m ${seconds}s]`;
+
+                    setTimeout(countdown, 1000);
+                };
+                countdown();
+            </script>
+
+            <style>
+                .promo-banner {
+                    animation: pulse 2s infinite;
                 }
 
-                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.02); }
+                    100% { transform: scale(1); }
+                }
+            </style>
 
-                document.getElementById("countdown").innerHTML =
-                    `⏳ Starts in: [${days}d ${hours}h ${minutes}m ${seconds}s]`;
-
-                setTimeout(countdown, 1000);
-            };
-            countdown();
-            </script>
-            {% endblock %}
+{% endblock %}
