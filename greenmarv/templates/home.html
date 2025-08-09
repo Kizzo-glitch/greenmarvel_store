@@ -25,7 +25,7 @@
             <!--<form method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="discount_code" value="women-40">-->
-                <button class="btn" style="background: #d81b60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Code Only Applicable On Saturday</button>
+                <button class="btn" style="background: #d81b60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Code Only Applicable On Today</button>
             <!--</form>--> 
         </div>
 
@@ -120,7 +120,7 @@
                     const distance = eventDate - now;
 
                     if (distance < 0) {
-                        document.getElementById("countdown").innerHTML = "Promotion has ended.";
+                        document.getElementById("countdown").innerHTML = "Promotion has begun.";
                         return;
                     }
 
