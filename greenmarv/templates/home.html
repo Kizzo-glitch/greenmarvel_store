@@ -17,15 +17,15 @@
         </header>
 
         <div class="promo-banner" style="background: #fbeff9; color: #880e4f; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-            <h2 style="font-weight: bold; font-size: 1.8em;">🎉 Celebrate Women’s Day!</h2>
-            <p style="font-size: 1.2em;">Get <strong>R40 OFF</strong> your order with code: <strong style="color: #d81b60;">women-40</strong></p>
+            <h2 style="font-weight: bold; font-size: 1.8em;">🎉 Celebrate Women’s Month!</h2>
+            <p style="font-size: 1.2em;">Get <strong>R10 and more OFF</strong> each product! <!--<strong style="color: #d81b60;">women-40 --></strong></p>
             
             <div id="countdown" style="font-size: 1.2em; margin: 15px 0; font-weight: bold;"></div>
             
             <!--<form method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="discount_code" value="women-40">-->
-                <button class="btn" style="background: #d81b60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Code Only Applicable Today</button>
+                <button class="btn" style="background: #d81b60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Celebrate this special month with us</button>
             <!--</form>--> 
         </div>
 
@@ -115,12 +115,12 @@
             <script>
                 // Countdown to August 9
                 const countdown = () => {
-                    const eventDate = new Date("August 9, {{ now.year }} 00:00:00").getTime();
+                    const eventDate = new Date("August 31, {{ now.year }} 00:00:00").getTime();
                     const now = new Date().getTime();
                     const distance = eventDate - now;
 
                     if (distance < 0) {
-                        document.getElementById("countdown").innerHTML = "Promotion has begun.";
+                        document.getElementById("countdown").innerHTML = "Promotion has ended.";
                         return;
                     }
 
@@ -130,7 +130,7 @@
                     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
                     document.getElementById("countdown").innerHTML =
-                        `⏳ Starts in: [${days}d ${hours}h ${minutes}m ${seconds}s]`;
+                        `⏳ Ends in: [${days}d ${hours}h ${minutes}m ${seconds}s]`;
 
                     setTimeout(countdown, 1000);
                 };
