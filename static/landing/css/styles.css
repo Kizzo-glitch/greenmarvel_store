@@ -5877,6 +5877,8 @@ textarea.form-control-lg {
   opacity: 0.5;
   transition: opacity 0.15s ease;
 }
+
+
 @media (prefers-reduced-motion: reduce) {
   .carousel-control-prev,
   .carousel-control-next {
