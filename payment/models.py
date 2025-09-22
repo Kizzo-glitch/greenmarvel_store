@@ -41,6 +41,7 @@ def create_shipping(sender, instance, created, **kwargs):
 post_save.connect(create_shipping, sender=User)
 
 
+
 # Create Order Model
 class Order(models.Model):
 	# Foreign Key
@@ -119,6 +120,11 @@ class OrderItem(models.Model):
 
 	def __str__(self):
 		return f'Order Item - {str(self.id)}'
+
+
+
+
+
 
 
 

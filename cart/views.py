@@ -10,7 +10,76 @@ import json
 from decimal import Decimal, ROUND_HALF_UP
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+from .models import Promotion
 
+
+from django.utils import timezone
+
+
+
+def cart_summary(request):
+	cart = Cart(request)
+	cart_products = cart.get_prods
+	quantities = cart.get_quants
+	totals = cart.cart_total()
+
+	discount_amount = Decimal(0)
+	total_after_discount = totals
+	commission = Decimal(0)
+	applied_promo = None
+
+	# ----- 1) Check if a discount code is posted -----
+	discount_code = None
+	if request.method == "POST" and 'discount_code' in request.POST:
+		discount_code = request.POST.get('discount_code')
+		try:
+			discount = DiscountCode.objects.get(code=discount_code, is_active=True)
+			# normal percentage discount
+			discount_amount = (
+				Decimal(discount.discount_percentage) / 100 * totals
+			).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+			total_after_discount = (totals - discount_amount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+			if discount.influencer:
+				commission = (
+					Decimal(discount.influencer.commission_rate) / 100 * totals
+				).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+		except ObjectDoesNotExist:
+			messages.error(request, "Invalid discount code")
+
+	# ----- 2) Check Heritage Day promo (only if no code used) -----
+	else:
+		try:
+			heritage = Promotion.objects.get(name="Heritage Day Buy 3")
+		except Promotion.DoesNotExist:
+			heritage = None
+
+		if heritage and heritage.is_running():
+			# Count total quantity of items
+			total_qty = sum(quantities.values())
+			if total_qty >= 3:
+				# Find the cheapest unit price in the cart
+				cheapest_price = min(p.price for p in cart_products)
+				discount_amount = Decimal(cheapest_price).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+				total_after_discount = (totals - discount_amount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+				applied_promo = "Heritage Day: Cheapest Item Free"
+
+	# Save to session if needed for checkout
+	request.session['total_after_discount'] = str(total_after_discount)
+	request.session['commission'] = str(commission)
+	request.session['discount_code'] = discount_code
+	request.session['heritage_promo'] = applied_promo
+
+	return render(request, "cart_summary.html", {
+		"cart_products": cart_products,
+		"quantities": quantities,
+		"totals": totals,
+		"discount_amount": discount_amount,
+		"total_after_discount": total_after_discount,
+		"commission": commission,
+		"applied_promo": applied_promo,
+	})
 
 
 def cart_summary(request):

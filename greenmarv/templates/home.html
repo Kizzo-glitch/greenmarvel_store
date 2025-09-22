@@ -24,18 +24,18 @@
                     Buy for R600 and more to get free shipping</em></p>
                 </div>
             </div>
-        </header>
+        </header>-->
 
         <div class="promo-banner" style="background: #fbeff9; color: #880e4f; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-            <h2 style="font-weight: bold; font-size: 1.8em;">🎉 Celebrate Women’s Month!</h2>
-            <p style="font-size: 1.2em;">Get <strong>R10 and more OFF</strong> each product! </strong></p>
+            <h2 style="font-weight: bold; font-size: 1.8em;">🎉 Heritage Day Special</h2>
+            <p style="font-size: 1.2em;">Buy any <strong>3 products</strong> cheapest one free </strong></p>
+            <p>Offer valid until 24 September midnight. No code required — discount applies automatically in cart.</p>
             
             <div id="countdown" style="font-size: 1.2em; margin: 15px 0; font-weight: bold;"></div>
             
+            <button class="btn" style="background: #d81b60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;"> Let's Celebrate Our Cultures With Pride</button>
            
-                <button class="btn" style="background: #d81b60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Celebrate this special month with us</button>
-           
-        </div> -->
+        </div> 
 
     
             <!-- PROMO -->
@@ -108,6 +108,13 @@
 
               </div>
               </div>
+            </section>-->
+
+            <!--<section class="py-5 bg-warning text-dark text-center">
+              <h2>Heritage Day Special</h2>
+              <p class="lead">Buy any <strong>3 products</strong> and get the <strong>cheapest one free</strong>!</p>
+              <p>Offer valid until 24 September midnight. No code required — discount applies automatically in cart.</p>
+              <a href="{% url 'home' %}" class="btn btn-dark btn-lg mt-3">Shop Now</a>
             </section>-->
            
         <!-- Product Section-->
@@ -310,7 +317,7 @@
             <script>
                 // Countdown to August 
                 const countdown = () => {
-                    const eventDate = new Date("August 31, {{ now.year }} 00:00:00").getTime();
+                    const eventDate = new Date("September 25, {{ now.year }} 00:00:00").getTime();
                     const now = new Date().getTime();
                     const distance = eventDate - now;
 
@@ -325,7 +332,7 @@
                     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
                     document.getElementById("countdown").innerHTML =
-                        `⏳ Ends in: [${days}d ${hours}h ${minutes}m ${seconds}s]`;
+                        `⏳ Countdown: [${days}d ${hours}h ${minutes}m ${seconds}s]`;
 
                     setTimeout(countdown, 1000);
                 };
