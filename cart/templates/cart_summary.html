@@ -68,10 +68,59 @@
         {% endfor %}
 
         <!-- Order Summary -->
-        <center>
+
+        <!-- Order Summary -->
+        <div class="container mt-4">
+            <center>
+                <h3 class="mb-3">🛒 Order Summary</h3>
+
+                <!-- Base Total -->
+                <h4>Subtotal: <strong>R{{ base_total }}</strong></h4>
+
+                <!-- Applied Promo / Discount Message -->
+                {% if applied_promo %}
+                <div class="alert alert-success mt-3">
+                    🎉 <strong>{{ applied_promo }}</strong> applied
+                    {% if discount_amount > 0 %}
+                        — you saved <strong>R{{ discount_amount }}</strong>!
+                    {% else %}
+                        — cheapest item FREE!
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Show discount if a percentage/code was used -->
+                {% if discount_amount > 0 %}
+                <h5 class="text-danger">
+                    Discount: -R{{ discount_amount }}
+                </h5>
+                {% endif %}
+
+                <!-- Final Total -->
+                <hr class="my-3" style="width:50%;">
+                <h3 class="text-primary">
+                    Total to Pay: <strong>R{{ total_after_discount }}</strong>
+                </h3>
+
+                <!-- Checkout Button -->
+                <div class="mt-4">
+                    <a href="{% url 'checkout' %}" class="btn btn-success btn-lg">
+                        Proceed to Checkout
+                    </a>
+                </div>
+            </center>
+        </div>
+
+        <!--<center>
             <h3>Total: R{{ totals }}</h3>
 
-            <!-- Show the discount and updated total if applicable -->
+            {% if applied_promo %}
+            <div class="alert alert-success mt-3">
+              🎉 {{ applied_promo }} applied — you saved R{{ discount_amount }}!
+            </div>
+            {% endif %}
+
+           
             {% if discount_amount > 0 %}
             <h4>Discount: -R{{ discount_amount }}</h4>
             <h3>Total After Discount: R{{ total_after_discount }}</h3>
@@ -82,7 +131,7 @@
             <br/><br/>
             <a href="{% url 'checkout' %}" class="btn btn-success">Checkout</a>
             <br/><br/>
-        </center>
+        </center>-->
 
         <!-- Discount Code Input Form -->
         <div class="col-md-6 offset-md-3">

@@ -10,6 +10,7 @@ import json
 from decimal import Decimal, ROUND_HALF_UP
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+
 from .models import Promotion
 
 
@@ -21,7 +22,153 @@ def cart_summary(request):
 	cart = Cart(request)
 	cart_products = cart.get_prods
 	quantities = cart.get_quants
-	totals = cart.cart_total()
+
+	discount_amount = Decimal('0.00')
+	total_after_discount = Decimal('0.00')
+	commission = Decimal('0.00')
+	applied_promo = None
+	discount_code = None
+
+	# ---- Step 1: Check POST for discount code ----
+	if request.method == "POST" and 'discount_code' in request.POST:
+		discount_code = request.POST.get('discount_code').strip()
+		try:
+			discount = DiscountCode.objects.get(code=discount_code, is_active=True)
+			base_total = cart.cart_total()
+			discount_amount = (
+				Decimal(discount.discount_percentage) / 100 * base_total
+			).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+			total_after_discount = (base_total - discount_amount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+			if discount.influencer:
+				commission = (
+					Decimal(discount.influencer.commission_rate) / 100 * base_total
+				).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+			applied_promo = f"Code: {discount.code}"
+
+		except ObjectDoesNotExist:
+			messages.error(request, "Invalid discount code")
+			base_total = cart.cart_total()
+			total_after_discount = base_total
+
+	# ---- Step 2: Heritage Day promo (only if no discount code used) ----
+	else:
+		base_total = cart.cart_total()
+		try:
+			heritage_special = Promotion.objects.get(name="Heritage Day Buy 3", is_active=True)
+		except Promotion.DoesNotExist:
+			heritage_special = None
+
+		if heritage_special:
+			# Use heritage total and set applied promo
+			heritage_total = cart.heritage_total()
+			total_after_discount = heritage_total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+			applied_promo = "Heritage Day: Cheapest Item Free"
+		else:
+			total_after_discount = base_total
+
+	# ---- Step 3: Save key values to session ----
+	request.session['total_after_discount'] = str(total_after_discount)
+	request.session['commission'] = str(commission)
+	request.session['discount_code'] = discount_code
+	request.session['applied_promo'] = applied_promo
+
+	# ---- Step 4: Render ----
+	return render(
+		request,
+		"cart_summary.html",
+		{
+			"cart_products": cart_products,
+			"quantities": quantities,
+			"base_total": base_total,
+			"discount_amount": discount_amount,
+			"total_after_discount": total_after_discount,
+			"commission": commission,
+			"applied_promo": applied_promo,
+		},
+	)
+
+
+
+
+def cart_summary5(request):
+	cart = Cart(request)
+	cart_products = cart.get_prods
+	quantities = cart.get_quants
+	#totals = cart.cart_total()
+	totals = cart.cart_total(
+		discount_code=request.session.get('discount_code'),
+		#heritage_promo=request.session.get('heritage_promo', False)
+	)
+
+
+	discount_amount = Decimal(0)
+	total_after_discount = totals
+	commission = Decimal(0)
+	applied_promo = None
+
+	# ----- 1) Check if a discount code is posted -----
+	discount_code = None
+	if request.method == "POST" and 'discount_code' in request.POST:
+		discount_code = request.POST.get('discount_code')
+		try:
+			discount = DiscountCode.objects.get(code=discount_code, is_active=True)
+			# normal percentage discount
+			discount_amount = (
+				Decimal(discount.discount_percentage) / 100 * totals
+			).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+			total_after_discount = (totals - discount_amount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+			if discount.influencer:
+				commission = (
+					Decimal(discount.influencer.commission_rate) / 100 * totals
+				).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+		except ObjectDoesNotExist:
+			messages.error(request, "Invalid discount code")
+
+	# ----- 2) Check Heritage Day promo (only if no code used) -----
+	else:
+		try:
+			heritage_special_active = Promotion.objects.get(name="Heritage Day Buy 3")
+		except Promotion.DoesNotExist:
+			heritage_special_active = None
+
+		if heritage_special_active:  
+			totals = cart.heritage_total()
+		else:
+			totals = cart.cart_total(discount_code=discount_code)
+
+
+	# Save to session if needed for checkout
+	request.session['total_after_discount'] = str(total_after_discount)
+	request.session['commission'] = str(commission)
+	request.session['discount_code'] = discount_code
+	request.session['heritage_promo'] = applied_promo
+
+	return render(request, "cart_summary.html", {
+		"cart_products": cart_products,
+		"quantities": quantities,
+		"totals": totals,
+		"discount_amount": discount_amount,
+		"total_after_discount": total_after_discount,
+		"commission": commission,
+		"applied_promo": applied_promo,
+	})
+
+
+
+def cart_summary4(request):
+	cart = Cart(request)
+	cart_products = cart.get_prods
+	quantities = cart.get_quants
+	#totals = cart.cart_total()
+	totals = cart.cart_total(
+		discount_code=request.session.get('discount_code'),
+		heritage_promo=request.session.get('heritage_promo', False)
+	)
+
 
 	discount_amount = Decimal(0)
 	total_after_discount = totals
@@ -82,7 +229,8 @@ def cart_summary(request):
 	})
 
 
-def cart_summary(request):
+
+def cart_summary3(request):
 	cart = Cart(request)
 	cart_products = cart.get_prods
 	quantities = cart.get_quants

@@ -88,20 +88,57 @@ class Cart():
 		return total_weight
 
 
-	def cart_total(self, discount_code=None):
-        # Get product IDs
+
+	def cart_total2(self, discount_code=None, heritage_promo=False):
 		product_ids = self.cart.keys()
-        # Lookup those keys in the product database
 		products = Product.objects.filter(id__in=product_ids)
-        # Get quantities
 		quantities = self.cart
-        # Start counting at 0
+		total = Decimal(0)
+		all_prices = []
+
+		for key, value in quantities.items():
+			key = int(key)
+			for product in products:
+				if product.id == key:
+					price = product.sale_price if product.sale else product.price
+					total += price * value
+					# add each item individually for promo logic
+					all_prices.extend([price] * value)
+
+		# Percentage discount
+		discount_amount = Decimal(0)
+		if discount_code:
+			try:
+				discount = DiscountCode.objects.get(code=discount_code, is_active=True)
+				discount_amount = Decimal(discount.discount_percentage) / 100 * total
+			except ObjectDoesNotExist:
+				pass
+
+		# Heritage Day: Buy 3 get cheapest free
+		heritage_discount = Decimal(0)
+		if heritage_promo and len(all_prices) >= 3:
+			cheapest = min(all_prices)
+			heritage_discount = cheapest  # subtract cheapest item
+
+		total_after_discount = total - discount_amount - heritage_discount
+		return max(total_after_discount, Decimal(0))
+
+
+
+	def cart_total(self, discount_code=None):
+		# Get product IDs
+		product_ids = self.cart.keys()
+		# Lookup those keys in the product database
+		products = Product.objects.filter(id__in=product_ids)
+		# Get quantities
+		quantities = self.cart
+		# Start counting at 0
 		total = Decimal(0)
 		#total = 0
 
-        # Calculate the total price
+		# Calculate the total price
 		for key, value in quantities.items():
-            # Convert key string into int so we can do math
+			# Convert key string into int so we can do math
 			key = int(key)
 			for product in products:
 				if product.id == key:
@@ -110,18 +147,18 @@ class Cart():
 					else:
 						total += product.price * value
 
-        # Apply discount if a valid discount code exists
+		# Apply discount if a valid discount code exists
 		discount_amount = Decimal(0)
 		
 		if discount_code:
 			try:
 				discount = DiscountCode.objects.get(code=discount_code, is_active=True)
-                # Apply percentage-based discount
+				# Apply percentage-based discount
 				discount_amount = Decimal(discount.discount_percentage) / 100 * total
 			except ObjectDoesNotExist:
 				pass  # Ignore if discount code is invalid
-        
-        # Total after discount
+		
+		# Total after discount
 		total_after_discount = total - discount_amount
 
 		return total_after_discount if discount_amount > 0 else total
@@ -129,6 +166,29 @@ class Cart():
 
 	def __len__(self):
 		return len(self.cart)
+
+
+	def heritage_total(self):
+		product_ids = self.cart.keys()
+		products = Product.objects.filter(id__in=product_ids)
+		quantities = self.cart
+		total = Decimal(0)
+		all_prices = []
+
+		for key, value in quantities.items():
+			key = int(key)
+			for product in products:
+				if product.id == key:
+					price = product.sale_price if product.sale else product.price
+					total += price * value
+					all_prices.extend([price] * value)
+
+		if len(all_prices) >= 3:
+			total -= min(all_prices)
+
+		return total
+
+
 
 
 
