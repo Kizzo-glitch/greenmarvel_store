@@ -120,9 +120,9 @@ def index(request):
 
 
 def home(request):
-	products = Product.objects.exclude(name__icontains="combo")
+	#products = Product.objects.exclude(name__icontains="combo")
 
-	#products = Product.objects.all()
+	products = Product.objects.all()
 	return render(request, 'home.html', {
 		'products':products, 
 		"now": timezone.now(),})
