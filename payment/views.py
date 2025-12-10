@@ -493,7 +493,19 @@ def billing_info(request):
 		]
 
 		# Check if free shipping applies
+		total_items = len(cart)
+		free_shipping_applies = False
+
+		# Rule 1: Cart value >= R600
 		if total_after_discount >= 600:
+			free_shipping_applies = True
+
+		# Rule 2: Festive promo – 3 or more products
+		if total_items >= 3:
+			free_shipping_applies = True
+
+
+		if free_shipping_applies:
 			shipping_cost = Decimal(0)  # Free shipping
 			total_with_shipping = total_after_discount
 		else:

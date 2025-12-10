@@ -27,13 +27,13 @@
         </header>-->
 
         <div class="promo-banner" style="background: #fbeff9; color: #880e4f; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-            <h2 style="font-weight: bold; font-size: 1.8em;">🎉 Black Friday Special</h2>
-            <p style="font-size: 1.2em;">Buy any <strong>2 or more products</strong> and get a complimentary 50 mL product for free </strong></p>
-            <p>The Offer is valid from 25 - 30 November. No code required — Sale applies automatically upon purchase.</p>
+            <h2 style="font-weight: bold; font-size: 1.8em;">🎄 Festive Season Special</h2>
+            <p style="font-size: 1.2em;">Buy any <strong>3 or more products</strong> and get free shipping</strong></p>
+            <p>The Offer is only valid this December. No code required — Sale applies automatically upon purchase.</p>
             
             <div id="countdown" style="font-size: 1.2em; margin: 15px 0; font-weight: bold;"></div>
             
-            <button class="btn" style="background: #d81b60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Be on the lookout and Hurry while stock lasts</button>
+            <button class="btn" style="background: #d81b60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Be on the lookout and hurry while stock lasts</button>
            
         </div> 
 
@@ -317,7 +317,7 @@
             <script>
                 // Countdown to August 
                 const countdown = () => {
-                    const eventDate = new Date("November 25, {{ now.year }} 00:00:00").getTime();
+                    const eventDate = new Date("December 31, {{ now.year }} 00:00:00").getTime();
                     const now = new Date().getTime();
                     const distance = eventDate - now;
 
@@ -332,7 +332,7 @@
                     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
                     document.getElementById("countdown").innerHTML =
-                        `⏳ Starts in: ${days}days ${hours}h ${minutes}m ${seconds}s`;
+                        `⏳ Ends in: ${days}days ${hours}h ${minutes}m ${seconds}s`;
 
                     setTimeout(countdown, 1000);
                 };
