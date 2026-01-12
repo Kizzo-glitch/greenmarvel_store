@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <section class="hero" id="home">
+    <div class="hero-container">
+        <div class="hero-content">
+            <div class="hero-badge" style="background: rgba(27, 48, 34, 0.4); border: 1px solid #c5a059; color: #fcf8ef; padding: 0.6rem 1.2rem; border-radius: 30px; display: inline-block; margin-bottom: 1.5rem; font-size: 0.8rem; letter-spacing: 1px;">
+                ✨ 100% ORGANIC | PHARMA-FORMULATED | LAB-TESTED
+            </div>
+            <h1>Natural Beauty,<br>Naturally You</h1>
+            <p style="font-size: 1.2rem; margin-bottom: 2.5rem; color: #fcf8ef; opacity: 0.9; max-width: 550px;">
+                Premium organic hair care designed to nourish and strengthen your natural beauty with the power of nature and science.
+            </p>
+            <div class="hero-buttons">
+                <button class="btn-primary" onclick="scrollToProducts()">Shop Now</button>
+                <button class="btn-secondary" onclick="scrollToAbout()">Learn More</button>
+            </div>
+        </div>
+
+        <div class="hero-image-container">
+            <div class="leaf-container">
+                <span class="floating-leaf leaf-1">🍃</span>
+                <span class="floating-leaf leaf-2">🌿</span>
+                <span class="floating-leaf leaf-3">🍃</span>
+                <span class="floating-leaf leaf-4">🌱</span>
+
+                <span class="floating-leaf leaf-5">🍃</span>
+                <span class="floating-leaf leaf-6">🌿</span>
+                <span class="floating-leaf leaf-7">🍃</span>
+                <span class="floating-leaf leaf-8">🌱</span>
+            </div>
+
+            <div class="spill-wrapper">
+                <img src="YOUR_TRANSPARENT_JAR.png" class="product-hero-img" alt="Marvelously Green Hair Food">
+                <div class="spill-blob"></div>
+                <div class="drip"></div>
+                <div class="drip" style="animation-delay: 2s; right: 20%;"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+    
+
+<svg style="visibility: hidden; position: absolute;" width="0" height="0">
+  <defs>
+    <filter id="goo">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+      <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+    </filter>
+  </defs>
+</svg>
+
+
+
+    <section class="features-strip">
+        <div class="features-container">
+            <div class="feature-item">
+                <div class="feature-icon">🌿</div>
+                <h4>100% Organic</h4>
+                <p>Premium natural ingredients</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🐰</div>
+                <h4>Cruelty Free</h4>
+                <p>Never tested on animals</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔬</div>
+                <h4>Lab Tested</h4>
+                <p>SABS certified quality</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🇿🇦</div>
+                <h4>Made in SA</h4>
+                <p>Proudly South African</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="products" id="shop">
+        <div class="section-header">
+            <div class="section-label">Featured Collection</div>
+            <h2 class="section-title">Our Best Sellers</h2>
+            <p class="section-description">Discover our premium range of organic hair care products, carefully formulated to transform your hair naturally.</p>
+        </div>
+
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-image-container">
+                    <div class="product-badges">
+                        <span class="badge organic">{{ product.badge_text }}</span>
+                        {% if product.is_sale %}
+                            <span class="badge" style="background: #e74c3c; color: white;">SALE</span>
+                        {% endif %}
+                    </div>
+                    
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image-file" style="width: 80%; height: auto;">
+                    
+                    <div class="quick-add">
+                        <button onclick="addToCart('{{ product.name }}', {{ product.current_price }})">Quick Add</button>
+                    </div>
+                </div>
+
+                <div class="product-info">
+                    <h3 style="color: #c5a059;"><i>{{ product.name }}</i></h3>
+                    <p class="product-subtitle">{{ product.subtitle }}</p>
+                    <p class="product-description">{{ product.description|truncatechars:100 }}</p>
+                    
+                    <div class="product-features">
+                        {% if product.tag_1 %}<span class="feature-tag">{{ product.tag_1 }}</span>{% endif %}
+                        {% if product.tag_2 %}<span class="feature-tag">{{ product.tag_2 }}</span>{% endif %}
+                        {% if product.tag_3 %}<span class="feature-tag">{{ product.tag_3 }}</span>{% endif %}
+                    </div>
+
+                    <div class="product-footer">
+                        <div class="price-container">
+                            <span class="price-label">Price</span>
+                            {% if product.is_sale %}
+                                <span class="price" style="color: #e74c3c;">R{{ product.sale_price }}</span>
+                                <span style="text-decoration: line-through; font-size: 0.8rem; color: #999;">R{{ product.price }}</span>
+                            {% else %}
+                                <span class="price">R{{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                        &nbsp;
+                        <button class="add-to-cart" onclick="addToCart('{{ product.name }}', {{ product.current_price }})">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+    
+        </div>
+        <div class="view-all-container">
+            <a href="{% url 'shop' %}" class="btn-view-all">
+                View All Products <span>→</span>
+            </a>
+        </div>
+    </section>
+
+<section class="lifestyle-gallery">
+        <div class="section-header">
+            <div class="section-label">See It In Action</div>
+            <h2 class="section-title">Real People, Real Results</h2>
+        </div>
+
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <div class="gallery-image" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.2)), #e8f5e9; display: flex; align-items: center; justify-content: center; font-size: 4rem;">🌿</div>
+                <div class="gallery-overlay">
+                    <div class="gallery-content">
+                        <h3>Growth Hair Oil</h3>
+                        <p>Natural shine & strengthening</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gallery-item">
+                <div class="gallery-image" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.2)), #f8fdf8; display: flex; align-items: center; justify-content: center; font-size: 4rem;">💧</div>
+                <div class="gallery-overlay">
+                    <div class="gallery-content">
+                        <h3>Vitality Spray</h3>
+                        <p>Daily revitalization</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gallery-item">
+                <div class="gallery-image" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.2)), #e8f5e9; display: flex; align-items: center; justify-content: center; font-size: 4rem;">✨</div>
+                <div class="gallery-overlay">
+                    <div class="gallery-content">
+                        <h3>Transform Hair</h3>
+                        <p>Visible results</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gallery-item">
+                <div class="gallery-image" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.2)), #f8fdf8; display: flex; align-items: center; justify-content: center; font-size: 4rem;">🌱</div>
+                <div class="gallery-overlay">
+                    <div class="gallery-content">
+                        <h3>Complete Routine</h3>
+                        <p>Nourish root to tip</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gallery-item">
+                <div class="gallery-image" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.2)), #e8f5e9; display: flex; align-items: center; justify-content: center; font-size: 4rem;">🥥</div>
+                <div class="gallery-overlay">
+                    <div class="gallery-content">
+                        <h3>Hair Food</h3>
+                        <p>Deep nourishment</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gallery-item">
+                <div class="gallery-image" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.2)), #f8fdf8; display: flex; align-items: center; justify-content: center; font-size: 4rem;">💚</div>
+                <div class="gallery-overlay">
+                    <div class="gallery-content">
+                        <h3>100% Organic</h3>
+                        <p>Pure ingredients</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="before-after">
+        <div class="before-after-container">
+            <div class="before-after-content">
+                <div class="section-label">Transformation</div>
+                <h2>See The Difference</h2>
+                <p>Real transformations from our community.</p>
+                <button class="btn-primary" onclick="scrollTo('shop')">Start Your Journey</button>
+            </div>
+            
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <div class="comparison-images">
+                        <div class="comparison-half before">
+                            <span class="comparison-label">Before</span>
+                            <div class="comparison-img" style="background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 3rem;">📷</div>
+                        </div>
+                        <div class="comparison-half after">
+                            <span class="comparison-label">After</span>
+                            <div class="comparison-img" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.2)), #e8f5e9; display: flex; align-items: center; justify-content: center; font-size: 3rem;">💚</div>
+                        </div>
+                    </div>
+                    <div class="comparison-info">
+                        <h4>4 Weeks of Vitality Spray</h4>
+                        <p>Hairline restoration</p>
+                    </div>
+                </div>
+            
+                <div class="comparison-card">
+                    <div class="comparison-images">
+                        <div class="comparison-half before">
+                            <span class="comparison-label">Before</span>
+                            <div class="comparison-img" style="background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 3rem;">📷</div>
+                        </div>
+                        <div class="comparison-half after">
+                            <span class="comparison-label">After</span>
+                            <div class="comparison-img" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.2)), #e8f5e9; display: flex; align-items: center; justify-content: center; font-size: 3rem;">🌟</div>
+                        </div>
+                    </div>
+                    <div class="comparison-info">
+                        <h4>8 Weeks Complete Routine</h4>
+                        <p>Full transformation</p>
+                    </div>
+                </div>
+
+                <div class="comparison-card">
+                    <div class="comparison-images">
+                        <div class="comparison-half before">
+                            <span class="comparison-label">Before</span>
+                            <div class="comparison-img" style="background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 3rem;">📷</div>
+                        </div>
+                        <div class="comparison-half after">
+                            <span class="comparison-label">After</span>
+                            <div class="comparison-img" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.2)), #e8f5e9; display: flex; align-items: center; justify-content: center; font-size: 3rem;">💪</div>
+                        </div>
+                    </div>
+                    <div class="comparison-info">
+                        <h4>12 Weeks Complete Routine</h4>
+                        <p>Maintance and Growth</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials" id="reviews">
+        <div class="section-header">
+            <div class="section-label">Testimonials</div>
+            <h2 class="section-title">What Our Customers Say</h2>
+            <p class="section-description">Real results from real people who trust Marvelously Green</p>
+        </div>
+
+        <div class="testimonials-scroll">
+            <!-- First set -->
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Absolutely love these products! My hair has never felt better. The organic ingredients make such a difference. Highly recommend!"</p>
+                <p class="testimonial-author">— Sarah M.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"The Growth Oil is amazing! I've seen visible results in just 3 weeks. My edges are filling in beautifully. Thank you Marvelously Green!"</p>
+                <p class="testimonial-author">— Jessica L.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Finally found a brand I can trust. The quality is outstanding and my hair glows! 100% organic and it shows in the results."</p>
+                <p class="testimonial-author">— Emily R.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"The Vitality Spray is a game changer! My hair is thicker, stronger, and growing faster than ever. Love this brand!"</p>
+                <p class="testimonial-author">— Nomsa K.</p>
+            </div>
+            <!-- Duplicate for seamless loop -->
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Absolutely love these products! My hair has never felt better. The organic ingredients make such a difference. Highly recommend!"</p>
+                <p class="testimonial-author">— Sarah M.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"The Growth Oil is amazing! I've seen visible results in just 3 weeks. My edges are filling in beautifully. Thank you Marvelously Green!"</p>
+                <p class="testimonial-author">— Jessica L.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Finally found a brand I can trust. The quality is outstanding and my hair glows! 100% organic and it shows in the results."</p>
+                <p class="testimonial-author">— Emily R.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"The Vitality Spray is a game changer! My hair is thicker, stronger, and growing faster than ever. Love this brand!"</p>
+                <p class="testimonial-author">— Nomsa K.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2>Join Our Natural Beauty and Healthy Community</h2>
+            <p>Subscribe to get exclusive offers, hair care tips, and be the first to know about new products. Get 10% off your first order!</p>
+            <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
+                <input type="email" placeholder="Enter your email address" required>
+                <button type="submit">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    {% endblock %}
+
+    
+
+    
+
+
+
+
+
+

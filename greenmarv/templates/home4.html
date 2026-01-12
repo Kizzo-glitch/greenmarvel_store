@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marvelously Green - Natural Hair Care</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 100%);
+            color: #2c3e50;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 5%;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2d5016;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #2c3e50;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #4CAF50;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #4CAF50;
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .cart-icon {
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .cart-icon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e74c3c;
+            color: white;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(129, 199, 132, 0.1));
+            padding: 5rem 5%;
+            text-align: center;
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            color: #2d5016;
+            margin-bottom: 1rem;
+            animation: fadeIn 1s ease 0.2s backwards;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: #5a6c57;
+            margin-bottom: 2rem;
+            animation: fadeIn 1s ease 0.4s backwards;
+        }
+
+        .hero-btn {
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            color: white;
+            padding: 1rem 3rem;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: fadeIn 1s ease 0.6s backwards;
+        }
+
+        .hero-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);
+        }
+
+        /* Products Section */
+        .products {
+            max-width: 1400px;
+            margin: 4rem auto;
+            padding: 0 5%;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #2d5016;
+            margin-bottom: 3rem;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            animation: slideUp 0.6s ease backwards;
+        }
+
+        .product-card:nth-child(1) { animation-delay: 0.1s; }
+        .product-card:nth-child(2) { animation-delay: 0.2s; }
+        .product-card:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 280px;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            transition: transform 0.3s;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.1);
+        }
+
+        .organic-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .product-info h3 {
+            font-size: 1.5rem;
+            color: #2d5016;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-subtitle {
+            color: #7CB342;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .product-description {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .product-benefits {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .benefit-tag {
+            background: #e8f5e9;
+            color: #2d5016;
+            padding: 0.4rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+
+        .price {
+            font-size: 1.8rem;
+            color: #2d5016;
+            font-weight: bold;
+        }
+
+        .add-to-cart {
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .add-to-cart:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .add-to-cart:active {
+            transform: scale(0.95);
+        }
+
+        /* Features Section */
+        .features {
+            background: white;
+            padding: 4rem 5%;
+            margin: 4rem 0;
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            text-align: center;
+        }
+
+        .feature-item {
+            animation: fadeIn 0.6s ease backwards;
+        }
+
+        .feature-item:nth-child(1) { animation-delay: 0.2s; }
+        .feature-item:nth-child(2) { animation-delay: 0.4s; }
+        .feature-item:nth-child(3) { animation-delay: 0.6s; }
+        .feature-item:nth-child(4) { animation-delay: 0.8s; }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: transform 0.3s;
+        }
+
+        .feature-item:hover .feature-icon {
+            transform: rotate(360deg);
+        }
+
+        .feature-item h4 {
+            color: #2d5016;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-item p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        footer {
+            background: #2d5016;
+            color: white;
+            text-align: center;
+            padding: 2rem 5%;
+        }
+
+        footer p {
+            margin-bottom: 1rem;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            z-index: 2000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .nav-links {
+                gap: 1.5rem;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <div class="logo-icon">🌿</div>
+                <span>Marvelously Green</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#products">Products</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="cart-icon" onclick="showCart()">
+                🛒 Cart
+                <span class="cart-count" id="cartCount">0</span>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero" id="home">
+        <h1>Natural Hair Care, Naturally Beautiful</h1>
+        <p>100% Organic Ingredients | Lab-Tested | Cruelty-Free | Made in South Africa</p>
+        <button class="hero-btn" onclick="scrollToProducts()">Shop Now</button>
+    </section>
+
+    <section class="products" id="products">
+        <h2 class="section-title">Our Products</h2>
+        <div class="products-grid">
+            <!-- Growth Hair Oil -->
+            <div class="product-card">
+                <div class="product-image">
+                    <span class="organic-badge">100% Organic</span>
+                    <div style="font-size: 5rem; color: #4CAF50;">🌱</div>
+                </div>
+                <div class="product-info">
+                    <h3>Growth Hair Oil</h3>
+                    <p class="product-subtitle">Nourish • Strengthen • Grow</p>
+                    <p class="product-description">Stimulates hair growth, adds shine & softness. Enriched with avocado, castor oil, rosemary, and lavender.</p>
+                    <div class="product-benefits">
+                        <span class="benefit-tag">🌿 100% Organic</span>
+                        <span class="benefit-tag">🐰 Cruelty Free</span>
+                        <span class="benefit-tag">🔬 Lab Tested</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">R 149.99</span>
+                        <button class="add-to-cart" onclick="addToCart('Growth Hair Oil', 149.99)">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vitality Hair Spray -->
+            <div class="product-card">
+                <div class="product-image">
+                    <span class="organic-badge">100% Organic</span>
+                    <div style="font-size: 5rem; color: #7CB342;">💧</div>
+                </div>
+                <div class="product-info">
+                    <h3>Vitality Hair Spray</h3>
+                    <p class="product-subtitle">Revive • Strengthen • Grow</p>
+                    <p class="product-description">Rapid hair growth & hairline repair. Daily spray formula with cedarwood, rosemary, and grapeseed oil.</p>
+                    <div class="product-benefits">
+                        <span class="benefit-tag">🌿 100% Organic</span>
+                        <span class="benefit-tag">🐰 Cruelty Free</span>
+                        <span class="benefit-tag">💪 Fast Results</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">R 139.99</span>
+                        <button class="add-to-cart" onclick="addToCart('Vitality Hair Spray', 139.99)">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hair Food -->
+            <div class="product-card">
+                <div class="product-image">
+                    <span class="organic-badge">100% Natural</span>
+                    <div style="font-size: 5rem; color: #8BC34A;">🥥</div>
+                </div>
+                <div class="product-info">
+                    <h3>Hair Food</h3>
+                    <p class="product-subtitle">Strengthen • Shine</p>
+                    <p class="product-description">Prevents damage, promotes growth. Rich formula with shea butter, plant extracts, and essential oils.</p>
+                    <div class="product-benefits">
+                        <span class="benefit-tag">🌿 100% Natural</span>
+                        <span class="benefit-tag">🐰 Cruelty Free</span>
+                        <span class="benefit-tag">✨ Anti-Itch</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">R 129.99</span>
+                        <button class="add-to-cart" onclick="addToCart('Hair Food', 129.99)">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon">🌿</div>
+                <h4>100% Organic</h4>
+                <p>Made with premium organic ingredients sourced from nature</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🐰</div>
+                <h4>Cruelty Free</h4>
+                <p>Never tested on animals, always ethical and compassionate</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔬</div>
+                <h4>Lab Tested</h4>
+                <p>Tested in collaboration with SABS for quality assurance</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🇿🇦</div>
+                <h4>Made in SA</h4>
+                <p>Proudly manufactured in South Africa with local expertise</p>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact">
+        <p><strong>Marvelously Green</strong> - Natural Hair Care Solutions</p>
+        <p>📧 @marvellouslygreen_haircare | 📞 081 547 3512 | 🌐 www.greenmarvel.co.za</p>
+        <p>&copy; 2026 Marvelously Green. All rights reserved.</p>
+    </footer>
+
+    <div class="notification" id="notification">
+        ✓ Item added to cart!
+    </div>
+
+    <script>
+        let cartCount = 0;
+
+        function addToCart(productName, price) {
+            cartCount++;
+            document.getElementById('cartCount').textContent = cartCount;
+            
+            const notification = document.getElementById('notification');
+            notification.textContent = `✓ ${productName} added to cart!`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function showCart() {
+            alert(`You have ${cartCount} item(s) in your cart.\n\nThis is a UI demo. In Django, this would link to your cart view!`);
+        }
+
+        function scrollToProducts() {
+            document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Add floating animation to hero button
+        const heroBtn = document.querySelector('.hero-btn');
+        setInterval(() => {
+            heroBtn.style.animation = 'none';
+            setTimeout(() => {
+                heroBtn.style.animation = 'fadeIn 1s ease';
+            }, 10);
+        }, 3000);
+    </script>
+</body>
+</html>

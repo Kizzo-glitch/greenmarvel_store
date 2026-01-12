@@ -17,9 +17,6 @@ from django.utils import timezone
 
 
 
-# Create your views here.
-
-
 def search(request):
 	# Determine if they filled out the form
 	if request.method == "POST":
@@ -126,6 +123,11 @@ def home(request):
 	return render(request, 'home.html', {
 		'products':products, 
 		"now": timezone.now(),})
+
+def shop_all(request):
+    # Fetch all products, ordered by name or date added
+    all_products = Product.objects.all().order_by('name')
+    return render(request, 'shop.html', {'products': all_products})
 
 
 

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %} 
+{% block content %}
+<style>
+    section { border: 2px solid red !important; }
+.features-strip { border: 2px solid blue !important; }
+.products-section { border: 2px solid green !important; }
+    .shop-header {
+        padding: 4rem 5%;
+        background: linear-gradient(135deg, #1b3022 0%, #2d5016 100%);
+        text-align: center;
+        color: #fcf8ef;
+    }
+    
+    .shop-header h2 {
+        font-size: 3rem;
+        font-family: 'serif'; /* Matches the 'Vitality' luxury vibe */
+        color: #c5a059;
+        margin-bottom: 0.5rem;
+    }
+
+</style>
+
+
+<section class="shop-header">
+    <h2>Our Collection</h2>
+    <p>Premium Organic Solutions for Every Hair Type</p>
+</section>
+
+<section class="features-strip">
+        <div class="features-container">
+            <div class="feature-item">
+                <div class="feature-icon">🌿</div>
+                <h4>100% Organic</h4>
+                <p>Premium natural ingredients</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🐰</div>
+                <h4>Cruelty Free</h4>
+                <p>Never tested on animals</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔬</div>
+                <h4>Lab Tested</h4>
+                <p>SABS certified quality</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🇿🇦</div>
+                <h4>Made in SA</h4>
+                <p>Proudly South African</p>
+            </div>
+        </div>
+    </section>
+
+
+
+<section class="products">
+    <div class="products-grid">
+        {% for product in products %}
+            <div class="product-card">
+                <div class="product-image-container">
+                    <div class="product-badges">
+                        <span class="badge organic">{{ product.badge_text }}</span>
+                    </div>
+                    <img src="{{ product.image.url }}" class="product-image-file" style="width: 70%;">
+                    <div class="quick-add">
+                        <button onclick="addToCart('{{ product.name }}', {{ product.current_price }})">Quick Add</button>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h3 style="color: #c5a059;"><i>{{ product.name }}</i></h3>
+                    <p class="product-subtitle">{{ product.subtitle }}</p>
+                    <p class="product-description">{{ product.description }}</p>
+                    <div class="product-footer">
+                        <div class="price-container">
+                            <span class="price">R{{ product.current_price }}</span>
+                        </div>
+                        <button class="add-to-cart" onclick="addToCart('{{ product.name }}', {{ product.current_price }})">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>Our shelves are currently being restocked. Check back soon!</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="cta-section">
+        <div class="cta-content">
+            <h2>Join Our Natural Beauty and Healthy Community</h2>
+            <p>Subscribe to get exclusive offers, hair care tips, and be the first to know about new products. Get 10% off your first order!</p>
+            <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
+                <input type="email" placeholder="Enter your email address" required>
+                <button type="submit">Subscribe</button>
+            </form>
+        </div>
+    </section>
+{% endblock %}
