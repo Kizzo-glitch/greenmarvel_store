@@ -124,6 +124,14 @@ def home(request):
 		'products':products, 
 		"now": timezone.now(),})
 
+def home2(request):
+	products = Product.objects.exclude(name__icontains="combo")
+
+	#products = Product.objects.all()
+	return render(request, 'home2.html', {
+		'products':products, 
+		"now": timezone.now(),})
+
 def shop_all(request):
     # Fetch all products, ordered by name or date added
     all_products = Product.objects.all().order_by('name')

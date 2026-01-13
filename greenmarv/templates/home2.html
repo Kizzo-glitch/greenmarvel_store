@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base1.html' %}
 {% load static %}
 
 {% block content %}
@@ -140,7 +140,94 @@
         </div>
     </section>
 
-<section class="lifestyle-gallery">
+    <section class="lifestyle-gallery">
+    <div class="section-header">
+        <div class="section-label">See It In Action</div>
+        <h2 class="section-title">Real People, Real Results</h2>
+    </div>
+
+    <div class="gallery-grid">
+        <div class="gallery-item">
+            <div class="gallery-item" onclick="openLightbox(this)">
+            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi1.JPG' %}');"></div>
+            
+            <div class="gallery-overlay">
+                <div class="gallery-content">
+                    <h3>Growth Hair Oil</h3>
+                    <p>Natural shine & strengthening</p>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="gallery-item">
+            <div class="gallery-item" onclick="openLightbox(this)">
+            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi2.JPG' %}');"></div>
+            
+            <div class="gallery-overlay">
+                <div class="gallery-content">
+                    <h3>Vitality Spray</h3>
+                    <p>Daily revitalization</p>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="gallery-item">
+            <div class="gallery-item" onclick="openLightbox(this)">
+            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi3.JPG' %}');"></div>
+            
+            <div class="gallery-overlay">
+                <div class="gallery-content">
+                    <h3>Transform Hair</h3>
+                    <p>Visible results</p>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="gallery-item">
+            <div class="gallery-item" onclick="openLightbox(this)">
+            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi4.JPG' %}');"></div>
+            
+            <div class="gallery-overlay">
+                <div class="gallery-content">
+                    <h3>Complete Routine</h3>
+                    <p>Nourish root to tip</p>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="gallery-item">
+            <div class="gallery-item" onclick="openLightbox(this)">
+            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi5.JPG' %}');"></div>
+            
+            <div class="gallery-overlay">
+                <div class="gallery-content">
+                    <h3>Hair Food</h3>
+                    <p>Deep nourishment</p>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="gallery-item">
+            <div class="gallery-item" onclick="openLightbox(this)">
+            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi6.JPG' %}');"></div>
+            
+            <div class="gallery-overlay">
+                <div class="gallery-content">
+                    <h3>100% Organic</h3>
+                    <p>Pure ingredients</p>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!--<section class="lifestyle-gallery">
         <div class="section-header">
             <div class="section-label">See It In Action</div>
             <h2 class="section-title">Real People, Real Results</h2>
@@ -207,7 +294,7 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section>-->
 
     <section class="before-after">
         <div class="before-after-container">
@@ -336,6 +423,170 @@
             </form>
         </div>
     </section>
+
+
+    <style>
+        .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns for desktop */
+    gap: 15px;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.gallery-item {
+    position: relative;
+    height: 350px;
+    border-radius: 15px;
+    overflow: hidden; /* Clips the image zoom */
+    cursor: pointer;
+}
+
+.gallery-image {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-item:hover .gallery-image {
+    transform: scale(1.1); /* Zoom effect on hover */
+}
+
+/* Luxury Gold Overlay */
+.gallery-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to top, rgba(27, 48, 34, 0.8) 0%, rgba(197, 160, 89, 0.2) 100%);
+    display: flex;
+    align-items: flex-end;
+    padding: 2rem;
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.4s ease;
+}
+
+.gallery-item:hover .gallery-overlay {
+    opacity: 1; /* Show on hover */
+}
+
+.gallery-content h3 {
+    color: #c5a059; /* Gold */
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+
+.gallery-content p {
+    color: #fcf8ef;
+    font-size: 0.9rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 992px) {
+    .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+    .gallery-grid { grid-template-columns: 1fr; }
+}
+
+/* Lightbox Background */
+.lightbox {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 2000; /* Above everything */
+    padding-top: 50px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(27, 48, 34, 0.95); /* Brand green tint */
+    backdrop-filter: blur(8px); /* Modern blurred effect */
+}
+
+/* Lightbox Image */
+.lightbox-content {
+    margin: auto;
+    display: block;
+    width: 80%;
+    max-width: 800px;
+    border: 3px solid #c5a059; /* Gold border around image */
+    border-radius: 10px;
+    animation: zoomIn 0.3s ease;
+}
+
+/* Caption Text */
+.lightbox-caption {
+    margin: auto;
+    display: block;
+    width: 80%;
+    max-width: 800px;
+    text-align: center;
+    color: #fcf8ef;
+    padding: 20px 0;
+    font-size: 1.2rem;
+    font-style: italic;
+}
+
+/* Close Button */
+.close-lightbox {
+    position: absolute;
+    top: 25px;
+    right: 35px;
+    color: #c5a059;
+    font-size: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.close-lightbox:hover {
+    color: #fcf8ef;
+}
+
+/* Animation */
+@keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+    </style>
+
+    <script>
+        function openLightbox(element) {
+    const modal = document.getElementById("galleryLightbox");
+    const modalImg = document.getElementById("lightboxImg");
+    const captionText = document.getElementById("lightboxCaption");
+    
+    // Get the background image URL from the style attribute
+    const style = element.querySelector('.gallery-image').style.backgroundImage;
+    const url = style.slice(4, -1).replace(/"/g, ""); // Extract URL from url("...")
+    
+    // Get the title from the h3 tag
+    const title = element.querySelector('h3').innerText;
+
+    modal.style.display = "block";
+    modalImg.src = url;
+    captionText.innerHTML = title;
+}
+
+function closeLightbox() {
+    document.getElementById("galleryLightbox").style.display = "none";
+}
+
+// Close lightbox if user clicks outside the image
+window.onclick = function(event) {
+    const modal = document.getElementById("galleryLightbox");
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+    </script>
+
+    <div id="galleryLightbox" class="lightbox">
+        <span class="close-lightbox" onclick="closeLightbox()">&times;</span>
+        <img class="lightbox-content" id="lightboxImg">
+        <div id="lightboxCaption" class="lightbox-caption"></div>
+    </div>
 
     {% endblock %}
 
