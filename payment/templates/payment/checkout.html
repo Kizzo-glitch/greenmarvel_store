@@ -1,76 +1,1086 @@
-{% extends 'base.html' %}
+{% extends 'base1.html' %}
 {% load static %}
+
 {% block content %}
+{% csrf_token %}
 
-        <!-- Header-->
-        <header class="bg-success py-5">
-            <div class="container px-4 px-lg-5 my-5">
-                <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">Shopping Cart</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">View Your Cart</p>
-                </div>
-            </div>
-        </header>
-        <br/><br/>
-            
-        <div class="container">
-            <div class="row">
-                
-                    <div class="col-md-6 offset-md-3">
-            <div class="card">
-                <div class="card-header">Order Summary:</div>
-                  <div class="card-body">
-                    {% for product in cart_products %}
-                        {{ product.name }}: 
-                            {% if product.sale %}
-                                R{{ product.sale_price }}
-                            {% else %}
-                                R{{ product.price }}
-                        {% endif %}
+<!-- ============================================ -->
+<!-- CHECKOUT HERO -->
+<!-- ============================================ -->
+<section class="checkout-hero">
+    <div class="checkout-hero-leaves">
+        <span class="floating-leaf leaf-1">🍃</span>
+        <span class="floating-leaf leaf-2">🌿</span>
+        <span class="floating-leaf leaf-3">🍃</span>
+    </div>
+    <div class="checkout-hero-container">
+        <div class="checkout-hero-badge">🔒 SECURE CHECKOUT</div>
+        <h1 class="checkout-hero-title">Almost <span>There</span></h1>
+        <p class="checkout-hero-subtitle">Just a few more details and your natural beauty is on its way</p>
+    </div>
+</section>
 
-                        <br/>
-                        <small>Quantity: 
-                        {% for key, value in quantities.items %}
-                            {% if key == product.id|slugify %}
-                                {{ value }}
-                            {% endif %}
-                        {% endfor %}</small>
-                        <br/><br/>
+<!-- ============================================ -->
+<!-- STEP PROGRESS INDICATOR -->
+<!-- ============================================ -->
+<section class="checkout-progress">
+    <div class="progress-container">
+        <div class="progress-step completed">
+            <div class="step-circle">✓</div>
+            <div class="step-label">Cart</div>
+        </div>
+        <div class="progress-line completed"></div>
+        <div class="progress-step active">
+            <div class="step-circle">2</div>
+            <div class="step-label">Shipping</div>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step">
+            <div class="step-circle">3</div>
+            <div class="step-label">Billing</div>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step">
+            <div class="step-circle">4</div>
+            <div class="step-label">Confirmation</div>
+        </div>
+    </div>
+</section>
 
-                    {% endfor %}
-                    Total:  R{{ totals }}
-                    <br/>
-                    Order Weight:  {{ total_weight }} kg
-                    <br/><br/>
-                    {% if discounted_total and discounted_total != totals %}
-                        <h3>Discounted Total: R{{ discounted_total }}</h3>
-                    {% endif %}
-                    <br/><br/>
-                    <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-primary">Update Items</a>
-                  </div>
-            </div>
-                    <br/><br/>
+<!-- ============================================ -->
+<!-- CHECKOUT MAIN -->
+<!-- ============================================ -->
+<section class="checkout-section">
+    <div class="checkout-container">
+        <div class="checkout-layout">
+            <!-- LEFT: Shipping Form -->
+            <div class="checkout-form-column">
+                <div class="checkout-card">
+                    <div class="card-header-custom">
+                        <div class="header-icon">📦</div>
+                        <div>
+                            <h2>Shipping Information</h2>
+                            <p>Where should we send your order?</p>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{% url 'billing_info' %}" id="shippingForm" class="shipping-form">
+                        {% csrf_token %}
                         
-                        <div class="card">
-                          <div class="card-header">Shipping Info</div>
-                          <div class="card-body">
-                            <form method="POST" action="{% url 'billing_info' %}">
-                                {% csrf_token %}
-                            {{ shipping_form.as_p }}
-
-                          </div>
+                        <div class="form-fields-grid">
+                            {% for field in shipping_form %}
+                                <div class="form-field {% if field.field.widget.input_type == 'textarea' or field.name == 'shipping_address1' or field.name == 'shipping_address2' %}full-width{% endif %}">
+                                    <label for="{{ field.id_for_label }}">
+                                        {{ field.label }}
+                                        {% if field.field.required %}<span class="required">*</span>{% endif %}
+                                    </label>
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small class="field-help">{{ field.help_text }}</small>
+                                    {% endif %}
+                                    {% if field.errors %}
+                                        <div class="field-error">{{ field.errors|first }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
                         </div>
 
-                        <br/>
+                        <div class="form-checkbox-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="save_info" id="save_info" checked>
+                                <span class="checkbox-custom"></span>
+                                <span>Save this information for next time</span>
+                            </label>
+                        </div>
 
-                        <br/>
-                        <button type="submit" class="btn btn-secondary">Continue To Billing</button>
-                        </form>
-                        
-                        <br/><br/>
+                        <div class="form-actions">
+                            <a href="{% url 'cart_summary' %}" class="btn-back">
+                                ← Back to Cart
+                            </a>
+                            <button type="submit" class="btn-continue">
+                                Continue to Billing →
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Trust indicators below form -->
+                <div class="trust-row">
+                    <div class="trust-card">
+                        <div class="trust-emoji">🔒</div>
+                        <div class="trust-text">
+                            <strong>Secure Checkout</strong>
+                            <span>SSL encrypted</span>
+                        </div>
+                    </div>
+                    <div class="trust-card">
+                        <div class="trust-emoji">🚚</div>
+                        <div class="trust-text">
+                            <strong>Fast Delivery</strong>
+                            <span>2-5 business days</span>
+                        </div>
+                    </div>
+                    <div class="trust-card">
+                        <div class="trust-emoji">↩️</div>
+                        <div class="trust-text">
+                            <strong>Easy Returns</strong>
+                            <span>30-day guarantee</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            
- {% endblock %}
+            <!-- RIGHT: Order Summary Sidebar -->
+            <div class="checkout-summary-column">
+                <div class="order-summary-card">
+                    <div class="summary-header">
+                        <h3>🛒 Order Summary</h3>
+                        <a href="{% url 'cart_summary' %}" class="edit-link">Edit</a>
+                    </div>
+
+                    <!-- Product List -->
+                    <div class="summary-items">
+                        {% for product in cart_products %}
+                        <div class="summary-item">
+                            <div class="summary-item-image">
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                <span class="item-qty-badge">
+                                    {% for key, value in quantities.items %}
+                                        {% if key == product.id|slugify %}{{ value }}{% endif %}
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <div class="summary-item-info">
+                                <h4>{{ product.name }}</h4>
+                                {% if product.subtitle %}
+                                    <p class="summary-item-subtitle">{{ product.subtitle }}</p>
+                                {% endif %}
+                                <div class="summary-item-price">
+                                    {% if product.is_sale %}
+                                        <span class="price-sale">R{{ product.sale_price }}</span>
+                                        <span class="price-strike">R{{ product.price }}</span>
+                                    {% else %}
+                                        <span>R{{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Totals -->
+                    <div class="summary-totals">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span class="value">R{{ totals }}</span>
+                        </div>
+
+                        {% if discounted_total and discounted_total != totals %}
+                        <div class="summary-row discount">
+                            <span>Discount</span>
+                            <span class="value">-R{{ totals|floatformat:2|add:"0"|add:discounted_total|floatformat:"-2" }}</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="summary-row">
+                            <span>Order Weight</span>
+                            <span class="value weight">{{ total_weight }} kg</span>
+                        </div>
+
+                        <div class="summary-row shipping-row">
+                            <span>Shipping</span>
+                            <span class="value" id="shippingCost">
+                                {% if totals >= 600 %}
+                                    <span style="color: #4CAF50; font-weight: 700;">FREE</span>
+                                {% else %}
+                                    Calculated next
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        {% if totals < 600 %}
+                        <div class="free-shipping-progress">
+                            <div class="progress-text">
+                                Add <strong>R{{ totals|floatformat:2|add:"-600"|cut:"-" }}</strong> more for FREE shipping
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {% widthratio totals 600 100 %}%;"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-grand-total">
+                        <span>Total</span>
+                        <span class="grand-total-value">
+                            R{% if discounted_total and discounted_total != totals %}{{ discounted_total }}{% else %}{{ totals }}{% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Payment methods preview -->
+                    <div class="payment-methods">
+                        <p class="payment-label">We accept</p>
+                        <div class="payment-icons">
+                            <span class="payment-icon">💳 Card</span>
+                            <span class="payment-icon">📱 EFT</span>
+                            <span class="payment-icon">💰 Payfast</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<style>
+    /* ============================================ */
+    /* CHECKOUT HERO */
+    /* ============================================ */
+    .checkout-hero {
+        background: linear-gradient(135deg, #1b3022 0%, #2d5016 50%, #c5a059 100%);
+        padding: 4rem 5% 3.5rem;
+        text-align: center;
+        color: #fcf8ef;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .checkout-hero::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="white" fill-opacity="0.03" width="100" height="100"/></svg>');
+        pointer-events: none;
+    }
+
+    .checkout-hero-leaves {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .checkout-hero-leaves .floating-leaf {
+        position: absolute;
+        font-size: 2rem;
+        opacity: 0.35;
+    }
+
+    .checkout-hero-leaves .leaf-1 { top: 25%; left: 12%; }
+    .checkout-hero-leaves .leaf-2 { top: 60%; right: 15%; }
+    .checkout-hero-leaves .leaf-3 { top: 35%; right: 8%; opacity: 0.25; }
+
+    .checkout-hero-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
+
+    .checkout-hero-badge {
+        background: rgba(27, 48, 34, 0.4);
+        border: 1px solid #c5a059;
+        color: #fcf8ef;
+        padding: 0.5rem 1.2rem;
+        border-radius: 30px;
+        display: inline-block;
+        margin-bottom: 1.25rem;
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+        font-weight: 600;
+    }
+
+    .checkout-hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #fcf8ef;
+        margin-bottom: 0.75rem;
+        letter-spacing: -1px;
+    }
+
+    .checkout-hero-title span {
+        color: #c5a059;
+        font-style: italic;
+    }
+
+    .checkout-hero-subtitle {
+        font-size: 1.05rem;
+        color: #fcf8ef;
+        opacity: 0.9;
+    }
+
+    /* ============================================ */
+    /* PROGRESS INDICATOR */
+    /* ============================================ */
+    .checkout-progress {
+        background: white;
+        padding: 2rem 5%;
+        border-bottom: 1px solid rgba(197, 160, 89, 0.15);
+    }
+
+    .progress-container {
+        max-width: 900px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        z-index: 2;
+        position: relative;
+    }
+
+    .step-circle {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #e8f5e9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+        color: #999;
+        transition: all 0.3s;
+    }
+
+    .progress-step.active .step-circle {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+        border-color: #c5a059;
+        box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
+        transform: scale(1.1);
+    }
+
+    .progress-step.completed .step-circle {
+        background: #2d5016;
+        color: #c5a059;
+        border-color: #2d5016;
+    }
+
+    .step-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .progress-step.active .step-label {
+        color: #2d5016;
+    }
+
+    .progress-step.completed .step-label {
+        color: #2d5016;
+    }
+
+    .progress-line {
+        flex: 1;
+        max-width: 120px;
+        height: 2px;
+        background: #e8f5e9;
+        margin: 0 -5px 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .progress-line.completed {
+        background: #2d5016;
+    }
+
+    /* ============================================ */
+    /* CHECKOUT LAYOUT */
+    /* ============================================ */
+    .checkout-section {
+        padding: 3rem 5% 5rem;
+        background: #fafbf9;
+        min-height: 60vh;
+    }
+
+    .checkout-container { max-width: 1400px; margin: 0 auto; }
+
+    .checkout-layout {
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    /* ============================================ */
+    /* CHECKOUT CARD */
+    /* ============================================ */
+    .checkout-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(197, 160, 89, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .checkout-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #2d5016, #c5a059, #2d5016);
+    }
+
+    .card-header-custom {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .header-icon {
+        width: 55px;
+        height: 55px;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        border: 1px solid rgba(197, 160, 89, 0.3);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        flex-shrink: 0;
+    }
+
+    .card-header-custom h2 {
+        color: #2d5016;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .card-header-custom p {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    /* ============================================ */
+    /* FORM FIELDS */
+    /* ============================================ */
+    .shipping-form { width: 100%; }
+
+    .form-fields-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .form-field.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-field label {
+        color: #2d5016;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .required {
+        color: #e74c3c;
+        margin-left: 2px;
+    }
+
+    /* Style ALL Django-rendered form inputs */
+    .form-field input[type="text"],
+    .form-field input[type="email"],
+    .form-field input[type="tel"],
+    .form-field input[type="number"],
+    .form-field input[type="password"],
+    .form-field select,
+    .form-field textarea {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 2px solid #e8f5e9;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        color: #333;
+        background: white;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus {
+        border-color: #c5a059;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.1);
+    }
+
+    .form-field textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .form-field select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232d5016' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        padding-right: 2.5rem;
+    }
+
+    .field-help {
+        color: #999;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+    }
+
+    .field-error {
+        color: #e74c3c;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        font-weight: 500;
+    }
+
+    /* Fallback for forms rendered via {{ form.as_p }} — styles any unwrapped p tag */
+    .shipping-form > p {
+        margin-bottom: 1.25rem;
+    }
+
+    .shipping-form > p label {
+        display: block;
+        color: #2d5016;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.4rem;
+    }
+
+    .shipping-form > p input,
+    .shipping-form > p select,
+    .shipping-form > p textarea {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 2px solid #e8f5e9;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        background: white;
+        transition: all 0.3s;
+    }
+
+    .shipping-form > p input:focus,
+    .shipping-form > p select:focus,
+    .shipping-form > p textarea:focus {
+        border-color: #c5a059;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.1);
+    }
+
+    /* ============================================ */
+    /* CHECKBOX */
+    /* ============================================ */
+    .form-checkbox-row {
+        padding: 1rem 1.25rem;
+        background: #f8fdf8;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        border: 1px solid #e8f5e9;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        color: #333;
+        font-size: 0.95rem;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .checkbox-custom {
+        width: 22px;
+        height: 22px;
+        border: 2px solid #c5a059;
+        border-radius: 6px;
+        background: white;
+        position: relative;
+        transition: all 0.3s;
+        flex-shrink: 0;
+    }
+
+    .checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
+        background: #2d5016;
+        border-color: #2d5016;
+    }
+
+    .checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #c5a059;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    /* ============================================ */
+    /* FORM ACTIONS */
+    /* ============================================ */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid #f0f0f0;
+    }
+
+    .btn-back {
+        color: #2d5016;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.8rem 1.5rem;
+        border-radius: 30px;
+        transition: all 0.3s;
+    }
+
+    .btn-back:hover {
+        background: #e8f5e9;
+        color: #1b3022;
+    }
+
+    .btn-continue {
+        padding: 1rem 2.5rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        border: 1px solid #c5a059;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        letter-spacing: 0.5px;
+        transition: all 0.3s;
+    }
+
+    .btn-continue:hover {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(197, 160, 89, 0.35);
+    }
+
+    /* ============================================ */
+    /* TRUST ROW */
+    /* ============================================ */
+    .trust-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .trust-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border: 1px solid #e8f5e9;
+        transition: all 0.3s;
+    }
+
+    .trust-card:hover {
+        border-color: #c5a059;
+        transform: translateY(-2px);
+    }
+
+    .trust-emoji {
+        font-size: 1.75rem;
+    }
+
+    .trust-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .trust-text strong {
+        color: #2d5016;
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .trust-text span {
+        color: #666;
+        font-size: 0.75rem;
+    }
+
+    /* ============================================ */
+    /* ORDER SUMMARY SIDEBAR */
+    /* ============================================ */
+    .checkout-summary-column {
+        position: sticky;
+        top: 100px;
+    }
+
+    .order-summary-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(197, 160, 89, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .order-summary-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #2d5016, #c5a059, #2d5016);
+    }
+
+    .summary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .summary-header h3 {
+        color: #2d5016;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .edit-link {
+        color: #c5a059;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.3rem 0.8rem;
+        border: 1px solid #c5a059;
+        border-radius: 20px;
+        transition: all 0.3s;
+    }
+
+    .edit-link:hover {
+        background: #c5a059;
+        color: white;
+    }
+
+    /* Summary Items */
+    .summary-items {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    .summary-items::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .summary-items::-webkit-scrollbar-track {
+        background: #f8fdf8;
+        border-radius: 3px;
+    }
+
+    .summary-items::-webkit-scrollbar-thumb {
+        background: #c5a059;
+        border-radius: 3px;
+    }
+
+    .summary-item {
+        display: flex;
+        gap: 0.9rem;
+        align-items: center;
+    }
+
+    .summary-item-image {
+        width: 65px;
+        height: 65px;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        flex-shrink: 0;
+        border: 1px solid rgba(197, 160, 89, 0.15);
+    }
+
+    .summary-item-image img {
+        max-width: 80%;
+        max-height: 80%;
+        object-fit: contain;
+    }
+
+    .item-qty-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        background: #2d5016;
+        color: #c5a059;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 2px solid white;
+    }
+
+    .summary-item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .summary-item-info h4 {
+        color: #c5a059;
+        font-size: 0.95rem;
+        font-style: italic;
+        font-weight: 700;
+        margin-bottom: 0.15rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .summary-item-subtitle {
+        color: #666;
+        font-size: 0.75rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .summary-item-price {
+        color: #2d5016;
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .price-sale { color: #e74c3c; }
+    .price-strike {
+        text-decoration: line-through;
+        color: #999;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    /* Totals */
+    .summary-totals {
+        border-top: 2px solid #f0f0f0;
+        padding-top: 1.25rem;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        color: #555;
+        font-size: 0.95rem;
+    }
+
+    .summary-row .value {
+        font-weight: 700;
+        color: #2d5016;
+    }
+
+    .summary-row.discount {
+        color: #e74c3c;
+        font-weight: 600;
+    }
+
+    .summary-row.discount .value {
+        color: #e74c3c;
+    }
+
+    .summary-row .weight {
+        color: #666;
+        font-weight: 500;
+    }
+
+    .free-shipping-progress {
+        background: #fff9e6;
+        border: 1px solid #c5a059;
+        border-radius: 12px;
+        padding: 0.85rem;
+        margin: 0.75rem 0;
+    }
+
+    .progress-text {
+        color: #8a6d2e;
+        font-size: 0.85rem;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-text strong {
+        color: #c5a059;
+        font-weight: 700;
+    }
+
+    .progress-bar {
+        height: 6px;
+        background: rgba(197, 160, 89, 0.2);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #2d5016, #c5a059);
+        transition: width 0.5s ease;
+    }
+
+    .summary-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #c5a059, transparent);
+        margin: 1rem 0;
+    }
+
+    .summary-grand-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0 1.25rem;
+    }
+
+    .summary-grand-total span:first-child {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .grand-total-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #2d5016;
+        letter-spacing: -0.5px;
+    }
+
+    /* Payment methods */
+    .payment-methods {
+        text-align: center;
+        padding-top: 1.25rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .payment-label {
+        font-size: 0.75rem;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.6rem;
+        font-weight: 600;
+    }
+
+    .payment-icons {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .payment-icon {
+        padding: 0.35rem 0.8rem;
+        background: #f8fdf8;
+        border: 1px solid #e8f5e9;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        color: #2d5016;
+        font-weight: 600;
+    }
+
+    /* ============================================ */
+    /* RESPONSIVE */
+    /* ============================================ */
+    @media (max-width: 1024px) {
+        .checkout-layout { grid-template-columns: 1fr; }
+        .checkout-summary-column { position: static; }
+    }
+
+    @media (max-width: 768px) {
+        .checkout-hero-title { font-size: 2.5rem; }
+        .checkout-card { padding: 1.75rem 1.25rem; }
+        .form-fields-grid { grid-template-columns: 1fr; gap: 1rem; }
+        .trust-row { grid-template-columns: 1fr; }
+        .form-actions { flex-direction: column-reverse; align-items: stretch; }
+        .btn-back { text-align: center; }
+        .progress-container { gap: 0; }
+        .progress-line { max-width: 40px; }
+        .step-label { font-size: 0.7rem; }
+        .step-circle { width: 36px; height: 36px; font-size: 0.9rem; }
+    }
+
+    @media (max-width: 500px) {
+        .card-header-custom { flex-direction: column; text-align: center; gap: 0.75rem; }
+        .header-icon { width: 50px; height: 50px; font-size: 1.5rem; }
+        .summary-items { max-height: 280px; }
+        .checkout-hero { padding: 3rem 5% 2.5rem; }
+        .checkout-hero-title { font-size: 2rem; }
+        .progress-line { max-width: 20px; margin: 0 -2px 18px; }
+    }
+</style>
+
+<script>
+    // Auto-focus first form field
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstInput = document.querySelector('.shipping-form input:not([type="hidden"]):not([type="checkbox"])');
+        if (firstInput) firstInput.focus();
+
+        // Form submission loading state
+        const form = document.getElementById('shippingForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const btn = form.querySelector('.btn-continue');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '⏳ Processing...';
+                    btn.style.opacity = '0.8';
+                }
+            });
+        }
+    });
+</script>
+
+{% endblock %}

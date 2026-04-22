@@ -1,564 +1,631 @@
-
-{% extends 'base.html' %}
+{% extends 'base1.html' %}
 {% load static %}
 
 {% block content %}
-<!-- Header-->
+{% csrf_token %}
 
-<header class="hero-section text-white d-flex align-items-center" style="background-image: url('{% static 'landing/assets/img/green_cover.jpeg' %}');">
-  <div class="container text-center py-5">
-    <h1 class="display-4 fw-bold">Natural Beauty, Naturally You</h1>
-    <p class="lead mb-4">Organic | Scientifically Tested | Formulated by Scientists</p>
-    <!--<atrtff href="#" class="btn btn-lg btn-outline-light me-3">Shop Now</a>-->
-    <a href="" class="btn btn-lg btn-light text-success">Browse Products Below</a>
-  </div>
-</header>
+<section class="hero" id="home">
+    <div class="hero-container">
+        <div class="hero-content">
+            <div class="hero-badge" style="background: rgba(27, 48, 34, 0.4); border: 1px solid #c5a059; color: #fcf8ef; padding: 0.6rem 1.2rem; border-radius: 30px; display: inline-block; margin-bottom: 1.5rem; font-size: 0.8rem; letter-spacing: 1px;">
+                ✨ Herbal | PHARMA-FORMULATED | LAB-TESTED
+            </div>
+            <h1>Natural Beauty,<br>Naturally You</h1>
+            <p style="font-size: 1.2rem; margin-bottom: 2.5rem; color: #fcf8ef; opacity: 0.9; max-width: 550px;">
+                Premium organic hair care designed to nourish and strengthen your natural beauty.
+            </p>
+            <div class="hero-buttons">
+                <button class="btn-primary" onclick="scrollToProducts()">Shop Now</button>
+                <button class="btn-secondary" onclick="scrollToAbout()">Learn More</button>
+            </div>
+        </div>
 
-   <!--<header class="bg-success py-5">
-            <div class="container px-4 px-lg-5 my-5">
-                <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">Shop and Be in Style</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">With our 100% organic products | Scientifically Approved | Formulated by Pharmaceutical Scientists</p>
-                    <br>
-                    <p class="lead fw-normal text-white-50 mb-0"><em>
-                    Buy for R600 and more to get free shipping</em></p>
+        <div class="hero-image-container">
+            <div class="leaf-container">
+                <span class="floating-leaf leaf-1">🍃</span>
+                <span class="floating-leaf leaf-2">🌿</span>
+                <span class="floating-leaf leaf-3">🍃</span>
+                <span class="floating-leaf leaf-4">🌱</span>
+                <span class="floating-leaf leaf-5">🍃</span>
+                <span class="floating-leaf leaf-6">🌿</span>
+            </div>
+            <div class="spill-wrapper">
+                <img src="YOUR_TRANSPARENT_JAR.png" class="product-hero-img" alt="Marvelously Green">
+                <div class="spill-blob"></div>
+                <div class="drip"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<svg style="visibility: hidden; position: absolute;" width="0" height="0">
+    <defs>
+        <filter id="goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+        </filter>
+    </defs>
+</svg>
+
+<section class="features-strip">
+    <div class="features-container">
+        <div class="feature-item"><div class="feature-icon">🌿</div><h4>100% Organic</h4><p>Premium natural ingredients</p></div>
+        <div class="feature-item"><div class="feature-icon">🐰</div><h4>Cruelty Free</h4><p>Never tested on animals</p></div>
+        <div class="feature-item"><div class="feature-icon">🔬</div><h4>Lab Tested</h4><p>SABS certified quality</p></div>
+        <div class="feature-item"><div class="feature-icon">🇿🇦</div><h4>Made in SA</h4><p>Proudly South African</p></div>
+    </div>
+</section>
+
+<section class="products" id="shop">
+    <div class="section-header">
+        <div class="section-label">Featured Collection</div>
+        <h2 class="section-title">Our Best Sellers</h2>
+        <p class="section-description">Discover our premium range of organic hair care products.</p>
+    </div>
+
+    <div class="products-grid">
+        {% for product in products %}
+        <div class="product-card">
+            <div class="product-image-container">
+                <div class="product-badges">
+                    <span class="badge organic">{{ product.badge_text }}</span>
+                    {% if product.is_sale %}
+                        <span class="badge" style="background: #e74c3c; color: white;">SALE</span>
+                    {% endif %}
+                </div>
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image-file" style="width: 80%; height: auto;">
+                <div class="quick-add">
+                    <button class="quick-add-btn" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}">Quick Add</button>
                 </div>
             </div>
-        </header>-->
 
-        <!--<div class="promo-banner" style="background: #fbeff9; color: #880e4f; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-            <h2 style="font-weight: bold; font-size: 1.8em;">🎄 Festive Season Special 🎄</h2>
-            <p style="font-size: 1.2em;">Buy any <strong>3 or more products</strong> and get free shipping</strong></p>
-            <p>The Offer is only valid this December. No code required — Sale applies automatically upon purchase.</p>
-            
-            <div id="countdown" style="font-size: 1.2em; margin: 15px 0; font-weight: bold;"></div>
-            
-            <button class="btn" style="background: #d81b60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Be on the lookout and hurry while stock lasts</button>
-           
-        </div>-->
-
-    
-            <!-- PROMO -->
-            <!--<section id="promo" class="promo-banner py-5">
-            <div id="reviewsCarousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner">
-            <div class="carousel-item active">
-              <div class="container">
-                <div class="row align-items-center">
-                  <div class="col-md-6">
-                    <h2 class="mb-2"> Hair Food</h2>
-                    <p class="lead mb-3">Get R10 OFF | Buy more, save more</p>
-
-                    <div class="d-flex align-items-center mb-3">
-                      <div class="promo-code me-3">
-                        <div class="code-label small text-muted">Use code</div>
-                        <div class="code-value">promo code</div>
-                      </div>
-
-                      <form method="POST" action="#">
-                        {% csrf_token %}
-                        <input type="hidden" name="discount_code" value="{{ promo.code }}">
-                        <button type="submit" class="btn btn-promo btn-lg">Add to Cart</button>
-                      </form>
-                    </div>
-
-                    <p class="mt-3 text-muted small">Limited time — while stocks last. Discount capped for each product.</p>
-                  </div>
-
-                  <div class="col-md-6 text-center">
-                    <img src="{% static 'landing/assets/img/hairfood4.jpeg' %}" class="img-fluid promo-image" alt="Women's Day Promo">
-                  </div>
+            <div class="product-info">
+                <h3 style="color: #c5a059;"><i>{{ product.name }}</i></h3>
+                <p class="product-subtitle">{{ product.subtitle }}</p>
+                <p class="product-description">{{ product.description|truncatechars:100 }}</p>
+                
+                <div class="product-features">
+                    {% if product.tag_1 %}<span class="feature-tag">{{ product.tag_1 }}</span>{% endif %}
+                    {% if product.tag_2 %}<span class="feature-tag">{{ product.tag_2 }}</span>{% endif %}
+                    {% if product.tag_3 %}<span class="feature-tag">{{ product.tag_3 }}</span>{% endif %}
                 </div>
-              </div>
 
-              </div>
-
-
-              <div class="carousel-item">
-              <div class="container">
-                <div class="row align-items-center">
-                  <div class="col-md-6">
-                    <h2 class="mb-2"> Hair Spray</h2>
-                    <p class="lead mb-3">Get R10 OFF | Buy more, save more</p>
-
-                    <div class="d-flex align-items-center mb-3">
-                      <div class="promo-code me-3">
-                        <div class="code-label small text-muted">Use code</div>
-                        <div class="code-value">promo code</div>
-                      </div>
-
-                      <form method="POST" action="#">
-                        {% csrf_token %}
-                        <input type="hidden" name="discount_code" value="{{ promo.code }}">
-                        <button type="submit" class="btn btn-promo btn-lg">Add to Cart</button>
-                      </form>
+                <div class="product-footer">
+                    <div class="price-container">
+                        <span class="price-label">Price</span>
+                        {% if product.is_sale %}
+                            <span class="price" style="color: #e74c3c;">R{{ product.sale_price }}</span>
+                            <span style="text-decoration: line-through; font-size: 0.8rem; color: #999;">R{{ product.price }}</span>
+                        {% else %}
+                            <span class="price">R{{ product.price }}</span>
+                        {% endif %}
                     </div>
-
-                  
-
-                    <p class="mt-3 text-muted small">Limited time — while stocks last. Discount capped for each product.</p>
-                  </div>
-
-                  <div class="col-md-6 text-center">
-                    <img src="{% static 'landing/assets/img/spray.jpeg' %}" class="img-fluid promo-image" alt="Women's Day Promo">
-                  </div>
+                    &nbsp;
+                    <button class="add-to-cart card-add-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}">Add to Cart</button>
                 </div>
-              </div>
-              </div>
+                <button class="view-details-btn" 
+                        data-product-id="{{ product.id }}"
+                        data-product-name="{{ product.name }}"
+                        data-product-subtitle="{{ product.subtitle }}"
+                        data-product-description="{{ product.description|escape }}"
+                        data-product-image="{{ product.image.url }}"
+                        data-product-badge="{{ product.badge_text }}"
+                        data-product-price="{{ product.price }}"
+                        data-product-sale-price="{{ product.sale_price }}"
+                        data-product-is-sale="{{ product.is_sale }}"
+                        data-product-tag1="{{ product.tag_1 }}"
+                        data-product-tag2="{{ product.tag_2 }}"
+                        data-product-tag3="{{ product.tag_3 }}"
+                        data-product-ingredients="{{ product.ingredients|escape }}"
+                        data-product-benefits="{{ product.benefits|escape }}"
+                        data-product-use="{{ product.use|escape }}"
+                        onclick="openProductModal(this)">View Details</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="view-all-container">
+        <a href="{% url 'shop' %}" class="btn-view-all">View All Products <span>→</span></a>
+    </div>
+</section>
 
-              </div>
-              </div>
-            </section>-->
+<!-- Gallery, Before/After, Testimonials, CTA - same as before -->
+<section class="lifestyle-gallery">
+    <div class="section-header">
+        <div class="section-label">See It In Action</div>
+        <h2 class="section-title">Real People, Real Results</h2>
+    </div>
+    <div class="gallery-grid">
+        <div class="gallery-item" onclick="openLightbox(this)">
+            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi1.JPG' %}');"></div>
+            <div class="gallery-overlay"><div class="gallery-content"><h3>Growth Hair Oil</h3><p>Natural shine</p></div></div>
+        </div>
+        <div class="gallery-item" onclick="openLightbox(this)">
+            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi2.JPG' %}');"></div>
+            <div class="gallery-overlay"><div class="gallery-content"><h3>Vitality Spray</h3><p>Daily revitalization</p></div></div>
+        </div>
+        <div class="gallery-item" onclick="openLightbox(this)">
+            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi3.JPG' %}');"></div>
+            <div class="gallery-overlay"><div class="gallery-content"><h3>Transform Hair</h3><p>Visible results</p></div></div>
+        </div>
+        <div class="gallery-item" onclick="openLightbox(this)">
+            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi4.JPG' %}');"></div>
+            <div class="gallery-overlay"><div class="gallery-content"><h3>Complete Routine</h3><p>Root to tip</p></div></div>
+        </div>
+        <div class="gallery-item" onclick="openLightbox(this)">
+            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi5.JPG' %}');"></div>
+            <div class="gallery-overlay"><div class="gallery-content"><h3>Hair Food</h3><p>Deep nourishment</p></div></div>
+        </div>
+        <div class="gallery-item" onclick="openLightbox(this)">
+            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi6.JPG' %}');"></div>
+            <div class="gallery-overlay"><div class="gallery-content"><h3>100% Organic</h3><p>Pure ingredients</p></div></div>
+        </div>
+    </div>
+</section>
 
-            <!--<section class="py-5 bg-warning text-dark text-center">
-              <h2>Heritage Day Special</h2>
-              <p class="lead">Buy any <strong>3 products</strong> and get the <strong>cheapest one free</strong>!</p>
-              <p>Offer valid until 24 September midnight. No code required — discount applies automatically in cart.</p>
-              <a href="{% url 'home' %}" class="btn btn-dark btn-lg mt-3">Shop Now</a>
-            </section>-->
-           
-        <!-- Product Section-->
-        <section class="py-5">
-            <div class="container px-4 px-lg-5 mt-5">
-                <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-                    {% for product in products %}
-                    <div class="col mb-5">
-                        <div class="card h-100 clickable-card" data-url="{% url 'product' product.id %}">
-                            {% if product.is_sale %}
-                            <!-- Sale Badge -->
-                            <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem;">Combo Sale</div>
-                            {% endif %}
-
-                            <!-- Product image-->
-                            <img class="card-img-top" src="{{ product.image.url }}" alt="{{ product.name }}" />
-
-                            <!-- Product details-->
-                            <div class="card-body p-4">
-                                <div class="text-center">
-                                    <!-- Product name-->
-                                    <h5 class="fw-bolder">{{ product.name }}</h5>
-
-                                    <!-- Product price-->
-                                    {% if product.is_sale %}
-                                        <strike>R{{ product.price }}</strike>
-                                        &nbsp;
-                                        <h5 class="fw-bolder">R{{ product.sale_price }}</h5>
-                                    {% else %}
-                                        <h5 class="fw-bolder">R{{ product.price }}</h5>
-                                    {% endif %}
-                                    <br/><br>
-
-                                    <p class="card-text">{{ product.description }}</p>
-                                </div>
-                            </div>
-
-
-                            <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center">
-                                    <a class="btn btn-outline-dark mt-auto view-product-btn" href="{% url 'product' product.id %}">View Product</a>
-                                </div>
-                            </div>
+<section class="before-after">
+        <div class="before-after-container">
+            <div class="before-after-content">
+                <div class="section-label">Transformation</div>
+                <h2>See The Difference</h2>
+                <p>Real transformations from our community.</p>
+                <button class="btn-primary" onclick="scrollTo('shop')">Start Your Journey</button>
+            </div>
+            
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <div class="comparison-images">
+                        <div class="comparison-half before">
+                            <span class="comparison-label">Before</span>
+                            <div class="comparison-img" style="background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 3rem;">📷</div>
+                        </div>
+                        <div class="comparison-half after">
+                            <span class="comparison-label">After</span>
+                            <div class="comparison-img" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.2)), #e8f5e9; display: flex; align-items: center; justify-content: center; font-size: 3rem;">💚</div>
                         </div>
                     </div>
-                    {% endfor %}
+                    <div class="comparison-info">
+                        <h4>4 Weeks of Vitality Spray</h4>
+                        <p>Hairline restoration</p>
+                    </div>
+                </div>
+            
+                <div class="comparison-card">
+                    <div class="comparison-images">
+                        <div class="comparison-half before">
+                            <span class="comparison-label">Before</span>
+                            <div class="comparison-img" style="background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 3rem;">📷</div>
+                        </div>
+                        <div class="comparison-half after">
+                            <span class="comparison-label">After</span>
+                            <div class="comparison-img" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.2)), #e8f5e9; display: flex; align-items: center; justify-content: center; font-size: 3rem;">🌟</div>
+                        </div>
+                    </div>
+                    <div class="comparison-info">
+                        <h4>8 Weeks Complete Routine</h4>
+                        <p>Full transformation</p>
+                    </div>
+                </div>
+
+                <div class="comparison-card">
+                    <div class="comparison-images">
+                        <div class="comparison-half before">
+                            <span class="comparison-label">Before</span>
+                            <div class="comparison-img" style="background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 3rem;">📷</div>
+                        </div>
+                        <div class="comparison-half after">
+                            <span class="comparison-label">After</span>
+                            <div class="comparison-img" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.2)), #e8f5e9; display: flex; align-items: center; justify-content: center; font-size: 3rem;">💪</div>
+                        </div>
+                    </div>
+                    <div class="comparison-info">
+                        <h4>12 Weeks Complete Routine</h4>
+                        <p>Maintance and Growth</p>
+                    </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
+<section class="testimonials" id="reviews">
+    <div class="section-header">
+        <div class="section-label">Testimonials</div>
+        <h2 class="section-title">What Our Customers Say</h2>
+    </div>
+    <div class="testimonials-scroll">
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"Absolutely love these products!"</p><p class="testimonial-author">— Sarah M.</p></div>
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"The Growth Oil is amazing!"</p><p class="testimonial-author">— Jessica L.</p></div>
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"Finally found a brand I can trust."</p><p class="testimonial-author">— Emily R.</p></div>
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"The Vitality Spray is a game changer!"</p><p class="testimonial-author">— Nomsa K.</p></div>
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"Absolutely love these products!"</p><p class="testimonial-author">— Sarah M.</p></div>
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"The Growth Oil is amazing!"</p><p class="testimonial-author">— Jessica L.</p></div>
+    </div>
+</section>
 
-        <!-- Reviews -->
-            <section id="reviews" class="page-section">
-                <div class="container">
-                    <div class="text-center">
-                        <h2 class="section-heading text-uppercase">Customer Reviews</h2>
-                        <h3 class="section-subheading text-muted">What our customers say about Green Marvel</h3>
-                    </div>
+<section class="cta-section">
+    <div class="cta-content">
+        <h2>Join Our Natural Beauty Community</h2>
+        <p>Subscribe to get exclusive offers. Get 10% off your first order!</p>
+        <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
+            <input type="email" placeholder="Enter your email" required>
+            <button type="submit">Subscribe</button>
+        </form>
+    </div>
+</section>
 
-                    <div id="reviewsCarousel" class="carousel slide" data-bs-ride="carousel">
-                        <div class="carousel-inner">
-                            <!-- Review 1 -->
-                            <div class="carousel-item active">
-                                <div class="review-box">
-                                    
-                                    <h4>Sihle Dlamini</h4>
-                                    <p>⭐⭐⭐⭐⭐</p>
-                                    <p>I've been using Green Marvel for a while now, and I am seriously impressed! It's helped grow my hairline, which I’ve definitely noticed a difference in. The hair food leaves my hair feeling incredibly hydrated and soft. Not to mention, the smell is amazing—I absolutely love it! Highly recommend for anyone looking to boost their hair care routine!</p>
-                                </div>
-                            </div>
-                            <!-- Review 2 -->
-                            <div class="carousel-item">
-                                <div class="review-box">
-                                    
-                                    <h4>Francina Madimabe</h4>
-                                    <p>⭐⭐⭐⭐⭐</p>
-                                    <p>This hair spray has significantly improved my hairline, providing not only hold but also a sense of confidence. I've noticed a marked difference in the thickness and overall appearance of my hair since I started using it. It's become an essential part of my daily routine, making styling easier and more effective.</p>
-                                </div>
-                            </div>
-                            <!-- Review 3 -->
-                            <div class="carousel-item">
-                                <div class="review-box">
-                                    
-                                    <h4>Tsholofelo Mapeka</h4>
-                                    <p>⭐⭐⭐⭐⭐</p>
-                                    <p>Green Marvel is good for my scalp. No more itching, hair breakage, and my hairline restored even after plating. Smells good and my hair texture is improving.</p>
-                                </div>
-                            </div>
+<!-- PRODUCT DETAIL MODAL -->
+<div class="modal-overlay" id="productModal" onclick="closeModalOnOverlay(event)">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeProductModal()">&times;</button>
+        <div class="modal-body">
+            <div class="modal-image-section">
+                <div class="modal-main-image">
+                    <span class="modal-image-badge" id="modalBadge">100% Organic</span>
+                    <img id="modalProductImage" src="" alt="Product Image">
+                </div>
+                <div class="modal-trust-badges">
+                    <div class="trust-badge"><span class="trust-icon">🌿</span><span>Organic</span></div>
+                    <div class="trust-badge"><span class="trust-icon">🐰</span><span>Cruelty Free</span></div>
+                    <div class="trust-badge"><span class="trust-icon">🔬</span><span>Lab Tested</span></div>
+                    <div class="trust-badge"><span class="trust-icon">🇿🇦</span><span>Made in SA</span></div>
+                </div>
+            </div>
 
-                            <!-- Review 4 -->
-                            <div class="carousel-item">
-                                <div class="review-box">
-                                    
-                                    <h4>Esther Lindiwe</h4>
-                                    <p>⭐⭐⭐⭐⭐</p>
-                                    <p>Since I started using Green Marvel, it has been a great journey for my hair. No more breakage, dandruff, or itching...</p>
-                                </div>
-                            </div>
-                            <!-- Review 5 -->
-                            <div class="carousel-item">
-                                <div class="review-box">
-                                    
-                                    <h4>Tshegofatso Modise</h4>
-                                    <p>⭐⭐⭐⭐⭐</p>
-                                    <p>I’ve been using Green marvel spray for quite sometime now…. And all I can say is that “ she is the girl, she thinks she is”. .. 10/10. The spray enhanced my hair growth and volume. My scalp is sooo healthy, and my favourite thing about the spray is that it doesn’t leave the greasy oils on my scalp after using it.</p>
-                                </div>
-                            </div>
-                            <!-- Review 6 -->
-                            <div class="carousel-item">
-                                <div class="review-box">
-                                    
-                                    <h4>Mohlala Khomotso</h4>
-                                    <p>⭐⭐⭐⭐⭐</p>
-                                    <p>green marvel brought back my confidence,  I have a lot of dandruff and my scalp is much better now. I would recommend green marvel any day.</p>
-                                </div>
-                            </div>
-                            <!-- Review 7 -->
-                            <div class="carousel-item">
-                                <div class="review-box">
-                                    
-                                    <h4>Randy masilo</h4>
-                                    <p>⭐⭐⭐⭐⭐</p>
-                                    <p>Marvel Green is the best hair and beard product iv been introduced too..it enriches,removes dandrough and grows hair and gives it the best shine.</p>
-                                </div>
-                            </div>
-                            <!-- Review 8 -->
-                            <div class="carousel-item">
-                                <div class="review-box">
-                                    
-                                    <h4>sibongile maphanga</h4>
-                                    <p>⭐⭐⭐⭐⭐</p>
-                                    <p>Since I started using green marvel ,I see a big difference in my hairgrowth exceptional 👌</p>
-                                </div>
-                            </div>
-                            <!-- Review 9 -->
-                            <div class="carousel-item">
-                                <div class="review-box">
-                                    
-                                    <h4>Molebogeng Motse</h4>
-                                    <p>⭐⭐⭐⭐⭐</p>
-                                    <p>The best product ever used for beard growth and keeping my hair moisturised.</p>
-                                </div>
-                            </div>
-                            <!-- Review 10 -->
-                            <div class="carousel-item">
-                                <div class="review-box">
-                                   
-                                    <h4>Tshepi Tarvin</h4>
-                                    <p>⭐⭐⭐⭐⭐</p>
-                                    <p>Hairline improving very well🥳🥳🥳</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Carousel Controls -->
-                        <button class="carousel-control-prev" type="button" data-bs-target="#reviewsCarousel" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#reviewsCarousel" data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        </button>
+            <div class="modal-info-section">
+                <h2 class="modal-product-title" id="modalProductTitle">Product Name</h2>
+                <p class="modal-product-subtitle" id="modalProductSubtitle">Subtitle</p>
+                <div class="modal-rating">
+                    <span class="modal-stars">⭐⭐⭐⭐⭐</span>
+                    <span class="modal-reviews-count">(127 verified reviews)</span>
+                </div>
+                <p class="modal-product-description" id="modalProductDescription">Description...</p>
+                <div class="modal-features" id="modalFeatures"></div>
+                <div class="modal-price-section">
+                    <div class="modal-price-label">Price</div>
+                    <div id="modalPriceContainer"><span class="modal-price" id="modalPrice">R0.00</span></div>
+                </div>
+                <div class="modal-quantity-section">
+                    <label class="modal-quantity-label">Quantity</label>
+                    <div class="quantity-selector">
+                        <button class="quantity-btn" onclick="changeQuantity(-1)">−</button>
+                        <span class="quantity-value" id="quantityValue">1</span>
+                        <button class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                        <span style="color: #999; font-size: 0.9rem; margin-left: 1rem;">In Stock</span>
                     </div>
                 </div>
-            </section>
-            <br></br>
-
-        <!-- Remarkable Results -->
-            <section class="page-section" id="results">
-                <div class="container">
-                    <div class="text-center">
-                        <h2 class="section-heading text-uppercase">Remarkable Results</h2>
-                        <h3 class="section-subheading text-muted">See the amazing transformation from our hair care products.</h3>
-                    </div>
-                    <div id="resultsCarousel" class="carousel slide" data-bs-ride="carousel">
-                        <div class="carousel-inner">
-                            <div class="carousel-item active">
-                                <img class="d-block w-100" src="{% static 'landing/assets/img/test.png' %}" alt="Before and After 1">
-                            </div>
-                            <div class="carousel-item">
-                                <img class="d-block w-100" src="{% static 'landing/assets/img/test2.png' %}" alt="Before and After 2">
-                            </div>
-                            <div class="carousel-item">
-                                <img class="d-block w-100" src="{% static 'landing/assets/img/test3.png' %}" alt="Before and After 3">
-                            </div>
-                        </div>
-                        <!-- Carousel Controls -->
-                        <a class="carousel-control-prev" href="#resultsCarousel" role="button" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Previous</span>
-                        </a>
-                        <a class="carousel-control-next" href="#resultsCarousel" role="button" data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Next</span>
-                        </a>
-                    </div>
+                <div class="modal-actions">
+                    <button type="button" id="modal-add-cart-btn" class="modal-add-cart" onclick="modalAddToCart()">
+                        🛒 Add to Cart
+                    </button>
+                    <a href="{% url 'cart_summary' %}" class="modal-view-cart">
+                        View Cart
+                        <span class="cart-badge" id="cart_quantity">{{ cart|length|default:0 }}</span>
+                    </a>
                 </div>
-            </section>
-            <br><br>
-            <script>
-                // Countdown to August 
-                const countdown = () => {
-                    const eventDate = new Date("December 31, {{ now.year }} 00:00:00").getTime();
-                    const now = new Date().getTime();
-                    const distance = eventDate - now;
+                <div class="modal-shipping-info">
+                    <div class="shipping-item"><span>🚚</span><span>Free shipping on orders over R600</span></div>
+                    <div class="shipping-item"><span>↩️</span><span>30-day easy returns</span></div>
+                </div>
+            </div>
 
-                    if (distance < 0) {
-                        document.getElementById("countdown").innerHTML = "Promotion has ended.";
-                        return;
-                    }
+            <div class="modal-details-section">
+                <div class="modal-tabs">
+                    <button class="modal-tab active" onclick="switchTab('ingredients', this)">🌿 Ingredients</button>
+                    <button class="modal-tab" onclick="switchTab('benefits', this)">✨ Benefits</button>
+                    <button class="modal-tab" onclick="switchTab('how-to-use', this)">💧 How To Use</button>
+                </div>
+                <div class="modal-tab-content active" id="tab-ingredients">
+                    <div class="modal-detail-section"><h3>Natural Ingredients</h3><div id="modalIngredients"></div></div>
+                </div>
+                <div class="modal-tab-content" id="tab-benefits">
+                    <div class="modal-detail-section"><h3>Key Benefits</h3><div id="modalBenefits"></div></div>
+                </div>
+                <div class="modal-tab-content" id="tab-how-to-use">
+                    <div class="modal-detail-section"><h3>How To Use</h3><div id="modalUse"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+<div id="galleryLightbox" class="lightbox">
+    <span class="close-lightbox" onclick="closeLightbox()">&times;</span>
+    <img class="lightbox-content" id="lightboxImg">
+    <div id="lightboxCaption" class="lightbox-caption"></div>
+</div>
 
-                    document.getElementById("countdown").innerHTML =
-                        `⏳ Ends in: ${days}days ${hours}h ${minutes}m ${seconds}s`;
 
-                    setTimeout(countdown, 1000);
-                };
-                countdown();
+<style>
+    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+    .gallery-item { position: relative; height: 350px; border-radius: 15px; overflow: hidden; cursor: pointer; }
+    .gallery-image { width: 100%; height: 100%; background-size: cover; background-position: center; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+    .gallery-item:hover .gallery-image { transform: scale(1.1); }
+    .gallery-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, rgba(27, 48, 34, 0.8) 0%, rgba(197, 160, 89, 0.2) 100%); display: flex; align-items: flex-end; padding: 2rem; opacity: 0; transition: opacity 0.4s ease; }
+    .gallery-item:hover .gallery-overlay { opacity: 1; }
+    .gallery-content h3 { color: #c5a059; font-size: 1.5rem; margin-bottom: 5px; }
+    .gallery-content p { color: #fcf8ef; font-size: 0.9rem; }
+    @media (max-width: 992px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .gallery-grid { grid-template-columns: 1fr; } }
 
-            </script>
+    .lightbox { display: none; position: fixed; z-index: 2000; padding-top: 50px; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(27, 48, 34, 0.95); backdrop-filter: blur(8px); }
+    .lightbox-content { margin: auto; display: block; width: 80%; max-width: 800px; border: 3px solid #c5a059; border-radius: 10px; }
+    .lightbox-caption { margin: auto; display: block; width: 80%; max-width: 800px; text-align: center; color: #fcf8ef; padding: 20px 0; font-size: 1.2rem; font-style: italic; }
+    .close-lightbox { position: absolute; top: 25px; right: 35px; color: #c5a059; font-size: 50px; font-weight: bold; cursor: pointer; }
+    .close-lightbox:hover { color: #fcf8ef; }
 
-            <style>
-                .promo-banner {
-                    animation: pulse 2s infinite;
+    .view-details-btn { width: 100%; background: transparent; color: #2d5016; border: 2px solid #c5a059; padding: 0.9rem; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: all 0.3s; margin-top: 1rem; }
+    .view-details-btn:hover { background: #1b3022; color: #fcf8ef; border-color: #1b3022; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(27, 48, 34, 0.85); backdrop-filter: blur(8px); z-index: 3000; display: none; align-items: flex-start; justify-content: center; padding: 2rem 1rem; opacity: 0; transition: opacity 0.3s ease; overflow-y: auto; }
+    .modal-overlay.show { display: flex; opacity: 1; }
+    .modal-content { background: white; border-radius: 25px; max-width: 1100px; width: 100%; position: relative; transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4); margin: auto; border: 1px solid rgba(197, 160, 89, 0.2); }
+    .modal-overlay.show .modal-content { transform: scale(1); }
+    .modal-close { position: absolute; top: 1.5rem; right: 1.5rem; background: #f8fdf8; border: 2px solid #e8f5e9; width: 45px; height: 45px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; z-index: 10; color: #2d5016; }
+    .modal-close:hover { background: #1b3022; color: #c5a059; border-color: #c5a059; transform: rotate(90deg); }
+    .modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; padding: 3rem; }
+    .modal-image-section { display: flex; flex-direction: column; gap: 1.5rem; }
+    .modal-main-image { width: 100%; height: 450px; background: linear-gradient(135deg, #f8fdf8 0%, #e8f5e9 50%, rgba(197, 160, 89, 0.1) 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; border: 1px solid rgba(197, 160, 89, 0.2); }
+    .modal-main-image img { max-width: 85%; max-height: 85%; object-fit: contain; position: relative; z-index: 2; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.15)); }
+    .modal-image-badge { position: absolute; top: 1.2rem; left: 1.2rem; background: linear-gradient(135deg, #2d5016, #4CAF50); color: #fcf8ef; padding: 0.6rem 1.2rem; border-radius: 25px; font-size: 0.8rem; font-weight: 600; z-index: 3; border: 1px solid #c5a059; }
+    .modal-trust-badges { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+    .trust-badge { background: #f8fdf8; border: 1px solid #e8f5e9; padding: 0.75rem 0.5rem; border-radius: 12px; text-align: center; font-size: 0.75rem; color: #2d5016; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; transition: all 0.3s; }
+    .trust-badge:hover { border-color: #c5a059; transform: translateY(-3px); }
+    .trust-icon { font-size: 1.4rem; }
+    .modal-info-section { display: flex; flex-direction: column; }
+    .modal-product-title { font-size: 2.5rem; color: #c5a059; font-style: italic; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.2; }
+    .modal-product-subtitle { color: #4CAF50; font-size: 1.05rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .modal-rating { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f0f0f0; }
+    .modal-stars { color: #FFC107; font-size: 1.1rem; }
+    .modal-reviews-count { color: #666; font-size: 0.9rem; }
+    .modal-product-description { color: #555; font-size: 1rem; line-height: 1.8; margin-bottom: 1.5rem; }
+    .modal-features { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 2rem; }
+    .modal-feature-tag { background: #f8fdf8; color: #2d5016; padding: 0.5rem 1.1rem; border-radius: 25px; font-size: 0.85rem; font-weight: 500; border: 1px solid #e8f5e9; }
+    .modal-price-section { background: linear-gradient(135deg, #f8fdf8, #e8f5e9); padding: 1.5rem; border-radius: 15px; margin-bottom: 1.5rem; border: 1px solid rgba(197, 160, 89, 0.2); }
+    .modal-price-label { font-size: 0.8rem; color: #666; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.5rem; font-weight: 600; }
+    .modal-price { font-size: 2.5rem; color: #2d5016; font-weight: 800; letter-spacing: -1px; }
+    .modal-price.sale { color: #e74c3c; }
+    .modal-original-price { text-decoration: line-through; color: #999; font-size: 1.2rem; margin-left: 1rem; }
+    .modal-sale-badge { display: inline-block; background: #e74c3c; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.75rem; font-weight: 700; margin-left: 0.75rem; }
+    .modal-quantity-section { margin-bottom: 1.5rem; }
+    .modal-quantity-label { display: block; font-size: 0.9rem; font-weight: 600; color: #333; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+    .quantity-selector { display: flex; align-items: center; gap: 0.5rem; }
+    .quantity-btn { width: 42px; height: 42px; border: 2px solid #e8f5e9; background: white; border-radius: 10px; font-size: 1.3rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; color: #2d5016; font-weight: 700; }
+    .quantity-btn:hover { background: #2d5016; color: #c5a059; border-color: #2d5016; transform: scale(1.05); }
+    .quantity-value { font-size: 1.3rem; font-weight: 700; color: #2d5016; min-width: 50px; text-align: center; padding: 0 1rem; }
+    .modal-actions { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .modal-add-cart { flex: 2; background: linear-gradient(135deg, #2d5016, #4CAF50); color: #fcf8ef; border: 1px solid #c5a059; padding: 1.1rem 2rem; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+    .modal-add-cart:hover { background: linear-gradient(135deg, #c5a059, #d4b374); color: #1b3022; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(197, 160, 89, 0.4); }
+    .modal-add-cart:disabled { opacity: 0.7; cursor: not-allowed; }
+    .modal-view-cart { flex: 1; background: white; color: #2d5016; border: 2px solid #e8f5e9; padding: 1.1rem 1.5rem; border-radius: 50px; font-size: 1rem; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.3s; }
+    .modal-view-cart:hover { background: #f8fdf8; border-color: #c5a059; color: #1b3022; }
+    .cart-badge { background: #2d5016; color: #c5a059; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+    .modal-shipping-info { background: #f8fdf8; padding: 1rem 1.25rem; border-radius: 12px; border: 1px dashed #c5a059; }
+    .shipping-item { display: flex; align-items: center; gap: 0.75rem; color: #555; font-size: 0.9rem; padding: 0.3rem 0; }
+    .shipping-item span:first-child { font-size: 1.2rem; }
+    .modal-details-section { grid-column: 1 / -1; border-top: 2px solid #f0f0f0; padding-top: 2.5rem; margin-top: 1rem; }
+    .modal-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 2px solid #f0f0f0; flex-wrap: wrap; }
+    .modal-tab { padding: 1rem 1.75rem; background: none; border: none; font-size: 1rem; font-weight: 600; color: #666; cursor: pointer; position: relative; transition: all 0.3s; }
+    .modal-tab.active { color: #2d5016; }
+    .modal-tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #2d5016, #c5a059); border-radius: 3px 3px 0 0; }
+    .modal-tab:hover { color: #2d5016; }
+    .modal-tab-content { display: none; animation: fadeIn 0.5s ease; }
+    .modal-tab-content.active { display: block; }
+    .modal-detail-section h3 { color: #2d5016; font-size: 1.4rem; margin-bottom: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+    .modal-detail-section h3::before { content: ''; width: 4px; height: 24px; background: linear-gradient(180deg, #2d5016, #c5a059); border-radius: 2px; }
+    .modal-detail-section p, .modal-detail-section ul, .modal-detail-section ol, .modal-detail-section div { color: #555; line-height: 1.8; }
+    .modal-detail-section ul, .modal-detail-section ol { padding-left: 1.5rem; }
+    .modal-detail-section li { margin-bottom: 0.6rem; }
+    .modal-detail-section ul li::marker { color: #c5a059; }
+    .empty-content { color: #999; font-style: italic; padding: 2rem; text-align: center; background: #f8fdf8; border-radius: 12px; }
+
+    @media (max-width: 900px) {
+        .modal-body { grid-template-columns: 1fr; padding: 2rem 1.5rem; gap: 2rem; }
+        .modal-main-image { height: 350px; }
+        .modal-product-title { font-size: 2rem; }
+        .modal-actions { flex-direction: column; }
+    }
+    @media (max-width: 500px) {
+        .modal-trust-badges { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script>
+    // ============================================
+    // CART AJAX 
+    // ============================================
+    function getCSRFToken() {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]');
+        return token ? token.value : '';
+    }
+
+    function addProductToCart(productId, productName, quantity, buttonEl) {
+        const originalText = buttonEl ? buttonEl.innerHTML : '';
+        if (buttonEl) {
+            buttonEl.disabled = true;
+            buttonEl.innerHTML = '⏳ Adding...';
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "cart_add" %}',
+            data: {
+                product_id: productId,
+                product_qty: quantity,
+                csrfmiddlewaretoken: getCSRFToken(),
+                action: 'post'
+            },
+            success: function(json) {
+                updateCartCount(json.qty);
+                showNotification(productName, quantity);
+                if (buttonEl) {
+                    buttonEl.disabled = false;
+                    buttonEl.innerHTML = originalText;
                 }
-
-                @keyframes pulse {
-                    0% { transform: scale(1); }
-                    50% { transform: scale(1.02); }
-                    100% { transform: scale(1); }
+            },
+            error: function(xhr, errmsg, err) {
+                console.error('Cart error:', errmsg);
+                alert('Something went wrong. Please try again.');
+                if (buttonEl) {
+                    buttonEl.disabled = false;
+                    buttonEl.innerHTML = originalText;
                 }
+            }
+        });
+    }
 
+    function updateCartCount(count) {
+        document.querySelectorAll('#cartCount, #cart_quantity').forEach(el => {
+            el.textContent = count;
+        });
+        if (typeof cartCount !== 'undefined') cartCount = count;
+    }
 
-                carousel {
-  position: relative;
-}
+    function showNotification(productName, quantity) {
+        const notification = document.getElementById('notification');
+        if (!notification) return;
+        const strong = notification.querySelector('strong');
+        const para = notification.querySelector('p');
+        if (strong) strong.textContent = `${productName} added!`;
+        if (para) para.textContent = quantity > 1 ? `${quantity} items added` : 'Added to cart';
+        notification.classList.add('show');
+        setTimeout(() => notification.classList.remove('show'), 3000);
+    }
 
-.carousel.pointer-event {
-  touch-action: pan-y;
-}
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.card-add-cart').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                addProductToCart(this.dataset.productId, this.dataset.productName, 1, this);
+            });
+        });
+        document.querySelectorAll('.quick-add-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                addProductToCart(this.dataset.productId, this.dataset.productName, 1, this);
+            });
+        });
+    });
 
-.carousel-inner {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-}
-.carousel-inner::after {
-  display: block;
-  clear: both;
-  content: "";
-}
+    // ============================================
+    // PRODUCT MODAL
+    // ============================================
+    let currentProductId = null;
+    let currentProductName = null;
+    let currentQuantity = 1;
 
-.carousel-item {
-  position: relative;
-  display: none;
-  float: left;
-  width: 100%;
-  margin-right: -100%;
-  -webkit-backface-visibility: hidden;
-          backface-visibility: hidden;
-  transition: transform 0.6s ease-in-out;
-}
-@media (prefers-reduced-motion: reduce) {
-  .carousel-item {
-    transition: none;
-  }
-}
+    function openProductModal(button) {
+        const modal = document.getElementById('productModal');
+        const d = button.dataset;
 
-.carousel-item.active,
-.carousel-item-next,
-.carousel-item-prev {
-  display: block;
-}
+        currentProductId = d.productId;
+        currentProductName = d.productName;
+        currentQuantity = 1;
+        document.getElementById('quantityValue').textContent = '1';
 
-.carousel-item-next:not(.carousel-item-start),
-.active.carousel-item-end {
-  transform: translateX(100%);
-}
+        document.getElementById('modalProductTitle').textContent = d.productName;
+        document.getElementById('modalProductSubtitle').textContent = d.productSubtitle || 'Premium Hair Care';
+        document.getElementById('modalProductDescription').textContent = d.productDescription || '';
+        document.getElementById('modalProductImage').src = d.productImage;
+        document.getElementById('modalProductImage').alt = d.productName;
+        document.getElementById('modalBadge').textContent = d.productBadge || '100% Organic';
 
-.carousel-item-prev:not(.carousel-item-end),
-.active.carousel-item-start {
-  transform: translateX(-100%);
-}
+        const priceContainer = document.getElementById('modalPriceContainer');
+        if (d.productIsSale === 'True') {
+            priceContainer.innerHTML = `
+                <span class="modal-price sale">R${d.productSalePrice}</span>
+                <span class="modal-original-price">R${d.productPrice}</span>
+                <span class="modal-sale-badge">SALE</span>
+            `;
+        } else {
+            priceContainer.innerHTML = `<span class="modal-price">R${d.productPrice}</span>`;
+        }
 
-.carousel-fade .carousel-item {
-  opacity: 0;
-  transition-property: opacity;
-  transform: none;
-}
-.carousel-fade .carousel-item.active,
-.carousel-fade .carousel-item-next.carousel-item-start,
-.carousel-fade .carousel-item-prev.carousel-item-end {
-  z-index: 1;
-  opacity: 1;
-}
-.carousel-fade .active.carousel-item-start,
-.carousel-fade .active.carousel-item-end {
-  z-index: 0;
-  opacity: 0;
-  transition: opacity 0s 0.6s;
-}
-@media (prefers-reduced-motion: reduce) {
-  .carousel-fade .active.carousel-item-start,
-  .carousel-fade .active.carousel-item-end {
-    transition: none;
-  }
-}
+        const featuresContainer = document.getElementById('modalFeatures');
+        featuresContainer.innerHTML = '';
+        [d.productTag1, d.productTag2, d.productTag3].forEach(tag => {
+            if (tag && tag.trim()) {
+                const span = document.createElement('span');
+                span.className = 'modal-feature-tag';
+                span.textContent = tag;
+                featuresContainer.appendChild(span);
+            }
+        });
 
-.carousel-control-prev,
-.carousel-control-next {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 15%;
-  padding: 0;
-  color: #fff;
-  text-align: center;
-  background: none;
-  border: 0;
-  opacity: 0.5;
-  transition: opacity 0.15s ease;
-}
+        document.getElementById('modalIngredients').innerHTML = 
+            d.productIngredients && d.productIngredients.trim() ? d.productIngredients : '<div class="empty-content">Coming soon.</div>';
+        document.getElementById('modalBenefits').innerHTML = 
+            d.productBenefits && d.productBenefits.trim() ? d.productBenefits : '<div class="empty-content">Coming soon.</div>';
+        document.getElementById('modalUse').innerHTML = 
+            d.productUse && d.productUse.trim() ? d.productUse : '<div class="empty-content">Coming soon.</div>';
 
+        document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelector('.modal-tab').classList.add('active');
+        document.getElementById('tab-ingredients').classList.add('active');
 
-@media (prefers-reduced-motion: reduce) {
-  .carousel-control-prev,
-  .carousel-control-next {
-    transition: none;
-  }
-}
-.carousel-control-prev:hover, .carousel-control-prev:focus,
-.carousel-control-next:hover,
-.carousel-control-next:focus {
-  color: #fff;
-  text-decoration: none;
-  outline: 0;
-  opacity: 0.9;
-}
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
 
-.carousel-control-prev {
-  left: 0;
-}
+    function closeProductModal() {
+        document.getElementById('productModal').classList.remove('show');
+        document.body.style.overflow = '';
+        currentProductId = null;
+    }
 
-.carousel-control-next {
-  right: 0;
-}
+    function closeModalOnOverlay(event) {
+        if (event.target.id === 'productModal') closeProductModal();
+    }
 
-.carousel-control-prev-icon,
-.carousel-control-next-icon {
-  display: inline-block;
-  width: 2rem;
-  height: 2rem;
-  background-repeat: no-repeat;
-  background-position: 50%;
-  background-size: 100% 100%;
-}
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeProductModal();
+            closeLightbox();
+        }
+    });
 
-/* rtl:options: {
-  "autoRename": true,
-  "stringMap":[ {
-    "name"    : "prev-next",
-    "search"  : "prev",
-    "replace" : "next"
-  } ]
-} */
-.carousel-control-prev-icon {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z'/%3e%3c/svg%3e");
-}
+    function switchTab(tabName, button) {
+        document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById('tab-' + tabName).classList.add('active');
+    }
 
-.carousel-control-next-icon {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
-}
+    function changeQuantity(delta) {
+        currentQuantity = Math.max(1, Math.min(99, currentQuantity + delta));
+        document.getElementById('quantityValue').textContent = currentQuantity;
+    }
 
-.carousel-indicators {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 2;
-  display: flex;
-  justify-content: center;
-  padding: 0;
-  margin-right: 15%;
-  margin-bottom: 1rem;
-  margin-left: 15%;
-  list-style: none;
-}
-.carousel-indicators [data-bs-target] {
-  box-sizing: content-box;
-  flex: 0 1 auto;
-  width: 30px;
-  height: 3px;
-  padding: 0;
-  margin-right: 3px;
-  margin-left: 3px;
-  text-indent: -999px;
-  cursor: pointer;
-  background-color: #fff;
-  background-clip: padding-box;
-  border: 0;
-  border-top: 10px solid transparent;
-  border-bottom: 10px solid transparent;
-  opacity: 0.5;
-  transition: opacity 0.6s ease;
-}
-@media (prefers-reduced-motion: reduce) {
-  .carousel-indicators [data-bs-target] {
-    transition: none;
-  }
-}
-.carousel-indicators .active {
-  opacity: 1;
-}
+    function modalAddToCart() {
+        if (!currentProductId) return;
+        const btn = document.getElementById('modal-add-cart-btn');
+        addProductToCart(currentProductId, currentProductName, currentQuantity, btn);
+    }
 
-.carousel-caption {
-  position: absolute;
-  right: 15%;
-  bottom: 1.25rem;
-  left: 15%;
-  padding-top: 1.25rem;
-  padding-bottom: 1.25rem;
-  color: #fff;
-  text-align: center;
-}
+    function openLightbox(element) {
+        const modal = document.getElementById("galleryLightbox");
+        const modalImg = document.getElementById("lightboxImg");
+        const captionText = document.getElementById("lightboxCaption");
+        const style = element.querySelector('.gallery-image').style.backgroundImage;
+        const url = style.slice(4, -1).replace(/"/g, "");
+        const title = element.querySelector('h3').innerText;
+        modal.style.display = "block";
+        modalImg.src = url;
+        captionText.innerHTML = title;
+    }
 
-.carousel-dark .carousel-control-prev-icon,
-.carousel-dark .carousel-control-next-icon {
-  filter: invert(1) grayscale(100);
-}
-.carousel-dark .carousel-indicators [data-bs-target] {
-  background-color: #000;
-}
-.carousel-dark .carousel-caption {
-  color: #000;
-}
+    function closeLightbox() {
+        document.getElementById("galleryLightbox").style.display = "none";
+    }
 
-            </style>
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById("galleryLightbox");
+        if (event.target == modal) modal.style.display = "none";
+    });
+</script>
 
 {% endblock %}

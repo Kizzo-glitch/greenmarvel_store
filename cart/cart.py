@@ -2,8 +2,147 @@ from greenmarv.models import Product, Profile
 from decimal import Decimal, ROUND_HALF_UP
 from django.core.exceptions import ObjectDoesNotExist
 from greenmarv.models import DiscountCode, Influencer
+import json
+
+
+
 
 class Cart():
+    def __init__(self, request):
+        self.session = request.session
+        self.request = request
+
+        # Get current session cart if it exists
+        cart = self.session.get('session_key')
+
+        # If new user, create empty cart
+        if 'session_key' not in request.session:
+            cart = self.session['session_key'] = {}
+
+        self.cart = cart
+
+    def _save_to_profile(self):
+        """Sync cart to user profile if logged in."""
+        if self.request.user.is_authenticated:
+            current_user = Profile.objects.filter(user__id=self.request.user.id)
+            # Use json.dumps — proper JSON formatting, no fragile string replace
+            current_user.update(old_cart=json.dumps(self.cart))
+
+    def add(self, product, quantity=1):
+        """Add a product to the cart. If already there, INCREMENT the quantity."""
+        product_id = str(product.id)
+        quantity = int(quantity)
+
+        if product_id in self.cart:
+            # Increment existing quantity
+            self.cart[product_id] = int(self.cart[product_id]) + quantity
+        else:
+            self.cart[product_id] = quantity
+
+        self.session.modified = True
+        self._save_to_profile()
+
+    def db_add(self, product, quantity):
+        """Used when restoring a cart from the database on login."""
+        product_id = str(product)
+        quantity = int(quantity)
+
+        if product_id not in self.cart:
+            self.cart[product_id] = quantity
+
+        self.session.modified = True
+        self._save_to_profile()
+
+    def update(self, product, quantity):
+        """Set quantity directly (used by the quantity selector in cart page)."""
+        product_id = str(product)
+        quantity = int(quantity)
+
+        if quantity <= 0:
+            self.delete(product_id)
+            return
+
+        self.cart[product_id] = quantity
+        self.session.modified = True
+        self._save_to_profile()
+
+    def delete(self, product):
+        """Remove a product from the cart."""
+        product_id = str(product)
+        if product_id in self.cart:
+            del self.cart[product_id]
+
+        self.session.modified = True
+        self._save_to_profile()
+
+    def __len__(self):
+        """Total number of items (summed quantities) in cart."""
+        return sum(int(qty) for qty in self.cart.values())
+
+    def get_prods(self):
+        """Get Product objects currently in the cart."""
+        product_ids = self.cart.keys()
+        return Product.objects.filter(id__in=product_ids)
+
+    def get_quants(self):
+        """Return the raw {product_id: quantity} dict."""
+        return self.cart
+
+    def cart_total(self):
+        """Sum up the total cost of the cart, respecting sale prices."""
+        product_ids = self.cart.keys()
+        products = Product.objects.filter(id__in=product_ids)
+        quantities = self.cart
+        total = Decimal('0.00')
+
+        for product in products:
+            pid = str(product.id)
+            if pid in quantities:
+                qty = int(quantities[pid])
+                price = product.sale_price if product.is_sale else product.price
+                total += Decimal(price) * qty
+
+        return total
+
+    def heritage_total(self):
+        """Heritage Day promo: cheapest item free when buying 3+ items."""
+        product_ids = self.cart.keys()
+        products = Product.objects.filter(id__in=product_ids)
+        quantities = self.cart
+
+        # Build list of unit prices (one entry per item, respecting quantities)
+        all_prices = []
+        for product in products:
+            pid = str(product.id)
+            if pid in quantities:
+                qty = int(quantities[pid])
+                price = product.sale_price if product.is_sale else product.price
+                all_prices.extend([Decimal(price)] * qty)
+
+        # Need at least 3 items to qualify
+        if len(all_prices) < 3:
+            return self.cart_total()
+
+        # Subtract the cheapest item
+        all_prices.sort()
+        return sum(all_prices) - all_prices[0]
+
+    def cart_weight(self):
+        """Total weight for shipping calculations."""
+        product_ids = self.cart.keys()
+        products = Product.objects.filter(id__in=product_ids)
+        total_weight = Decimal('0.00')
+
+        for product in products:
+            pid = str(product.id)
+            if pid in self.cart:
+                qty = int(self.cart[pid])
+                total_weight += Decimal(product.weight) * qty
+
+        return total_weight
+
+
+class Cart2():
 	def __init__(self, request):
 		self.session = request.session
 
@@ -17,10 +156,8 @@ class Cart():
 		if 'session_key' not in request.session:
 			cart = self.session['session_key'] = {}
 
-
 		# Make sure cart is available on all pages of site
 		self.cart = cart
-
 
 
 	def db_add(self, product, quantity):

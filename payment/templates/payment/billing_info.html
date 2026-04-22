@@ -1,136 +1,1390 @@
-{% extends 'base.html' %}
+{% extends 'base1.html' %}
 {% load static %}
+
 {% block content %}
+{% csrf_token %}
 
-        <!-- Header-->
-        <header class="bg-success py-5">
-            <div class="container px-4 px-lg-5 my-5">
-                <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">Billing Information</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">Please double-check if the info is correct. After clicking "Pay Now", you will be redirected to Payfast for secure payments.</p>
-                </div>
-            </div>
-        </header>
-        <br/><br/>
-            
-        <div class="container">
-            <div class="row">
+<!-- ============================================ -->
+<!-- BILLING HERO -->
+<!-- ============================================ -->
+<section class="checkout-hero">
+    <div class="checkout-hero-leaves">
+        <span class="floating-leaf leaf-1">🍃</span>
+        <span class="floating-leaf leaf-2">🌿</span>
+        <span class="floating-leaf leaf-3">🍃</span>
+    </div>
+    <div class="checkout-hero-container">
+        <div class="checkout-hero-badge">🔒 SECURE PAYMENT</div>
+        <h1 class="checkout-hero-title">Review & <span>Pay</span></h1>
+        <p class="checkout-hero-subtitle">Please double-check your details. You'll be redirected to Payfast for secure payment.</p>
+    </div>
+</section>
+
+<!-- ============================================ -->
+<!-- STEP PROGRESS INDICATOR -->
+<!-- ============================================ -->
+<section class="checkout-progress">
+    <div class="progress-container">
+        <div class="progress-step completed">
+            <div class="step-circle">✓</div>
+            <div class="step-label">Cart</div>
+        </div>
+        <div class="progress-line completed"></div>
+        <div class="progress-step completed">
+            <div class="step-circle">✓</div>
+            <div class="step-label">Shipping</div>
+        </div>
+        <div class="progress-line completed"></div>
+        <div class="progress-step active">
+            <div class="step-circle">3</div>
+            <div class="step-label">Billing</div>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step">
+            <div class="step-circle">4</div>
+            <div class="step-label">Confirmation</div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================ -->
+<!-- BILLING MAIN -->
+<!-- ============================================ -->
+<section class="checkout-section">
+    <div class="checkout-container">
+        <div class="checkout-layout">
+            <!-- LEFT: Review Cards -->
+            <div class="checkout-form-column">
                 
-                    <div class="col-md-6 offset-md-3">
-            <div class="card">
-                <div class="card-header">Order Summary</div>
-                  <div class="card-body">
-                    {% for product in cart_products %}
-                        {{ product.name }}: 
-                            {% if product.sale %}
-                                R{{ product.sale_price }}
-                            {% else %}
-                                R{{ product.price }}
-                        {% endif %}
-
-                        <br/>
-                        <small>Quantity: 
-                        {% for key, value in quantities.items %}
-                            {% if key == product.id|slugify %}
-                                {{ value }}
-                            {% endif %}
-                        {% endfor %}</small>
-                        <br/><br/>
-
-                    {% endfor %}
-                    Total:  R{{ totals }}
-                    <br/><br/>
-                    Shipping cost: R{{ shipping_cost }}
-                    <br/><br/>
-                    Total cost: R{{ total_with_shipping }}
-                    <br/><br/>
-                    <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-primary">Update Items</a>
-                  </div>
-            </div>
-                    <br/><br/>
-                    
-                        
-                        <div class="card">
-                          <div class="card-header">Shipping Info</div>
-                          <div class="card-body">
-                          
-                                Name: {{ shipping_info.shipping_full_name }}<br/>
-                                Email: {{ shipping_info.shipping_email }}<br/>
-                                Phone: {{ shipping_info.shipping_phone }}<br/>
-                                Street Address: {{ shipping_info.shipping_address1 }}<br/>
-                                Apartment: {{ shipping_info.shipping_apartment }}<br/>
-                                City: {{ shipping_info.shipping_city }}<br/>
-                                Province/State: {{ shipping_info.shipping_province }}<br/>
-                                Zipcode: {{ shipping_info.shipping_zipcode }}<br/>
-                                Country: {{ shipping_info.shipping_country }}<br/>
-                                <br/>
-
-                                <a href="{% url 'checkout' %}" class="btn btn-outline-primary">Update Shipping</a>
-
-                          </div>
+                <!-- Shipping Info Review -->
+                <div class="checkout-card review-card">
+                    <div class="card-header-custom">
+                        <div class="header-icon">📍</div>
+                        <div class="header-text">
+                            <h2>Shipping Address</h2>
+                            <p>Where we'll deliver your order</p>
                         </div>
-                        <br/>
-                        
-                    
-                        <h3>Courier Details</h3>
-                            {% if rates %}
-                                <table class="table table-striped table-hover table-bordered">
-                                    <thead class="table-success">
-                                        <tr>
-                                            <th>Service Level</th>
-                                            <th>Service Code</th>
-                                            <th>Rate (Incl. VAT)</th>
-                                            <th>Rate (Excl. VAT)</th>
-                                            <th>Delivery Date From</th>
-                                            <th>Delivery Date To</th>
-                                            <th>Extras</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for rate in rates %}
-                                            <tr>
-                                                <td>{{ rate.service_level }}</td>
-                                                <td>{{ rate.service_code }}</td>
-                                                <td>R{{ rate.rate }}</td>
-                                                <td>R{{ rate.rate_excluding_vat }}</td>
-                                                <td>{{ rate.delivery_date_from }}</td>
-                                                <td>{{ rate.delivery_date_to }}</td>
-                                                <td>
-                                                    {% for extra in rate.extras %}
-                                                        <p>Insurance Charge: R{{ extra.insurance_charge }}</p>
-                                                        <!--<p>VAT: {{ extra.vat }}</p>-->
-                                                    {% endfor %}
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            {% else %}
-                                <p>No shipping rates available at this time.</p>
-                            {% endif %}
-                            
-                            
-                            <br/>                                      
+                        <a href="{% url 'checkout' %}" class="edit-card-btn">✏️ Edit</a>
+                    </div>
 
-                        <div class="card">
-                              <div class="card-header">
-                                Powered By Payfast
-                              </div>
-                              <div class="card-body">                              
-                                <form method="post" action="{% url 'process_order' %}">
-                                    {% csrf_token %}                                  
-                                    <button type="submit">Pay Now</button>
-                                </form>
-                                
-                              </div>
+                    <div class="shipping-info-grid">
+                        <div class="info-row">
+                            <span class="info-label">Name</span>
+                            <span class="info-value">{{ shipping_info.shipping_full_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">{{ shipping_info.shipping_email }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Phone</span>
+                            <span class="info-value">{{ shipping_info.shipping_phone }}</span>
+                        </div>
+                        <div class="info-row full">
+                            <span class="info-label">Street Address</span>
+                            <span class="info-value">
+                                {{ shipping_info.shipping_address1 }}
+                                {% if shipping_info.shipping_apartment %}
+                                    <br><span class="info-secondary">Apt: {{ shipping_info.shipping_apartment }}</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">City</span>
+                            <span class="info-value">{{ shipping_info.shipping_city }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Province</span>
+                            <span class="info-value">{{ shipping_info.shipping_province }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Postal Code</span>
+                            <span class="info-value">{{ shipping_info.shipping_zipcode }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Country</span>
+                            <span class="info-value">{{ shipping_info.shipping_country }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Courier Rates -->
+                <div class="checkout-card courier-card">
+                    <div class="card-header-custom">
+                        <div class="header-icon">🚚</div>
+                        <div class="header-text">
+                            <h2>Delivery Options</h2>
+                            <p>Choose your preferred shipping method</p>
+                        </div>
+                    </div>
+
+                    {% if rates %}
+                    <div class="courier-options">
+                        {% for rate in rates %}
+                        <label class="courier-option {% if forloop.first %}selected{% endif %}">
+                            <input type="radio" 
+                                   name="courier_rate" 
+                                   value="{{ rate.service_code }}" 
+                                   {% if forloop.first %}checked{% endif %}
+                                   data-rate="{{ rate.rate }}">
+                            <div class="courier-radio"></div>
+                            <div class="courier-details">
+                                <div class="courier-main">
+                                    <div class="courier-name">
+                                        {{ rate.service_level }}
+                                        <span class="courier-code">{{ rate.service_code }}</span>
+                                    </div>
+                                    <div class="courier-price">R{{ rate.rate }}</div>
+                                </div>
+                                <div class="courier-meta">
+                                    <div class="courier-delivery">
+                                        <span class="meta-icon">📅</span>
+                                        Delivery: {{ rate.delivery_date_from }} → {{ rate.delivery_date_to }}
+                                    </div>
+                                    <div class="courier-vat">
+                                        R{{ rate.rate_excluding_vat }} excl. VAT
+                                    </div>
+                                </div>
+                                {% for extra in rate.extras %}
+                                    {% if extra.insurance_charge %}
+                                    <div class="courier-extra">
+                                        <span class="extra-badge">✓ Insurance</span>
+                                        <span>R{{ extra.insurance_charge }} charge included</span>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
                             </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="no-rates">
+                        <div class="no-rates-icon">📭</div>
+                        <h4>No shipping rates available</h4>
+                        <p>We couldn't fetch delivery options right now. Please contact us or try again.</p>
+                        <a href="{% url 'checkout' %}" class="btn-retry">← Update Shipping Info</a>
+                    </div>
+                    {% endif %}
+                </div>
 
-                        <br/><br/>
 
+                <!-- Payment Method (Payfast) -->
+                <div class="checkout-card payment-card">
+                    <div class="card-header-custom">
+                        <div class="header-icon">💳</div>
+                        <div class="header-text">
+                            <h2>Payment</h2>
+                            <p>Secure payment powered by Payfast</p>
+                        </div>
+                    </div>
 
+                    <div class="payfast-banner">
+                        <div class="payfast-icon">🔐</div>
+                        <div class="payfast-info">
+                            <h4>You'll be redirected to Payfast</h4>
+                            <p>Complete your secure payment with card, EFT, or instant EFT. Your details never touch our servers.</p>
+                        </div>
+                    </div>
+
+                    <div class="payfast-methods">
+                        <div class="payfast-method">💳 Visa / Mastercard</div>
+                        <div class="payfast-method">📱 Instant EFT</div>
+                        <div class="payfast-method">🏦 Bank Transfer</div>
+                    </div>
+
+                    <form method="post" action="{% url 'process_order' %}" id="payForm">
+                        {% csrf_token %}
+                        <div class="terms-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="terms" id="terms" required>
+                                <span class="checkbox-custom"></span>
+                                <span>I agree to the <a href="#" target="_blank">Terms of Service</a> and <a href="#" target="_blank">Privacy Policy</a></span>
+                            </label>
+                        </div>
+
+                        <div class="form-actions">
+                            <a href="{% url 'checkout' %}" class="btn-back">
+                                ← Back to Shipping
+                            </a>
+                            <button type="submit" class="btn-pay-now" id="payNowBtn">
+                                <span class="btn-text">🔒 Pay Now</span>
+                                <span class="btn-amount" id="payBtnAmount">R{{ total_with_shipping|floatformat:2 }}</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Trust Row -->
+                <div class="trust-row">
+                    <div class="trust-card">
+                        <div class="trust-emoji">🔒</div>
+                        <div class="trust-text">
+                            <strong>SSL Encrypted</strong>
+                            <span>256-bit security</span>
+                        </div>
+                    </div>
+                    <div class="trust-card">
+                        <div class="trust-emoji">✓</div>
+                        <div class="trust-text">
+                            <strong>Verified Secure</strong>
+                            <span>Payfast protected</span>
+                        </div>
+                    </div>
+                    <div class="trust-card">
+                        <div class="trust-emoji">↩️</div>
+                        <div class="trust-text">
+                            <strong>Easy Returns</strong>
+                            <span>30-day guarantee</span>
+                        </div>
                     </div>
                 </div>
             </div>
-          
 
-  {% endblock %}
+            <!-- RIGHT: Order Summary Sidebar -->
+            <div class="checkout-summary-column">
+                <div class="order-summary-card">
+                    <div class="summary-header">
+                        <h3>🛒 Order Summary</h3>
+                        <a href="{% url 'cart_summary' %}" class="edit-link">Edit</a>
+                    </div>
+
+                    <div class="summary-items">
+                        {% for product in cart_products %}
+                        <div class="summary-item">
+                            <div class="summary-item-image">
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                <span class="item-qty-badge">
+                                    {% for key, value in quantities.items %}
+                                        {% if key == product.id|slugify %}{{ value }}{% endif %}
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <div class="summary-item-info">
+                                <h4>{{ product.name }}</h4>
+                                {% if product.subtitle %}
+                                    <p class="summary-item-subtitle">{{ product.subtitle }}</p>
+                                {% endif %}
+                                <div class="summary-item-price">
+                                    {% if product.is_sale %}
+                                        <span class="price-sale">R{{ product.sale_price }}</span>
+                                        <span class="price-strike">R{{ product.price }}</span>
+                                    {% else %}
+                                        <span>R{{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="summary-totals">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span class="value">R{{ totals }}</span>
+                        </div>
+
+                        <div class="summary-row">
+                            <span>Shipping</span>
+                            <span class="value" id="shippingCostDisplay">R{{ shipping_cost|floatformat:2}}</span>
+                        </div>
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-grand-total">
+                        <span>Total</span>
+                        <span class="grand-total-value" id="grandTotal">R{{ total_with_shipping|floatformat:2 }}</span>
+                    </div>
+
+                    <!-- Security statement -->
+                    <div class="security-statement">
+                        <div class="security-icon">🛡️</div>
+                        <div class="security-text">
+                            <strong>100% Secure Payment</strong>
+                            <p>Your payment is processed securely by Payfast. We don't store your card details.</p>
+                        </div>
+                    </div>
+
+                    <!-- Payment logos -->
+                    <div class="payment-methods">
+                        <p class="payment-label">Accepted Payments</p>
+                        <div class="payment-icons">
+                            <span class="payment-icon">💳 VISA</span>
+                            <span class="payment-icon">💳 MC</span>
+                            <span class="payment-icon">📱 EFT</span>
+                            <span class="payment-icon">🏦 Bank</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* ============================================ */
+    /* SHARED HERO (same as checkout) */
+    /* ============================================ */
+    .checkout-hero {
+        background: linear-gradient(135deg, #1b3022 0%, #2d5016 50%, #c5a059 100%);
+        padding: 4rem 5% 3.5rem;
+        text-align: center;
+        color: #fcf8ef;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .checkout-hero::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="white" fill-opacity="0.03" width="100" height="100"/></svg>');
+        pointer-events: none;
+    }
+
+    .checkout-hero-leaves {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .checkout-hero-leaves .floating-leaf {
+        position: absolute;
+        font-size: 2rem;
+        opacity: 0.35;
+    }
+
+    .checkout-hero-leaves .leaf-1 { top: 25%; left: 12%; }
+    .checkout-hero-leaves .leaf-2 { top: 60%; right: 15%; }
+    .checkout-hero-leaves .leaf-3 { top: 35%; right: 8%; opacity: 0.25; }
+
+    .checkout-hero-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
+
+    .checkout-hero-badge {
+        background: rgba(27, 48, 34, 0.4);
+        border: 1px solid #c5a059;
+        color: #fcf8ef;
+        padding: 0.5rem 1.2rem;
+        border-radius: 30px;
+        display: inline-block;
+        margin-bottom: 1.25rem;
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+        font-weight: 600;
+    }
+
+    .checkout-hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #fcf8ef;
+        margin-bottom: 0.75rem;
+        letter-spacing: -1px;
+    }
+
+    .checkout-hero-title span {
+        color: #c5a059;
+        font-style: italic;
+    }
+
+    .checkout-hero-subtitle {
+        font-size: 1.05rem;
+        color: #fcf8ef;
+        opacity: 0.9;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* ============================================ */
+    /* PROGRESS */
+    /* ============================================ */
+    .checkout-progress {
+        background: white;
+        padding: 2rem 5%;
+        border-bottom: 1px solid rgba(197, 160, 89, 0.15);
+    }
+
+    .progress-container {
+        max-width: 900px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        z-index: 2;
+        position: relative;
+    }
+
+    .step-circle {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #e8f5e9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+        color: #999;
+        transition: all 0.3s;
+    }
+
+    .progress-step.active .step-circle {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+        border-color: #c5a059;
+        box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
+        transform: scale(1.1);
+    }
+
+    .progress-step.completed .step-circle {
+        background: #2d5016;
+        color: #c5a059;
+        border-color: #2d5016;
+    }
+
+    .step-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .progress-step.active .step-label,
+    .progress-step.completed .step-label {
+        color: #2d5016;
+    }
+
+    .progress-line {
+        flex: 1;
+        max-width: 120px;
+        height: 2px;
+        background: #e8f5e9;
+        margin: 0 -5px 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .progress-line.completed { background: #2d5016; }
+
+    /* ============================================ */
+    /* LAYOUT */
+    /* ============================================ */
+    .checkout-section {
+        padding: 3rem 5% 5rem;
+        background: #fafbf9;
+        min-height: 60vh;
+    }
+
+    .checkout-container { max-width: 1400px; margin: 0 auto; }
+
+    .checkout-layout {
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    .checkout-form-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    /* ============================================ */
+    /* CARDS */
+    /* ============================================ */
+    .checkout-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(197, 160, 89, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .checkout-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #2d5016, #c5a059, #2d5016);
+    }
+
+    .card-header-custom {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .header-icon {
+        width: 55px;
+        height: 55px;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        border: 1px solid rgba(197, 160, 89, 0.3);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        flex-shrink: 0;
+    }
+
+    .header-text { flex: 1; }
+
+    .card-header-custom h2 {
+        color: #2d5016;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .card-header-custom p {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .edit-card-btn {
+        background: white;
+        color: #c5a059;
+        border: 1px solid #c5a059;
+        padding: 0.6rem 1.2rem;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        white-space: nowrap;
+    }
+
+    .edit-card-btn:hover {
+        background: #c5a059;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* ============================================ */
+    /* SHIPPING INFO REVIEW */
+    /* ============================================ */
+    .shipping-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem 2rem;
+    }
+
+    .info-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        padding: 0.75rem 1rem;
+        background: #f8fdf8;
+        border-radius: 10px;
+        border-left: 3px solid #c5a059;
+    }
+
+    .info-row.full {
+        grid-column: 1 / -1;
+    }
+
+    .info-label {
+        color: #2d5016;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .info-value {
+        color: #333;
+        font-size: 0.95rem;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .info-secondary {
+        color: #666;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+
+    /* ============================================ */
+    /* COURIER OPTIONS */
+    /* ============================================ */
+    .courier-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .courier-option {
+        display: block;
+        padding: 1.25rem;
+        background: white;
+        border: 2px solid #e8f5e9;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        padding-left: 3.5rem;
+    }
+
+    .courier-option:hover {
+        border-color: #c5a059;
+        background: #fafbf9;
+    }
+
+    .courier-option.selected {
+        border-color: #2d5016;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        box-shadow: 0 4px 15px rgba(197, 160, 89, 0.15);
+    }
+
+    .courier-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .courier-radio {
+        position: absolute;
+        left: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 22px;
+        height: 22px;
+        border: 2px solid #c5a059;
+        border-radius: 50%;
+        background: white;
+        transition: all 0.3s;
+    }
+
+    .courier-option input[type="radio"]:checked + .courier-radio {
+        border-color: #2d5016;
+        background: white;
+    }
+
+    .courier-option input[type="radio"]:checked + .courier-radio::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 10px;
+        height: 10px;
+        background: #2d5016;
+        border-radius: 50%;
+    }
+
+    .courier-details { width: 100%; }
+
+    .courier-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .courier-name {
+        color: #2d5016;
+        font-weight: 700;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .courier-code {
+        background: rgba(197, 160, 89, 0.15);
+        color: #8a6d2e;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.2rem 0.6rem;
+        border-radius: 10px;
+        letter-spacing: 0.5px;
+    }
+
+    .courier-price {
+        color: #2d5016;
+        font-weight: 800;
+        font-size: 1.25rem;
+        letter-spacing: -0.5px;
+        white-space: nowrap;
+    }
+
+    .courier-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .courier-delivery {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .meta-icon { font-size: 0.9rem; }
+
+    .courier-vat {
+        color: #999;
+        font-size: 0.8rem;
+    }
+
+    .courier-extra {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px dashed rgba(197, 160, 89, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .extra-badge {
+        background: #e8f5e9;
+        color: #2d5016;
+        padding: 0.25rem 0.7rem;
+        border-radius: 15px;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+
+    /* No rates state */
+    .no-rates {
+        text-align: center;
+        padding: 2.5rem 1.5rem;
+        background: #fff9e6;
+        border: 1px dashed #c5a059;
+        border-radius: 15px;
+    }
+
+    .no-rates-icon {
+        font-size: 3rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.6;
+    }
+
+    .no-rates h4 {
+        color: #2d5016;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .no-rates p {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .btn-retry {
+        display: inline-block;
+        padding: 0.7rem 1.5rem;
+        background: #2d5016;
+        color: #c5a059;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+    }
+
+    .btn-retry:hover {
+        background: #1b3022;
+        transform: translateY(-2px);
+    }
+
+    /* ============================================ */
+    /* PAYMENT CARD */
+    /* ============================================ */
+    .payfast-banner {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        border: 1px solid rgba(197, 160, 89, 0.3);
+        border-radius: 15px;
+        margin-bottom: 1.25rem;
+    }
+
+    .payfast-icon {
+        font-size: 2.5rem;
+        flex-shrink: 0;
+    }
+
+    .payfast-info h4 {
+        color: #2d5016;
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+    }
+
+    .payfast-info p {
+        color: #555;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .payfast-methods {
+        display: flex;
+        gap: 0.6rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .payfast-method {
+        padding: 0.5rem 1rem;
+        background: white;
+        border: 1px solid #e8f5e9;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        color: #2d5016;
+        font-weight: 600;
+    }
+
+    /* ============================================ */
+    /* TERMS CHECKBOX */
+    /* ============================================ */
+    .terms-row {
+        padding: 1rem 1.25rem;
+        background: #f8fdf8;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e8f5e9;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        cursor: pointer;
+        color: #333;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .checkbox-custom {
+        width: 22px;
+        height: 22px;
+        border: 2px solid #c5a059;
+        border-radius: 6px;
+        background: white;
+        position: relative;
+        transition: all 0.3s;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    .checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
+        background: #2d5016;
+        border-color: #2d5016;
+    }
+
+    .checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #c5a059;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .checkbox-label a {
+        color: #c5a059;
+        text-decoration: underline;
+        font-weight: 600;
+    }
+
+    .checkbox-label a:hover { color: #2d5016; }
+
+    /* ============================================ */
+    /* FORM ACTIONS */
+    /* ============================================ */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid #f0f0f0;
+    }
+
+    .btn-back {
+        color: #2d5016;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.8rem 1.5rem;
+        border-radius: 30px;
+        transition: all 0.3s;
+        white-space: nowrap;
+    }
+
+    .btn-back:hover {
+        background: #e8f5e9;
+        color: #1b3022;
+    }
+
+    .btn-pay-now {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.1rem 2rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        border: 1px solid #c5a059;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        letter-spacing: 0.5px;
+        transition: all 0.3s;
+        position: relative;
+    }
+
+    .btn-pay-now:hover:not(:disabled) {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(197, 160, 89, 0.4);
+    }
+
+    .btn-pay-now:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-amount {
+        padding-left: 1rem;
+        border-left: 1px solid rgba(252, 248, 239, 0.3);
+        font-weight: 800;
+    }
+
+    .btn-pay-now:hover:not(:disabled) .btn-amount {
+        border-left-color: rgba(27, 48, 34, 0.3);
+    }
+
+    /* ============================================ */
+    /* TRUST ROW */
+    /* ============================================ */
+    .trust-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .trust-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border: 1px solid #e8f5e9;
+        transition: all 0.3s;
+    }
+
+    .trust-card:hover {
+        border-color: #c5a059;
+        transform: translateY(-2px);
+    }
+
+    .trust-emoji { font-size: 1.75rem; }
+
+    .trust-text { display: flex; flex-direction: column; }
+
+    .trust-text strong {
+        color: #2d5016;
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .trust-text span {
+        color: #666;
+        font-size: 0.75rem;
+    }
+
+    /* ============================================ */
+    /* ORDER SUMMARY SIDEBAR */
+    /* ============================================ */
+    .checkout-summary-column {
+        position: sticky;
+        top: 100px;
+    }
+
+    .order-summary-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(197, 160, 89, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .order-summary-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #2d5016, #c5a059, #2d5016);
+    }
+
+    .summary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .summary-header h3 {
+        color: #2d5016;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .edit-link {
+        color: #c5a059;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.3rem 0.8rem;
+        border: 1px solid #c5a059;
+        border-radius: 20px;
+        transition: all 0.3s;
+    }
+
+    .edit-link:hover {
+        background: #c5a059;
+        color: white;
+    }
+
+    .summary-items {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        max-height: 350px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    .summary-items::-webkit-scrollbar { width: 6px; }
+    .summary-items::-webkit-scrollbar-track { background: #f8fdf8; border-radius: 3px; }
+    .summary-items::-webkit-scrollbar-thumb { background: #c5a059; border-radius: 3px; }
+
+    .summary-item {
+        display: flex;
+        gap: 0.9rem;
+        align-items: center;
+    }
+
+    .summary-item-image {
+        width: 65px;
+        height: 65px;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        flex-shrink: 0;
+        border: 1px solid rgba(197, 160, 89, 0.15);
+    }
+
+    .summary-item-image img {
+        max-width: 80%;
+        max-height: 80%;
+        object-fit: contain;
+    }
+
+    .item-qty-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        background: #2d5016;
+        color: #c5a059;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 2px solid white;
+    }
+
+    .summary-item-info { flex: 1; min-width: 0; }
+
+    .summary-item-info h4 {
+        color: #c5a059;
+        font-size: 0.95rem;
+        font-style: italic;
+        font-weight: 700;
+        margin-bottom: 0.15rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .summary-item-subtitle {
+        color: #666;
+        font-size: 0.75rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .summary-item-price {
+        color: #2d5016;
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .price-sale { color: #e74c3c; }
+    .price-strike {
+        text-decoration: line-through;
+        color: #999;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .summary-totals {
+        border-top: 2px solid #f0f0f0;
+        padding-top: 1.25rem;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        color: #555;
+        font-size: 0.95rem;
+    }
+
+    .summary-row .value {
+        font-weight: 700;
+        color: #2d5016;
+    }
+
+    .summary-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #c5a059, transparent);
+        margin: 1rem 0;
+    }
+
+    .summary-grand-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0 1.25rem;
+    }
+
+    .summary-grand-total span:first-child {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .grand-total-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #2d5016;
+        letter-spacing: -0.5px;
+    }
+
+    .security-statement {
+        display: flex;
+        gap: 0.9rem;
+        align-items: flex-start;
+        padding: 1rem;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        border: 1px dashed #c5a059;
+        border-radius: 12px;
+        margin-bottom: 1.25rem;
+    }
+
+    .security-icon { font-size: 1.5rem; flex-shrink: 0; }
+
+    .security-text strong {
+        color: #2d5016;
+        font-size: 0.9rem;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 0.2rem;
+    }
+
+    .security-text p {
+        color: #555;
+        font-size: 0.8rem;
+        line-height: 1.5;
+    }
+
+    .payment-methods {
+        text-align: center;
+        padding-top: 1.25rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .payment-label {
+        font-size: 0.75rem;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.6rem;
+        font-weight: 600;
+    }
+
+    .payment-icons {
+        display: flex;
+        justify-content: center;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+    }
+
+    .payment-icon {
+        padding: 0.35rem 0.7rem;
+        background: #f8fdf8;
+        border: 1px solid #e8f5e9;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        color: #2d5016;
+        font-weight: 700;
+    }
+
+    /* ============================================ */
+    /* RESPONSIVE */
+    /* ============================================ */
+    @media (max-width: 1024px) {
+        .checkout-layout { grid-template-columns: 1fr; }
+        .checkout-summary-column { position: static; }
+    }
+
+    @media (max-width: 768px) {
+        .checkout-hero-title { font-size: 2.5rem; }
+        .checkout-card { padding: 1.75rem 1.25rem; }
+        .shipping-info-grid { grid-template-columns: 1fr; }
+        .trust-row { grid-template-columns: 1fr; }
+        .form-actions { flex-direction: column-reverse; align-items: stretch; }
+        .btn-back { text-align: center; }
+        .btn-pay-now { justify-content: center; }
+        .card-header-custom { flex-wrap: wrap; }
+        .edit-card-btn { margin-left: auto; }
+        .courier-main { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        .progress-line { max-width: 40px; }
+        .step-label { font-size: 0.7rem; }
+        .step-circle { width: 36px; height: 36px; font-size: 0.9rem; }
+        .payfast-banner { flex-direction: column; text-align: center; }
+    }
+
+    @media (max-width: 500px) {
+        .checkout-hero { padding: 3rem 5% 2.5rem; }
+        .checkout-hero-title { font-size: 2rem; }
+        .progress-line { max-width: 20px; margin: 0 -2px 18px; }
+        .summary-items { max-height: 280px; }
+        .btn-pay-now { flex-direction: column; gap: 0.3rem; padding: 1rem 1.5rem; }
+        .btn-amount { border-left: none; padding-left: 0; padding-top: 0.3rem; border-top: 1px solid rgba(252, 248, 239, 0.3); }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ============================================
+        // COURIER SELECTION — visual feedback
+        // ============================================
+        const courierOptions = document.querySelectorAll('.courier-option');
+        const shippingCostDisplay = document.getElementById('shippingCostDisplay');
+        const grandTotal = document.getElementById('grandTotal');
+        const payBtnAmount = document.getElementById('payBtnAmount');
+        const subtotal = parseFloat('{{ totals|floatformat:2 }}');
+
+        courierOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Visual toggle
+                courierOptions.forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                // Check the radio
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+                
+                // Update displayed shipping cost + grand total
+                const rate = parseFloat(radio.dataset.rate);
+                if (!isNaN(rate) && !isNaN(subtotal)) {
+                    const newTotal = (subtotal + rate).toFixed(2);
+                    if (shippingCostDisplay) shippingCostDisplay.textContent = `R${rate.toFixed(2)}`;
+                    if (grandTotal) grandTotal.textContent = `R${newTotal}`;
+                    if (payBtnAmount) payBtnAmount.textContent = `R${newTotal}`;
+                }
+            });
+        });
+
+        // ============================================
+        // PAY NOW — loading state & terms check
+        // ============================================
+        const payForm = document.getElementById('payForm');
+        const termsCheckbox = document.getElementById('terms');
+        const payBtn = document.getElementById('payNowBtn');
+
+        if (payForm) {
+            payForm.addEventListener('submit', function(e) {
+                if (termsCheckbox && !termsCheckbox.checked) {
+                    e.preventDefault();
+                    // Scroll to terms and highlight
+                    termsCheckbox.closest('.terms-row').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    termsCheckbox.closest('.terms-row').style.borderColor = '#e74c3c';
+                    setTimeout(() => {
+                        termsCheckbox.closest('.terms-row').style.borderColor = '';
+                    }, 2000);
+                    return;
+                }
+
+                if (payBtn) {
+                    payBtn.disabled = true;
+                    payBtn.innerHTML = '<span class="btn-text">⏳ Redirecting to Payfast...</span>';
+                }
+            });
+        }
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+        <!-- Header-->
+        <header class="bg-success py-5">
+            <div class="container px-4 px-lg-5 my-5">
+                <div class="text-center text-white">
+                    <h1 class="display-4 fw-bolder">Billing Information</h1>
+                    <p class="lead fw-normal text-white-50 mb-0">Please double-check if the info is correct. After clicking "Pay Now", you will be redirected to Payfast for secure payments.</p>
+                </div>
+            </div>
+        </header>
+        <br/><br/>
+            
+        <div class="container">
+            <div class="row">
+                
+                    <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">Order Summary</div>
+                  <div class="card-body">
+                    {% for product in cart_products %}
+                        {{ product.name }}: 
+                            {% if product.sale %}
+                                R{{ product.sale_price }}
+                            {% else %}
+                                R{{ product.price }}
+                        {% endif %}
+
+                        <br/>
+                        <small>Quantity: 
+                        {% for key, value in quantities.items %}
+                            {% if key == product.id|slugify %}
+                                {{ value }}
+                            {% endif %}
+                        {% endfor %}</small>
+                        <br/><br/>
+
+                    {% endfor %}
+                    Total:  R{{ totals }}
+                    <br/><br/>
+                    Shipping cost: R{{ shipping_cost }}
+                    <br/><br/>
+                    Total cost: R{{ total_with_shipping }}
+                    <br/><br/>
+                    <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-primary">Update Items</a>
+                  </div>
+            </div>
+                    <br/><br/>
+                    
+                        
+                        <div class="card">
+                          <div class="card-header">Shipping Info</div>
+                          <div class="card-body">
+                          
+                                Name: {{ shipping_info.shipping_full_name }}<br/>
+                                Email: {{ shipping_info.shipping_email }}<br/>
+                                Phone: {{ shipping_info.shipping_phone }}<br/>
+                                Street Address: {{ shipping_info.shipping_address1 }}<br/>
+                                Apartment: {{ shipping_info.shipping_apartment }}<br/>
+                                City: {{ shipping_info.shipping_city }}<br/>
+                                Province/State: {{ shipping_info.shipping_province }}<br/>
+                                Zipcode: {{ shipping_info.shipping_zipcode }}<br/>
+                                Country: {{ shipping_info.shipping_country }}<br/>
+                                <br/>
+
+                                <a href="{% url 'checkout' %}" class="btn btn-outline-primary">Update Shipping</a>
+
+                          </div>
+                        </div>
+                        <br/>
+                        
+                    
+                        <h3>Courier Details</h3>
+                            {% if rates %}
+                                <table class="table table-striped table-hover table-bordered">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>Service Level</th>
+                                            <th>Service Code</th>
+                                            <th>Rate (Incl. VAT)</th>
+                                            <th>Rate (Excl. VAT)</th>
+                                            <th>Delivery Date From</th>
+                                            <th>Delivery Date To</th>
+                                            <th>Extras</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for rate in rates %}
+                                            <tr>
+                                                <td>{{ rate.service_level }}</td>
+                                                <td>{{ rate.service_code }}</td>
+                                                <td>R{{ rate.rate }}</td>
+                                                <td>R{{ rate.rate_excluding_vat }}</td>
+                                                <td>{{ rate.delivery_date_from }}</td>
+                                                <td>{{ rate.delivery_date_to }}</td>
+                                                <td>
+                                                    {% for extra in rate.extras %}
+                                                        <p>Insurance Charge: R{{ extra.insurance_charge }}</p>
+                                                        <!--<p>VAT: {{ extra.vat }}</p>-->
+                                                    {% endfor %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% else %}
+                                <p>No shipping rates available at this time.</p>
+                            {% endif %}
+                            
+                            
+                            <br/>                                      
+
+                        <div class="card">
+                              <div class="card-header">
+                                Powered By Payfast
+                              </div>
+                              <div class="card-body">                              
+                                <form method="post" action="{% url 'process_order' %}">
+                                    {% csrf_token %}                                  
+                                    <button type="submit">Pay Now</button>
+                                </form>
+                                
+                              </div>
+                            </div>
+
+                        <br/><br/>
+
+
+                    </div>
+                </div>
+            </div>
+          
+
+  {% endblock %}

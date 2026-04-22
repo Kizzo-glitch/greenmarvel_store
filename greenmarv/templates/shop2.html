@@ -1,0 +1,149 @@
+{% extends 'base1.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .shop-header {
+        padding: 4rem 5%;
+        background: linear-gradient(135deg, #1b3022 0%, #2d5016 100%);
+        text-align: center;
+        color: #fcf8ef;
+    }
+    
+    .shop-header h2 {
+        font-size: 3rem;
+        font-family: 'serif'; 
+        color: #c5a059;
+        margin-bottom: 0.5rem;
+    }
+
+</style>
+
+<section class="shop-header">
+    <h2>Our Collection</h2>
+    <p>Premium Organic Solutions for Every Hair Type</p>
+</section>
+
+
+
+    <section class="products" id="shop">
+  
+
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-image-container">
+                    <div class="product-badges">
+                        <span class="badge organic">{{ product.badge_text }}</span>
+                        {% if product.is_sale %}
+                            <span class="badge" style="background: #e74c3c; color: white;">SALE</span>
+                        {% endif %}
+                    </div>
+                    
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image-file" style="width: 80%; height: auto;">
+                    
+                    <div class="quick-add">
+                        <button onclick="addToCart('{{ product.name }}', {{ product.current_price }})">Quick Add</button>
+                    </div>
+                </div>
+
+                <div class="product-info">
+                    <h3 style="color: #c5a059;"><i>{{ product.name }}</i></h3>
+                    <p class="product-subtitle">{{ product.subtitle }}</p>
+                    <p class="product-description">{{ product.description|truncatechars:100 }}</p>
+                    
+                    <div class="product-features">
+                        {% if product.tag_1 %}<span class="feature-tag">{{ product.tag_1 }}</span>{% endif %}
+                        {% if product.tag_2 %}<span class="feature-tag">{{ product.tag_2 }}</span>{% endif %}
+                        {% if product.tag_3 %}<span class="feature-tag">{{ product.tag_3 }}</span>{% endif %}
+                    </div>
+
+                    <div class="product-footer">
+                        <div class="price-container">
+                            <span class="price-label">Price</span>
+                            {% if product.is_sale %}
+                                <span class="price" style="color: #e74c3c;">R{{ product.sale_price }}</span>
+                                <span style="text-decoration: line-through; font-size: 0.8rem; color: #999;">R{{ product.price }}</span>
+                            {% else %}
+                                <span class="price">R{{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                        &nbsp;
+                        <button class="add-to-cart" onclick="addToCart('{{ product.name }}', {{ product.current_price }})">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+    
+        </div>
+    </section>
+
+
+
+
+    <section class="testimonials" id="reviews">
+        <div class="section-header">
+            <div class="section-label">Testimonials</div>
+            <h2 class="section-title">What Our Customers Say</h2>
+            <p class="section-description">Real results from real people who trust Marvelously Green</p>
+        </div>
+
+        <div class="testimonials-scroll">
+            <!-- First set -->
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Absolutely love these products! My hair has never felt better. The organic ingredients make such a difference. Highly recommend!"</p>
+                <p class="testimonial-author">— Sarah M.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"The Growth Oil is amazing! I've seen visible results in just 3 weeks. My edges are filling in beautifully. Thank you Marvelously Green!"</p>
+                <p class="testimonial-author">— Jessica L.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Finally found a brand I can trust. The quality is outstanding and my hair glows! 100% organic and it shows in the results."</p>
+                <p class="testimonial-author">— Emily R.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"The Vitality Spray is a game changer! My hair is thicker, stronger, and growing faster than ever. Love this brand!"</p>
+                <p class="testimonial-author">— Nomsa K.</p>
+            </div>
+            <!-- Duplicate for seamless loop -->
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Absolutely love these products! My hair has never felt better. The organic ingredients make such a difference. Highly recommend!"</p>
+                <p class="testimonial-author">— Sarah M.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"The Growth Oil is amazing! I've seen visible results in just 3 weeks. My edges are filling in beautifully. Thank you Marvelously Green!"</p>
+                <p class="testimonial-author">— Jessica L.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Finally found a brand I can trust. The quality is outstanding and my hair glows! 100% organic and it shows in the results."</p>
+                <p class="testimonial-author">— Emily R.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"The Vitality Spray is a game changer! My hair is thicker, stronger, and growing faster than ever. Love this brand!"</p>
+                <p class="testimonial-author">— Nomsa K.</p>
+            </div>
+        </div>
+    </section>
+
+   
+
+    {% endblock %}
+
+    
+
+    
+
+
+
+
+
+

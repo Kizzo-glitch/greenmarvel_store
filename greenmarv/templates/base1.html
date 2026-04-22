@@ -1121,6 +1121,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="announcement">
         FREE SHIPPING ON ALL ORDERS OVER R600 | 100% ORGANIC & CRUELTY FREE
@@ -1129,8 +1130,9 @@
     <header id="header">
         <nav>
             <div class="logo">
-                <span class="logo-icon">🌿</span>
-                <span>Marvelously Green</span>
+                <img src="{% static 'landing/assets/logo3.png' %}" 
+                   alt="" 
+                   style="max-width: 200px; width: 100%; height: 382;">
             </div>
             <ul class="nav-links">
                 <li><a href="{% url 'home' %}">Home</a></li>
@@ -1141,10 +1143,10 @@
             </ul>
             <div class="nav-actions">
                 <div class="search-icon">🔍</div>
-                <div class="cart-icon" onclick="showCart()">
+                <a href="{% url 'cart_summary' %}" class="cart-icon">
                     🛒
-                    <span class="cart-count" id="cartCount">0</span>
-                </div>
+                    <span class="cart-count" id="cartCount">{{ cart|length|default:0 }}</span>
+                </a>
             </div>
         </nav>
     </header>
@@ -1166,8 +1168,7 @@
         {% endblock %}
 
 		
-      
-        <div class="notification" id="notification">
+    <div class="notification" id="notification">
         <div class="notification-content">
             <div class="notification-icon">✓</div>
             <div>
@@ -1178,9 +1179,8 @@
     </div>
 
     <script>
-        let cartCount = 0;
+    
 
-        // Sticky header on scroll
         window.addEventListener('scroll', () => {
             const header = document.getElementById('header');
             if (window.scrollY > 100) {
@@ -1201,14 +1201,6 @@
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
-        }
-
-        function showCart() {
-            if (cartCount === 0) {
-                alert('Your cart is empty. Start shopping to add items!');
-            } else {
-                alert(`You have ${cartCount} item(s) in your cart.\n\nTotal: R${(cartCount * 139.99).toFixed(2)}\n\nIn Django, this would link to your cart view with all product details!`);
-            }
         }
 
         function scrollToProducts() {

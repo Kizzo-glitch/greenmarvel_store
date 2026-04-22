@@ -2,148 +2,948 @@
 {% load static %}
 
 {% block content %}
-<style>
-    .shop-header {
-        padding: 4rem 5%;
-        background: linear-gradient(135deg, #1b3022 0%, #2d5016 100%);
-        text-align: center;
-        color: #fcf8ef;
-    }
-    
-    .shop-header h2 {
-        font-size: 3rem;
-        font-family: 'serif'; /* Matches the 'Vitality' luxury vibe */
-        color: #c5a059;
-        margin-bottom: 0.5rem;
-    }
+{% csrf_token %}
 
-</style>
-
-<section class="shop-header">
-    <h2>Our Collection</h2>
-    <p>Premium Organic Solutions for Every Hair Type</p>
+<!-- ============================================ -->
+<!-- SHOP HERO -->
+<!-- ============================================ -->
+<section class="shop-hero">
+    <div class="shop-hero-leaves">
+        <span class="floating-leaf leaf-1">🍃</span>
+        <span class="floating-leaf leaf-2">🌿</span>
+        <span class="floating-leaf leaf-3">🍃</span>
+        <span class="floating-leaf leaf-4">🌱</span>
+        <span class="floating-leaf leaf-5">🍃</span>
+        <span class="floating-leaf leaf-6">🌿</span>
+    </div>
+    <div class="shop-hero-container">
+        <div class="shop-hero-badge">✨ HERBAL | PHARMA-FORMULATED | LAB-TESTED</div>
+        <h1 class="shop-hero-title">Our <span>Collection</span></h1>
+        <p class="shop-hero-subtitle">Premium organic solutions for every hair type — carefully formulated to nourish, strengthen, and transform your natural beauty.</p>
+        <div class="shop-hero-stats">
+            <div class="stat-item">
+                <div class="stat-number">{{ products|length }}</div>
+                <div class="stat-label">Products</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Organic</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-number">🇿🇦</div>
+                <div class="stat-label">Made in SA</div>
+            </div>
+        </div>
+    </div>
 </section>
 
+<!-- ============================================ -->
+<!-- FILTER & SORT BAR -->
+<!-- ============================================ -->
+<section class="filter-bar">
+    <div class="filter-container">
+        <div class="filter-left">
+            <span class="results-count" id="resultsCount">Showing {{ products|length }} product{{ products|length|pluralize }}</span>
+        </div>
 
+        <div class="filter-right">
+            <div class="filter-group">
+                <label>Filter:</label>
+                <select class="filter-select" id="filterSelect" onchange="applyFilters()">
+                    <option value="all">All Products</option>
+                    <option value="sale">On Sale</option>
+                    <option value="organic">Organic</option>
+                    <option value="new">New Arrivals</option>
+                </select>
+            </div>
 
-    <section class="products" id="shop">
-  
+            <div class="filter-group">
+                <label>Sort:</label>
+                <select class="filter-select" id="sortSelect" onchange="applyFilters()">
+                    <option value="featured">Featured</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="name-az">Name: A → Z</option>
+                    <option value="name-za">Name: Z → A</option>
+                </select>
+            </div>
 
-        <div class="products-grid">
-            {% for product in products %}
-            <div class="product-card">
-                <div class="product-image-container">
-                    <div class="product-badges">
-                        <span class="badge organic">{{ product.badge_text }}</span>
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="grid" onclick="setView('grid', this)" title="Grid view">⊞</button>
+                <button class="view-btn" data-view="list" onclick="setView('list', this)" title="List view">☰</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PRODUCTS -->
+<!-- ============================================ -->
+<section class="products shop-products" id="shop">
+    <div class="products-grid" id="productsGrid">
+        {% for product in products %}
+        <div class="product-card" 
+             data-product-id="{{ product.id }}"
+             data-name="{{ product.name|lower }}"
+             data-price="{{ product.current_price }}"
+             data-is-sale="{{ product.is_sale }}"
+             data-badge="{{ product.badge_text|lower }}">
+            <div class="product-image-container">
+                <div class="product-badges">
+                    <span class="badge organic">{{ product.badge_text }}</span>
+                    {% if product.is_sale %}
+                        <span class="badge" style="background: #e74c3c; color: white;">SALE</span>
+                    {% endif %}
+                </div>
+                
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image-file" style="width: 80%; height: auto;">
+                
+                <div class="quick-add">
+                    <button class="quick-add-btn" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}">Quick Add</button>
+                </div>
+            </div>
+
+            <div class="product-info">
+                <h3 style="color: #c5a059;"><i>{{ product.name }}</i></h3>
+                <p class="product-subtitle">{{ product.subtitle }}</p>
+                <p class="product-description">{{ product.description|truncatechars:100 }}</p>
+                
+                <div class="product-features">
+                    {% if product.tag_1 %}<span class="feature-tag">{{ product.tag_1 }}</span>{% endif %}
+                    {% if product.tag_2 %}<span class="feature-tag">{{ product.tag_2 }}</span>{% endif %}
+                    {% if product.tag_3 %}<span class="feature-tag">{{ product.tag_3 }}</span>{% endif %}
+                </div>
+
+                <div class="product-footer">
+                    <div class="price-container">
+                        <span class="price-label">Price</span>
                         {% if product.is_sale %}
-                            <span class="badge" style="background: #e74c3c; color: white;">SALE</span>
+                            <span class="price" style="color: #e74c3c;">R{{ product.sale_price }}</span>
+                            <span style="text-decoration: line-through; font-size: 0.8rem; color: #999;">R{{ product.price }}</span>
+                        {% else %}
+                            <span class="price">R{{ product.price }}</span>
                         {% endif %}
                     </div>
-                    
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image-file" style="width: 80%; height: auto;">
-                    
-                    <div class="quick-add">
-                        <button onclick="addToCart('{{ product.name }}', {{ product.current_price }})">Quick Add</button>
-                    </div>
+                    &nbsp;
+                    <button class="add-to-cart card-add-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}">Add to Cart</button>
                 </div>
 
-                <div class="product-info">
-                    <h3 style="color: #c5a059;"><i>{{ product.name }}</i></h3>
-                    <p class="product-subtitle">{{ product.subtitle }}</p>
-                    <p class="product-description">{{ product.description|truncatechars:100 }}</p>
-                    
-                    <div class="product-features">
-                        {% if product.tag_1 %}<span class="feature-tag">{{ product.tag_1 }}</span>{% endif %}
-                        {% if product.tag_2 %}<span class="feature-tag">{{ product.tag_2 }}</span>{% endif %}
-                        {% if product.tag_3 %}<span class="feature-tag">{{ product.tag_3 }}</span>{% endif %}
-                    </div>
+                <button class="view-details-btn" 
+                        data-product-id="{{ product.id }}"
+                        data-product-name="{{ product.name }}"
+                        data-product-subtitle="{{ product.subtitle }}"
+                        data-product-description="{{ product.description|escape }}"
+                        data-product-image="{{ product.image.url }}"
+                        data-product-badge="{{ product.badge_text }}"
+                        data-product-price="{{ product.price }}"
+                        data-product-sale-price="{{ product.sale_price }}"
+                        data-product-is-sale="{{ product.is_sale }}"
+                        data-product-tag1="{{ product.tag_1 }}"
+                        data-product-tag2="{{ product.tag_2 }}"
+                        data-product-tag3="{{ product.tag_3 }}"
+                        data-product-ingredients="{{ product.ingredients|escape }}"
+                        data-product-benefits="{{ product.benefits|escape }}"
+                        data-product-use="{{ product.use|escape }}"
+                        onclick="openProductModal(this)">View Details</button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-products-message">
+            <div class="no-products-icon">🌿</div>
+            <h3>No products available</h3>
+            <p>Check back soon — we're always adding new organic formulations.</p>
+        </div>
+        {% endfor %}
+    </div>
 
-                    <div class="product-footer">
-                        <div class="price-container">
-                            <span class="price-label">Price</span>
-                            {% if product.is_sale %}
-                                <span class="price" style="color: #e74c3c;">R{{ product.sale_price }}</span>
-                                <span style="text-decoration: line-through; font-size: 0.8rem; color: #999;">R{{ product.price }}</span>
-                            {% else %}
-                                <span class="price">R{{ product.price }}</span>
-                            {% endif %}
-                        </div>
-                        &nbsp;
-                        <button class="add-to-cart" onclick="addToCart('{{ product.name }}', {{ product.current_price }})">Add to Cart</button>
-                    </div>
+    <!-- No results (hidden by default, shown when filter returns nothing) -->
+    <div class="no-results" id="noResults" style="display: none;">
+        <div class="no-results-icon">🔍</div>
+        <h3>No products match your filters</h3>
+        <p>Try adjusting your filter or sort options.</p>
+        <button onclick="resetFilters()" class="btn-reset-filters">Reset Filters</button>
+    </div>
+</section>
+
+<!-- ============================================ -->
+<!-- TESTIMONIALS -->
+<!-- ============================================ -->
+<section class="testimonials" id="reviews">
+    <div class="section-header">
+        <div class="section-label">Testimonials</div>
+        <h2 class="section-title">What Our Customers Say</h2>
+        <p class="section-description">Real results from real people who trust Marvelously Green</p>
+    </div>
+
+    <div class="testimonials-scroll">
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"Absolutely love these products! My hair has never felt better."</p><p class="testimonial-author">— Sarah M.</p></div>
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"The Growth Oil is amazing! Visible results in just 3 weeks."</p><p class="testimonial-author">— Jessica L.</p></div>
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"Finally found a brand I can trust. The quality is outstanding."</p><p class="testimonial-author">— Emily R.</p></div>
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"The Vitality Spray is a game changer! Love this brand!"</p><p class="testimonial-author">— Nomsa K.</p></div>
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"Absolutely love these products!"</p><p class="testimonial-author">— Sarah M.</p></div>
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"The Growth Oil is amazing!"</p><p class="testimonial-author">— Jessica L.</p></div>
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"Finally found a brand I can trust."</p><p class="testimonial-author">— Emily R.</p></div>
+        <div class="testimonial-card"><div class="stars">⭐⭐⭐⭐⭐</div><p class="testimonial-text">"The Vitality Spray is a game changer!"</p><p class="testimonial-author">— Nomsa K.</p></div>
+    </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PRODUCT DETAIL MODAL -->
+<!-- ============================================ -->
+<div class="modal-overlay" id="productModal" onclick="closeModalOnOverlay(event)">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeProductModal()">&times;</button>
+        <div class="modal-body">
+            <div class="modal-image-section">
+                <div class="modal-main-image">
+                    <span class="modal-image-badge" id="modalBadge">100% Organic</span>
+                    <img id="modalProductImage" src="" alt="Product Image">
+                </div>
+                <div class="modal-trust-badges">
+                    <div class="trust-badge"><span class="trust-icon">🌿</span><span>Organic</span></div>
+                    <div class="trust-badge"><span class="trust-icon">🐰</span><span>Cruelty Free</span></div>
+                    <div class="trust-badge"><span class="trust-icon">🔬</span><span>Lab Tested</span></div>
+                    <div class="trust-badge"><span class="trust-icon">🇿🇦</span><span>Made in SA</span></div>
                 </div>
             </div>
-            {% endfor %}
-    
-        </div>
-    </section>
 
+            <div class="modal-info-section">
+                <h2 class="modal-product-title" id="modalProductTitle">Product Name</h2>
+                <p class="modal-product-subtitle" id="modalProductSubtitle">Subtitle</p>
+                <div class="modal-rating">
+                    <span class="modal-stars">⭐⭐⭐⭐⭐</span>
+                    <span class="modal-reviews-count">(127 verified reviews)</span>
+                </div>
+                <p class="modal-product-description" id="modalProductDescription">Description...</p>
+                <div class="modal-features" id="modalFeatures"></div>
+                <div class="modal-price-section">
+                    <div class="modal-price-label">Price</div>
+                    <div id="modalPriceContainer"><span class="modal-price" id="modalPrice">R0.00</span></div>
+                </div>
+                <div class="modal-quantity-section">
+                    <label class="modal-quantity-label">Quantity</label>
+                    <div class="quantity-selector">
+                        <button class="quantity-btn" onclick="changeQuantity(-1)">−</button>
+                        <span class="quantity-value" id="quantityValue">1</span>
+                        <button class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                        <span style="color: #999; font-size: 0.9rem; margin-left: 1rem;">In Stock</span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="modal-add-cart-btn" class="modal-add-cart" onclick="modalAddToCart()">
+                        🛒 Add to Cart
+                    </button>
+                    <a href="{% url 'cart_summary' %}" class="modal-view-cart">
+                        View Cart
+                        <span class="cart-badge" id="cart_quantity">{{ cart|length|default:0 }}</span>
+                    </a>
+                </div>
+                <div class="modal-shipping-info">
+                    <div class="shipping-item"><span>🚚</span><span>Free shipping on orders over R600</span></div>
+                    <div class="shipping-item"><span>↩️</span><span>30-day easy returns</span></div>
+                </div>
+            </div>
 
-
-
-    <section class="testimonials" id="reviews">
-        <div class="section-header">
-            <div class="section-label">Testimonials</div>
-            <h2 class="section-title">What Our Customers Say</h2>
-            <p class="section-description">Real results from real people who trust Marvelously Green</p>
-        </div>
-
-        <div class="testimonials-scroll">
-            <!-- First set -->
-            <div class="testimonial-card">
-                <div class="stars">⭐⭐⭐⭐⭐</div>
-                <p class="testimonial-text">"Absolutely love these products! My hair has never felt better. The organic ingredients make such a difference. Highly recommend!"</p>
-                <p class="testimonial-author">— Sarah M.</p>
-            </div>
-            <div class="testimonial-card">
-                <div class="stars">⭐⭐⭐⭐⭐</div>
-                <p class="testimonial-text">"The Growth Oil is amazing! I've seen visible results in just 3 weeks. My edges are filling in beautifully. Thank you Marvelously Green!"</p>
-                <p class="testimonial-author">— Jessica L.</p>
-            </div>
-            <div class="testimonial-card">
-                <div class="stars">⭐⭐⭐⭐⭐</div>
-                <p class="testimonial-text">"Finally found a brand I can trust. The quality is outstanding and my hair glows! 100% organic and it shows in the results."</p>
-                <p class="testimonial-author">— Emily R.</p>
-            </div>
-            <div class="testimonial-card">
-                <div class="stars">⭐⭐⭐⭐⭐</div>
-                <p class="testimonial-text">"The Vitality Spray is a game changer! My hair is thicker, stronger, and growing faster than ever. Love this brand!"</p>
-                <p class="testimonial-author">— Nomsa K.</p>
-            </div>
-            <!-- Duplicate for seamless loop -->
-            <div class="testimonial-card">
-                <div class="stars">⭐⭐⭐⭐⭐</div>
-                <p class="testimonial-text">"Absolutely love these products! My hair has never felt better. The organic ingredients make such a difference. Highly recommend!"</p>
-                <p class="testimonial-author">— Sarah M.</p>
-            </div>
-            <div class="testimonial-card">
-                <div class="stars">⭐⭐⭐⭐⭐</div>
-                <p class="testimonial-text">"The Growth Oil is amazing! I've seen visible results in just 3 weeks. My edges are filling in beautifully. Thank you Marvelously Green!"</p>
-                <p class="testimonial-author">— Jessica L.</p>
-            </div>
-            <div class="testimonial-card">
-                <div class="stars">⭐⭐⭐⭐⭐</div>
-                <p class="testimonial-text">"Finally found a brand I can trust. The quality is outstanding and my hair glows! 100% organic and it shows in the results."</p>
-                <p class="testimonial-author">— Emily R.</p>
-            </div>
-            <div class="testimonial-card">
-                <div class="stars">⭐⭐⭐⭐⭐</div>
-                <p class="testimonial-text">"The Vitality Spray is a game changer! My hair is thicker, stronger, and growing faster than ever. Love this brand!"</p>
-                <p class="testimonial-author">— Nomsa K.</p>
+            <div class="modal-details-section">
+                <div class="modal-tabs">
+                    <button class="modal-tab active" onclick="switchTab('ingredients', this)">🌿 Ingredients</button>
+                    <button class="modal-tab" onclick="switchTab('benefits', this)">✨ Benefits</button>
+                    <button class="modal-tab" onclick="switchTab('how-to-use', this)">💧 How To Use</button>
+                </div>
+                <div class="modal-tab-content active" id="tab-ingredients">
+                    <div class="modal-detail-section"><h3>Natural Ingredients</h3><div id="modalIngredients"></div></div>
+                </div>
+                <div class="modal-tab-content" id="tab-benefits">
+                    <div class="modal-detail-section"><h3>Key Benefits</h3><div id="modalBenefits"></div></div>
+                </div>
+                <div class="modal-tab-content" id="tab-how-to-use">
+                    <div class="modal-detail-section"><h3>How To Use</h3><div id="modalUse"></div></div>
+                </div>
             </div>
         </div>
-    </section>
+    </div>
+</div>
 
-   
+<style>
+    /* ============================================ */
+    /* SHOP HERO */
+    /* ============================================ */
+    .shop-hero {
+        padding: 5rem 5% 4rem;
+        background: linear-gradient(135deg, #1b3022 0%, #2d5016 50%, #c5a059 100%);
+        text-align: center;
+        color: #fcf8ef;
+        position: relative;
+        overflow: hidden;
+    }
 
-    {% endblock %}
+    .shop-hero::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="white" fill-opacity="0.03" width="100" height="100"/></svg>');
+        pointer-events: none;
+    }
 
-    
+    .shop-hero-leaves {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 1;
+    }
 
-    
+    .shop-hero-leaves .floating-leaf {
+        position: absolute;
+        font-size: 2rem;
+        opacity: 0.35;
+    }
 
+    .shop-hero-leaves .leaf-1 { top: 20%; left: 8%; }
+    .shop-hero-leaves .leaf-2 { top: 65%; right: 12%; }
+    .shop-hero-leaves .leaf-3 { top: 30%; right: 5%; }
+    .shop-hero-leaves .leaf-4 { top: 75%; left: 20%; }
+    .shop-hero-leaves .leaf-5 { top: 15%; left: 45%; opacity: 0.25; }
+    .shop-hero-leaves .leaf-6 { top: 55%; left: 50%; opacity: 0.2; }
 
+    .shop-hero-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
 
+    .shop-hero-badge {
+        background: rgba(27, 48, 34, 0.4);
+        border: 1px solid #c5a059;
+        color: #fcf8ef;
+        padding: 0.6rem 1.4rem;
+        border-radius: 30px;
+        display: inline-block;
+        margin-bottom: 1.5rem;
+        font-size: 0.8rem;
+        letter-spacing: 2px;
+        font-weight: 600;
+    }
 
+    .shop-hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        color: #fcf8ef;
+        margin-bottom: 1rem;
+        letter-spacing: -1px;
+        line-height: 1.1;
+    }
 
+    .shop-hero-title span {
+        color: #c5a059;
+        font-style: italic;
+    }
 
+    .shop-hero-subtitle {
+        font-size: 1.15rem;
+        color: #fcf8ef;
+        opacity: 0.9;
+        max-width: 650px;
+        margin: 0 auto 2.5rem;
+        line-height: 1.6;
+    }
+
+    .shop-hero-stats {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-item { text-align: center; }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #c5a059;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #fcf8ef;
+        opacity: 0.85;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+    }
+
+    .stat-divider {
+        width: 1px;
+        height: 40px;
+        background: rgba(252, 248, 239, 0.3);
+    }
+
+    /* ============================================ */
+    /* FILTER BAR */
+    /* ============================================ */
+    .filter-bar {
+        background: white;
+        border-bottom: 1px solid rgba(197, 160, 89, 0.2);
+        padding: 1.25rem 5%;
+        position: sticky;
+        top: 70px;
+        z-index: 50;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .filter-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-left { display: flex; align-items: center; }
+
+    .results-count {
+        color: #2d5016;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .filter-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-group label {
+        color: #666;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .filter-select {
+        padding: 0.5rem 2rem 0.5rem 0.9rem;
+        border: 2px solid #e8f5e9;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #2d5016;
+        cursor: pointer;
+        background: white;
+        transition: all 0.3s;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232d5016' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.6rem center;
+    }
+
+    .filter-select:hover, .filter-select:focus {
+        border-color: #c5a059;
+        outline: none;
+    }
+
+    .view-toggle {
+        display: flex;
+        gap: 0.25rem;
+        background: #f8fdf8;
+        padding: 0.25rem;
+        border-radius: 10px;
+        border: 2px solid #e8f5e9;
+    }
+
+    .view-btn {
+        width: 36px;
+        height: 36px;
+        border: none;
+        background: transparent;
+        border-radius: 7px;
+        cursor: pointer;
+        color: #666;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .view-btn.active {
+        background: #2d5016;
+        color: #c5a059;
+    }
+
+    .view-btn:hover:not(.active) {
+        background: #e8f5e9;
+        color: #2d5016;
+    }
+
+    /* ============================================ */
+    /* PRODUCTS GRID (4 cols for full shop) */
+    /* ============================================ */
+    .shop-products {
+        padding: 3rem 5% 4rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .shop-products .products-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+    }
+
+    /* List view layout */
+    .shop-products .products-grid.list-view {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    .shop-products .products-grid.list-view .product-card {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 0;
+    }
+
+    .shop-products .products-grid.list-view .product-image-container {
+        height: 100%;
+        min-height: 280px;
+    }
+
+    .shop-products .products-grid.list-view .product-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    /* View details button — same gold-bordered style as home */
+    .view-details-btn {
+        width: 100%;
+        background: transparent;
+        color: #2d5016;
+        border: 2px solid #c5a059;
+        padding: 0.9rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+        margin-top: 1rem;
+        letter-spacing: 0.5px;
+    }
+
+    .view-details-btn:hover {
+        background: #1b3022;
+        color: #fcf8ef;
+        border-color: #1b3022;
+        box-shadow: 0 8px 20px rgba(197, 160, 89, 0.3);
+    }
+
+    /* Hidden state for filtered items */
+    .product-card.filtered-out {
+        display: none !important;
+    }
+
+    /* ============================================ */
+    /* NO RESULTS STATES */
+    /* ============================================ */
+    .no-results, .no-products-message {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 5rem 2rem;
+        background: white;
+        border-radius: 20px;
+        border: 1px dashed #c5a059;
+    }
+
+    .no-results-icon, .no-products-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.6;
+    }
+
+    .no-results h3, .no-products-message h3 {
+        color: #2d5016;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .no-results p, .no-products-message p {
+        color: #666;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn-reset-filters {
+        padding: 0.8rem 2rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        border: 1px solid #c5a059;
+        border-radius: 30px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-reset-filters:hover {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+        transform: translateY(-2px);
+    }
+
+    /* ============================================ */
+    /* MODAL (same styles as home) */
+    /* ============================================ */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(27, 48, 34, 0.85); backdrop-filter: blur(8px); z-index: 3000; display: none; align-items: flex-start; justify-content: center; padding: 2rem 1rem; opacity: 0; transition: opacity 0.3s ease; overflow-y: auto; }
+    .modal-overlay.show { display: flex; opacity: 1; }
+    .modal-content { background: white; border-radius: 25px; max-width: 1100px; width: 100%; position: relative; transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4); margin: auto; border: 1px solid rgba(197, 160, 89, 0.2); }
+    .modal-overlay.show .modal-content { transform: scale(1); }
+    .modal-close { position: absolute; top: 1.5rem; right: 1.5rem; background: #f8fdf8; border: 2px solid #e8f5e9; width: 45px; height: 45px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; z-index: 10; color: #2d5016; }
+    .modal-close:hover { background: #1b3022; color: #c5a059; border-color: #c5a059; transform: rotate(90deg); }
+    .modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; padding: 3rem; }
+    .modal-image-section { display: flex; flex-direction: column; gap: 1.5rem; }
+    .modal-main-image { width: 100%; height: 450px; background: linear-gradient(135deg, #f8fdf8 0%, #e8f5e9 50%, rgba(197, 160, 89, 0.1) 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; border: 1px solid rgba(197, 160, 89, 0.2); }
+    .modal-main-image img { max-width: 85%; max-height: 85%; object-fit: contain; position: relative; z-index: 2; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.15)); }
+    .modal-image-badge { position: absolute; top: 1.2rem; left: 1.2rem; background: linear-gradient(135deg, #2d5016, #4CAF50); color: #fcf8ef; padding: 0.6rem 1.2rem; border-radius: 25px; font-size: 0.8rem; font-weight: 600; z-index: 3; border: 1px solid #c5a059; }
+    .modal-trust-badges { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+    .trust-badge { background: #f8fdf8; border: 1px solid #e8f5e9; padding: 0.75rem 0.5rem; border-radius: 12px; text-align: center; font-size: 0.75rem; color: #2d5016; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; transition: all 0.3s; }
+    .trust-badge:hover { border-color: #c5a059; transform: translateY(-3px); }
+    .trust-icon { font-size: 1.4rem; }
+    .modal-info-section { display: flex; flex-direction: column; }
+    .modal-product-title { font-size: 2.5rem; color: #c5a059; font-style: italic; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.2; }
+    .modal-product-subtitle { color: #4CAF50; font-size: 1.05rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .modal-rating { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f0f0f0; }
+    .modal-stars { color: #FFC107; font-size: 1.1rem; }
+    .modal-reviews-count { color: #666; font-size: 0.9rem; }
+    .modal-product-description { color: #555; font-size: 1rem; line-height: 1.8; margin-bottom: 1.5rem; }
+    .modal-features { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 2rem; }
+    .modal-feature-tag { background: #f8fdf8; color: #2d5016; padding: 0.5rem 1.1rem; border-radius: 25px; font-size: 0.85rem; font-weight: 500; border: 1px solid #e8f5e9; }
+    .modal-price-section { background: linear-gradient(135deg, #f8fdf8, #e8f5e9); padding: 1.5rem; border-radius: 15px; margin-bottom: 1.5rem; border: 1px solid rgba(197, 160, 89, 0.2); }
+    .modal-price-label { font-size: 0.8rem; color: #666; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.5rem; font-weight: 600; }
+    .modal-price { font-size: 2.5rem; color: #2d5016; font-weight: 800; letter-spacing: -1px; }
+    .modal-price.sale { color: #e74c3c; }
+    .modal-original-price { text-decoration: line-through; color: #999; font-size: 1.2rem; margin-left: 1rem; }
+    .modal-sale-badge { display: inline-block; background: #e74c3c; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.75rem; font-weight: 700; margin-left: 0.75rem; }
+    .modal-quantity-section { margin-bottom: 1.5rem; }
+    .modal-quantity-label { display: block; font-size: 0.9rem; font-weight: 600; color: #333; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+    .quantity-selector { display: flex; align-items: center; gap: 0.5rem; }
+    .quantity-btn { width: 42px; height: 42px; border: 2px solid #e8f5e9; background: white; border-radius: 10px; font-size: 1.3rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; color: #2d5016; font-weight: 700; }
+    .quantity-btn:hover { background: #2d5016; color: #c5a059; border-color: #2d5016; transform: scale(1.05); }
+    .quantity-value { font-size: 1.3rem; font-weight: 700; color: #2d5016; min-width: 50px; text-align: center; padding: 0 1rem; }
+    .modal-actions { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .modal-add-cart { flex: 2; background: linear-gradient(135deg, #2d5016, #4CAF50); color: #fcf8ef; border: 1px solid #c5a059; padding: 1.1rem 2rem; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+    .modal-add-cart:hover { background: linear-gradient(135deg, #c5a059, #d4b374); color: #1b3022; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(197, 160, 89, 0.4); }
+    .modal-add-cart:disabled { opacity: 0.7; cursor: not-allowed; }
+    .modal-view-cart { flex: 1; background: white; color: #2d5016; border: 2px solid #e8f5e9; padding: 1.1rem 1.5rem; border-radius: 50px; font-size: 1rem; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.3s; }
+    .modal-view-cart:hover { background: #f8fdf8; border-color: #c5a059; color: #1b3022; }
+    .cart-badge { background: #2d5016; color: #c5a059; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+    .modal-shipping-info { background: #f8fdf8; padding: 1rem 1.25rem; border-radius: 12px; border: 1px dashed #c5a059; }
+    .shipping-item { display: flex; align-items: center; gap: 0.75rem; color: #555; font-size: 0.9rem; padding: 0.3rem 0; }
+    .shipping-item span:first-child { font-size: 1.2rem; }
+    .modal-details-section { grid-column: 1 / -1; border-top: 2px solid #f0f0f0; padding-top: 2.5rem; margin-top: 1rem; }
+    .modal-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 2px solid #f0f0f0; flex-wrap: wrap; }
+    .modal-tab { padding: 1rem 1.75rem; background: none; border: none; font-size: 1rem; font-weight: 600; color: #666; cursor: pointer; position: relative; transition: all 0.3s; }
+    .modal-tab.active { color: #2d5016; }
+    .modal-tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #2d5016, #c5a059); border-radius: 3px 3px 0 0; }
+    .modal-tab:hover { color: #2d5016; }
+    .modal-tab-content { display: none; animation: fadeIn 0.5s ease; }
+    .modal-tab-content.active { display: block; }
+    .modal-detail-section h3 { color: #2d5016; font-size: 1.4rem; margin-bottom: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+    .modal-detail-section h3::before { content: ''; width: 4px; height: 24px; background: linear-gradient(180deg, #2d5016, #c5a059); border-radius: 2px; }
+    .modal-detail-section p, .modal-detail-section ul, .modal-detail-section ol, .modal-detail-section div { color: #555; line-height: 1.8; }
+    .modal-detail-section ul, .modal-detail-section ol { padding-left: 1.5rem; }
+    .modal-detail-section li { margin-bottom: 0.6rem; }
+    .modal-detail-section ul li::marker { color: #c5a059; }
+    .empty-content { color: #999; font-style: italic; padding: 2rem; text-align: center; background: #f8fdf8; border-radius: 12px; }
+
+    /* ============================================ */
+    /* RESPONSIVE */
+    /* ============================================ */
+    @media (max-width: 1200px) {
+        .shop-products .products-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 900px) {
+        .modal-body { grid-template-columns: 1fr; padding: 2rem 1.5rem; gap: 2rem; }
+        .modal-main-image { height: 350px; }
+        .modal-product-title { font-size: 2rem; }
+        .modal-actions { flex-direction: column; }
+    }
+
+    @media (max-width: 768px) {
+        .shop-hero-title { font-size: 2.75rem; }
+        .shop-hero-stats { gap: 1rem; }
+        .stat-divider { display: none; }
+        .shop-products .products-grid { grid-template-columns: 1fr; }
+        .filter-container { flex-direction: column; align-items: stretch; }
+        .filter-right { justify-content: flex-start; }
+        .shop-products .products-grid.list-view .product-card {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 500px) {
+        .modal-trust-badges { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script>
+    // ============================================
+    // CART AJAX
+    // ============================================
+    function getCSRFToken() {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]');
+        return token ? token.value : '';
+    }
+
+    function addProductToCart(productId, productName, quantity, buttonEl) {
+        const originalText = buttonEl ? buttonEl.innerHTML : '';
+        if (buttonEl) {
+            buttonEl.disabled = true;
+            buttonEl.innerHTML = '⏳ Adding...';
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "cart_add" %}',
+            data: {
+                product_id: productId,
+                product_qty: quantity,
+                csrfmiddlewaretoken: getCSRFToken(),
+                action: 'post'
+            },
+            success: function(json) {
+                updateCartCount(json.qty);
+                showNotification(productName, quantity);
+                if (buttonEl) {
+                    buttonEl.disabled = false;
+                    buttonEl.innerHTML = originalText;
+                }
+            },
+            error: function(xhr, errmsg, err) {
+                console.error('Cart error:', errmsg);
+                alert('Something went wrong. Please try again.');
+                if (buttonEl) {
+                    buttonEl.disabled = false;
+                    buttonEl.innerHTML = originalText;
+                }
+            }
+        });
+    }
+
+    function updateCartCount(count) {
+        document.querySelectorAll('#cartCount, #cart_quantity').forEach(el => {
+            el.textContent = count;
+        });
+        if (typeof cartCount !== 'undefined') cartCount = count;
+    }
+
+    function showNotification(productName, quantity) {
+        const notification = document.getElementById('notification');
+        if (!notification) return;
+        const strong = notification.querySelector('strong');
+        const para = notification.querySelector('p');
+        if (strong) strong.textContent = `${productName} added!`;
+        if (para) para.textContent = quantity > 1 ? `${quantity} items added` : 'Added to cart';
+        notification.classList.add('show');
+        setTimeout(() => notification.classList.remove('show'), 3000);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.card-add-cart').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                addProductToCart(this.dataset.productId, this.dataset.productName, 1, this);
+            });
+        });
+        document.querySelectorAll('.quick-add-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                addProductToCart(this.dataset.productId, this.dataset.productName, 1, this);
+            });
+        });
+    });
+
+    // ============================================
+    // PRODUCT MODAL
+    // ============================================
+    let currentProductId = null;
+    let currentProductName = null;
+    let currentQuantity = 1;
+
+    function openProductModal(button) {
+        const modal = document.getElementById('productModal');
+        const d = button.dataset;
+
+        currentProductId = d.productId;
+        currentProductName = d.productName;
+        currentQuantity = 1;
+        document.getElementById('quantityValue').textContent = '1';
+
+        document.getElementById('modalProductTitle').textContent = d.productName;
+        document.getElementById('modalProductSubtitle').textContent = d.productSubtitle || 'Premium Hair Care';
+        document.getElementById('modalProductDescription').textContent = d.productDescription || '';
+        document.getElementById('modalProductImage').src = d.productImage;
+        document.getElementById('modalProductImage').alt = d.productName;
+        document.getElementById('modalBadge').textContent = d.productBadge || '100% Organic';
+
+        const priceContainer = document.getElementById('modalPriceContainer');
+        if (d.productIsSale === 'True') {
+            priceContainer.innerHTML = `
+                <span class="modal-price sale">R${d.productSalePrice}</span>
+                <span class="modal-original-price">R${d.productPrice}</span>
+                <span class="modal-sale-badge">SALE</span>
+            `;
+        } else {
+            priceContainer.innerHTML = `<span class="modal-price">R${d.productPrice}</span>`;
+        }
+
+        const featuresContainer = document.getElementById('modalFeatures');
+        featuresContainer.innerHTML = '';
+        [d.productTag1, d.productTag2, d.productTag3].forEach(tag => {
+            if (tag && tag.trim()) {
+                const span = document.createElement('span');
+                span.className = 'modal-feature-tag';
+                span.textContent = tag;
+                featuresContainer.appendChild(span);
+            }
+        });
+
+        document.getElementById('modalIngredients').innerHTML = 
+            d.productIngredients && d.productIngredients.trim() ? d.productIngredients : '<div class="empty-content">Coming soon.</div>';
+        document.getElementById('modalBenefits').innerHTML = 
+            d.productBenefits && d.productBenefits.trim() ? d.productBenefits : '<div class="empty-content">Coming soon.</div>';
+        document.getElementById('modalUse').innerHTML = 
+            d.productUse && d.productUse.trim() ? d.productUse : '<div class="empty-content">Coming soon.</div>';
+
+        document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelector('.modal-tab').classList.add('active');
+        document.getElementById('tab-ingredients').classList.add('active');
+
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeProductModal() {
+        document.getElementById('productModal').classList.remove('show');
+        document.body.style.overflow = '';
+        currentProductId = null;
+    }
+
+    function closeModalOnOverlay(event) {
+        if (event.target.id === 'productModal') closeProductModal();
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeProductModal();
+    });
+
+    function switchTab(tabName, button) {
+        document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById('tab-' + tabName).classList.add('active');
+    }
+
+    function changeQuantity(delta) {
+        currentQuantity = Math.max(1, Math.min(99, currentQuantity + delta));
+        document.getElementById('quantityValue').textContent = currentQuantity;
+    }
+
+    function modalAddToCart() {
+        if (!currentProductId) return;
+        const btn = document.getElementById('modal-add-cart-btn');
+        addProductToCart(currentProductId, currentProductName, currentQuantity, btn);
+    }
+
+    // ============================================
+    // FILTERING + SORTING (client-side)
+    // ============================================
+    function applyFilters() {
+        const filterValue = document.getElementById('filterSelect').value;
+        const sortValue = document.getElementById('sortSelect').value;
+        const grid = document.getElementById('productsGrid');
+        const cards = Array.from(grid.querySelectorAll('.product-card'));
+        const noResults = document.getElementById('noResults');
+
+        // Filter
+        let visibleCount = 0;
+        cards.forEach(card => {
+            const isSale = card.dataset.isSale === 'True';
+            const badge = card.dataset.badge || '';
+            let show = true;
+
+            if (filterValue === 'sale') show = isSale;
+            else if (filterValue === 'organic') show = badge.includes('organic');
+            else if (filterValue === 'new') show = badge.includes('new');
+            
+            card.classList.toggle('filtered-out', !show);
+            if (show) visibleCount++;
+        });
+
+        // Sort visible cards
+        const visibleCards = cards.filter(c => !c.classList.contains('filtered-out'));
+        visibleCards.sort((a, b) => {
+            const priceA = parseFloat(a.dataset.price);
+            const priceB = parseFloat(b.dataset.price);
+            const nameA = a.dataset.name;
+            const nameB = b.dataset.name;
+
+            switch (sortValue) {
+                case 'price-low': return priceA - priceB;
+                case 'price-high': return priceB - priceA;
+                case 'name-az': return nameA.localeCompare(nameB);
+                case 'name-za': return nameB.localeCompare(nameA);
+                default: return 0;
+            }
+        });
+
+        // Re-append in new order
+        visibleCards.forEach(card => grid.appendChild(card));
+
+        // Update results count + show/hide no-results
+        document.getElementById('resultsCount').textContent = 
+            `Showing ${visibleCount} product${visibleCount !== 1 ? 's' : ''}`;
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    function resetFilters() {
+        document.getElementById('filterSelect').value = 'all';
+        document.getElementById('sortSelect').value = 'featured';
+        applyFilters();
+    }
+
+    // ============================================
+    // VIEW TOGGLE (grid vs list)
+    // ============================================
+    function setView(view, button) {
+        const grid = document.getElementById('productsGrid');
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        button.classList.add('active');
+        
+        if (view === 'list') {
+            grid.classList.add('list-view');
+        } else {
+            grid.classList.remove('list-view');
+        }
+    }
+</script>
+
+{% endblock %}
