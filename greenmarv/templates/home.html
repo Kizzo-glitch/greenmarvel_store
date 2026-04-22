@@ -129,8 +129,77 @@
     </div>
 </section>
 
-<!-- Gallery, Before/After, Testimonials, CTA - same as before -->
+
 <section class="lifestyle-gallery">
+    <div class="section-header">
+        <div class="section-label">See It In Action</div>
+        <h2 class="section-title">Real People, Real Results</h2>
+    </div>
+ 
+    <div class="mg-gallery-grid">
+        <div class="mg-gallery-item" onclick="openLightbox(this)">
+            <div class="mg-gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi1.JPG' %}');"></div>
+            <div class="mg-gallery-overlay">
+                <div class="mg-gallery-content">
+                    <h3>Growth Hair Oil</h3>
+                    <p>Natural shine</p>
+                </div>
+            </div>
+        </div>
+ 
+        <div class="mg-gallery-item" onclick="openLightbox(this)">
+            <div class="mg-gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi2.JPG' %}');"></div>
+            <div class="mg-gallery-overlay">
+                <div class="mg-gallery-content">
+                    <h3>Vitality Spray</h3>
+                    <p>Daily revitalization</p>
+                </div>
+            </div>
+        </div>
+ 
+        <div class="mg-gallery-item" onclick="openLightbox(this)">
+            <div class="mg-gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi3.JPG' %}');"></div>
+            <div class="mg-gallery-overlay">
+                <div class="mg-gallery-content">
+                    <h3>Transform Hair</h3>
+                    <p>Visible results</p>
+                </div>
+            </div>
+        </div>
+ 
+        <div class="mg-gallery-item" onclick="openLightbox(this)">
+            <div class="mg-gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi4.JPG' %}');"></div>
+            <div class="mg-gallery-overlay">
+                <div class="mg-gallery-content">
+                    <h3>Complete Routine</h3>
+                    <p>Root to tip</p>
+                </div>
+            </div>
+        </div>
+ 
+        <div class="mg-gallery-item" onclick="openLightbox(this)">
+            <div class="mg-gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi5.JPG' %}');"></div>
+            <div class="mg-gallery-overlay">
+                <div class="mg-gallery-content">
+                    <h3>Hair Food</h3>
+                    <p>Deep nourishment</p>
+                </div>
+            </div>
+        </div>
+ 
+        <div class="mg-gallery-item" onclick="openLightbox(this)">
+            <div class="mg-gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi6.JPG' %}');"></div>
+            <div class="mg-gallery-overlay">
+                <div class="mg-gallery-content">
+                    <h3>100% Organic</h3>
+                    <p>Pure ingredients</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!--<section class="lifestyle-gallery">
     <div class="section-header">
         <div class="section-label">See It In Action</div>
         <h2 class="section-title">Real People, Real Results</h2>
@@ -161,7 +230,7 @@
             <div class="gallery-overlay"><div class="gallery-content"><h3>100% Organic</h3><p>Pure ingredients</p></div></div>
         </div>
     </div>
-</section>
+</section>-->
 
 <section class="before-after">
         <div class="before-after-container">
@@ -336,16 +405,7 @@
 
 
 <style>
-    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; max-width: 1400px; margin: 0 auto; }
-    .gallery-item { position: relative; height: 350px; border-radius: 15px; overflow: hidden; cursor: pointer; }
-    .gallery-image { width: 100%; height: 100%; background-size: cover; background-position: center; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-    .gallery-item:hover .gallery-image { transform: scale(1.1); }
-    .gallery-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, rgba(27, 48, 34, 0.8) 0%, rgba(197, 160, 89, 0.2) 100%); display: flex; align-items: flex-end; padding: 2rem; opacity: 0; transition: opacity 0.4s ease; }
-    .gallery-item:hover .gallery-overlay { opacity: 1; }
-    .gallery-content h3 { color: #c5a059; font-size: 1.5rem; margin-bottom: 5px; }
-    .gallery-content p { color: #fcf8ef; font-size: 0.9rem; }
-    @media (max-width: 992px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px) { .gallery-grid { grid-template-columns: 1fr; } }
+   
 
     .lightbox { display: none; position: fixed; z-index: 2000; padding-top: 50px; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(27, 48, 34, 0.95); backdrop-filter: blur(8px); }
     .lightbox-content { margin: auto; display: block; width: 80%; max-width: 800px; border: 3px solid #c5a059; border-radius: 10px; }
@@ -429,6 +489,128 @@
     }
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ============================================ */
+    /* LIFESTYLE GALLERY — self-contained, mg- prefix */
+    /* ============================================ */
+    .lifestyle-gallery {
+        padding: 5rem 5%;
+        background: white;
+    }
+ 
+    .mg-gallery-grid {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
+    }
+ 
+    .mg-gallery-item {
+        position: relative;
+        aspect-ratio: 4 / 5;       /* Consistent portrait aspect — all cells identical */
+        border-radius: 20px;
+        overflow: hidden;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s;
+    }
+ 
+    .mg-gallery-item:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+ 
+    .mg-gallery-image {
+        width: 100%;
+        height: 100%;
+        background-size: cover;          /* Fills cell, crops edges — prevents tiny images */
+        background-position: center;     /* Centers the subject in each crop */
+        background-repeat: no-repeat;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+ 
+    .mg-gallery-item:hover .mg-gallery-image {
+        transform: scale(1.08);
+    }
+ 
+    /* Permanent soft gradient so every card has a consistent base */
+    .mg-gallery-item::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(
+            to top,
+            rgba(27, 48, 34, 0.4) 0%,
+            rgba(27, 48, 34, 0.1) 40%,
+            transparent 70%
+        );
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+    }
+ 
+    .mg-gallery-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(
+            to top,
+            rgba(27, 48, 34, 0.92) 0%,
+            rgba(27, 48, 34, 0.6) 40%,
+            rgba(197, 160, 89, 0.1) 100%
+        );
+        display: flex;
+        align-items: flex-end;
+        padding: 1.75rem;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        z-index: 2;
+    }
+ 
+    .mg-gallery-item:hover .mg-gallery-overlay {
+        opacity: 1;
+    }
+ 
+    .mg-gallery-content h3 {
+        color: #c5a059;
+        font-size: 1.4rem;
+        font-style: italic;
+        font-weight: 700;
+        margin-bottom: 0.35rem;
+        letter-spacing: -0.3px;
+        transform: translateY(10px);
+        transition: transform 0.4s ease 0.05s;
+    }
+ 
+    .mg-gallery-content p {
+        color: #fcf8ef;
+        font-size: 0.9rem;
+        font-weight: 500;
+        opacity: 0.95;
+        transform: translateY(10px);
+        transition: transform 0.4s ease 0.1s;
+    }
+ 
+    .mg-gallery-item:hover .mg-gallery-content h3,
+    .mg-gallery-item:hover .mg-gallery-content p {
+        transform: translateY(0);
+    }
+ 
+    /* Responsive */
+    @media (max-width: 992px) {
+        .mg-gallery-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+ 
+    @media (max-width: 600px) {
+        .mg-gallery-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        .mg-gallery-item {
+            aspect-ratio: 4 / 3;  /* Wider crop on mobile — reads better as a single column */
+        }
+    }
 </style>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -610,14 +792,14 @@
         const modal = document.getElementById("galleryLightbox");
         const modalImg = document.getElementById("lightboxImg");
         const captionText = document.getElementById("lightboxCaption");
-        const style = element.querySelector('.gallery-image').style.backgroundImage;
+        const style = element.querySelector('.mg-gallery-image').style.backgroundImage;
         const url = style.slice(4, -1).replace(/"/g, "");
         const title = element.querySelector('h3').innerText;
         modal.style.display = "block";
         modalImg.src = url;
         captionText.innerHTML = title;
     }
-
+ 
     function closeLightbox() {
         document.getElementById("galleryLightbox").style.display = "none";
     }
