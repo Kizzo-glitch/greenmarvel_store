@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'greenmarv',
     'cart',
     'payment',
-    'paypal.standard.ipn',
     'whitenoise.runserver_nostatic',
 ]
 
@@ -173,7 +172,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 PAYFAST_MERCHANT_ID = '24614055'
 PAYFAST_MERCHANT_KEY = 'cybdmhnyiv7q6' 
 PAYFAST_PASSPHRASE = 'Marvelousgreen2024'
-
 
 
 # Email settings
