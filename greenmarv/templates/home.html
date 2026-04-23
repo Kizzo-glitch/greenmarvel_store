@@ -199,40 +199,80 @@
     </div>
 </section>
 
-<!--<section class="lifestyle-gallery">
-    <div class="section-header">
-        <div class="section-label">See It In Action</div>
-        <h2 class="section-title">Real People, Real Results</h2>
-    </div>
-    <div class="gallery-grid">
-        <div class="gallery-item" onclick="openLightbox(this)">
-            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi1.JPG' %}');"></div>
-            <div class="gallery-overlay"><div class="gallery-content"><h3>Growth Hair Oil</h3><p>Natural shine</p></div></div>
-        </div>
-        <div class="gallery-item" onclick="openLightbox(this)">
-            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi2.JPG' %}');"></div>
-            <div class="gallery-overlay"><div class="gallery-content"><h3>Vitality Spray</h3><p>Daily revitalization</p></div></div>
-        </div>
-        <div class="gallery-item" onclick="openLightbox(this)">
-            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi3.JPG' %}');"></div>
-            <div class="gallery-overlay"><div class="gallery-content"><h3>Transform Hair</h3><p>Visible results</p></div></div>
-        </div>
-        <div class="gallery-item" onclick="openLightbox(this)">
-            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi4.JPG' %}');"></div>
-            <div class="gallery-overlay"><div class="gallery-content"><h3>Complete Routine</h3><p>Root to tip</p></div></div>
-        </div>
-        <div class="gallery-item" onclick="openLightbox(this)">
-            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi5.JPG' %}');"></div>
-            <div class="gallery-overlay"><div class="gallery-content"><h3>Hair Food</h3><p>Deep nourishment</p></div></div>
-        </div>
-        <div class="gallery-item" onclick="openLightbox(this)">
-            <div class="gallery-image" style="background-image: url('{% static 'landing/assets/img/about/lindi6.JPG' %}');"></div>
-            <div class="gallery-overlay"><div class="gallery-content"><h3>100% Organic</h3><p>Pure ingredients</p></div></div>
-        </div>
-    </div>
-</section>-->
-
 <section class="before-after">
+    <div class="before-after-container">
+        <div class="before-after-content">
+            <div class="section-label">Transformation</div>
+            <h2>See The Difference</h2>
+            <p>Real transformations from our community.</p>
+            <button class="btn-primary" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">Start Your Journey</button>
+        </div>
+        
+        <div class="comparison-grid">
+            <!-- Card 1 -->
+            <div class="comparison-card">
+                <div class="comparison-images">
+                    <div class="comparison-half before">
+                        <span class="comparison-label">Before</span>
+                        <div class="comparison-img" style="background-image: url('{% static 'landing/assets/testimonies/test4.jpeg' %}');"></div>
+                    </div>
+                    <div class="comparison-divider-vertical"></div>
+                    <div class="comparison-half after">
+                        <span class="comparison-label">After</span>
+                        <div class="comparison-img" style="background-image: url('{% static 'landing/assets/testimonies/test8.jpeg' %}');"></div>
+                    </div>
+                </div>
+                <div class="comparison-info">
+                    <div class="timeframe-badge">4-6 WEEKS</div>
+                    <h4>Vitality Spray Results</h4>
+                    <p>Visible hairline restoration</p>
+                </div>
+            </div>
+        
+            <!-- Card 2 -->
+            <div class="comparison-card">
+                <div class="comparison-images">
+                    <div class="comparison-half before">
+                        <span class="comparison-label">Before</span>
+                        <div class="comparison-img" style="background-image: url('{% static 'landing/assets/testimonies/test9.jpeg' %}');"></div>
+                    </div>
+                    <div class="comparison-divider-vertical"></div>
+                    <div class="comparison-half after">
+                        <span class="comparison-label">After</span>
+                        <div class="comparison-img" style="background-image: url('{% static 'landing/assets/testimonies/test10.jpeg' %}');"></div>
+                    </div>
+                </div>
+                <div class="comparison-info">
+                    <div class="timeframe-badge">8-10 WEEKS</div>
+                    <h4>Complete Routine Results</h4>
+                    <p>Full transformation</p>
+                </div>
+            </div>
+ 
+            <!-- Card 3 -->
+            <div class="comparison-card">
+                <div class="comparison-images">
+                    <div class="comparison-half before">
+                        <span class="comparison-label">Before</span>
+                        <div class="comparison-img" style="background-image: url('{% static 'landing/assets/testimonies/test2.png' %}');"></div>
+                    </div>
+                    <div class="comparison-divider-vertical"></div>
+                    <div class="comparison-half after">
+                        <span class="comparison-label">After</span>
+                        <div class="comparison-img" style="background-image: url('{% static 'landing/assets/testimonies/test13.JPG' %}');"></div>
+                    </div>
+                </div>
+                <div class="comparison-info">
+                    <div class="timeframe-badge">18-20 WEEKS</div>
+                    <h4>Growth & Maintenance</h4>
+                    <p>Sustained results</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!--<section class="before-after">
         <div class="before-after-container">
             <div class="before-after-content">
                 <div class="section-label">Transformation</div>
@@ -294,7 +334,7 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section>-->
 
 <section class="testimonials" id="reviews">
     <div class="section-header">
@@ -610,6 +650,213 @@
         .mg-gallery-item {
             aspect-ratio: 4 / 3;  /* Wider crop on mobile — reads better as a single column */
         }
+    }
+
+    /* ============================================ */
+    /* BEFORE / AFTER — refined */
+    /* ============================================ */
+    .before-after {
+        padding: 6rem 5%;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        position: relative;
+        overflow: hidden;
+    }
+ 
+    .before-after::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(197, 160, 89, 0.1), transparent);
+        border-radius: 50%;
+    }
+ 
+    .before-after-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
+ 
+    .before-after-content {
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto 4rem;
+    }
+ 
+    .before-after-content h2 {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #2d5016;
+        margin-bottom: 1rem;
+        letter-spacing: -1px;
+    }
+ 
+    .before-after-content p {
+        color: #555;
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+ 
+    .comparison-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+    }
+ 
+    .comparison-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(197, 160, 89, 0.15);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+ 
+    .comparison-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        border-color: #c5a059;
+    }
+ 
+    .comparison-images {
+        display: flex;
+        height: 380px;
+        position: relative;
+        overflow: hidden;
+    }
+ 
+    .comparison-half {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+    }
+ 
+    .comparison-img {
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center top;  /* "top" focuses on hair/scalp in portrait photos */
+        background-repeat: no-repeat;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+ 
+    .comparison-card:hover .comparison-img {
+        transform: scale(1.08);
+    }
+ 
+    /* Subtle tint on 'after' to make transformation feel fresher */
+    .comparison-half.after::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.08), transparent 50%);
+        pointer-events: none;
+        z-index: 2;
+    }
+ 
+    .comparison-label {
+        position: absolute;
+        top: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(27, 48, 34, 0.85);
+        backdrop-filter: blur(6px);
+        color: #fcf8ef;
+        padding: 0.45rem 1.1rem;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        z-index: 3;
+        border: 1px solid rgba(197, 160, 89, 0.4);
+    }
+ 
+    .comparison-half.after .comparison-label {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        border-color: #c5a059;
+        color: #c5a059;
+    }
+ 
+    /* Vertical divider between before/after with gold arrow */
+    .comparison-divider-vertical {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 44px;
+        height: 44px;
+        background: white;
+        border: 2px solid #c5a059;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 4;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s;
+    }
+ 
+    .comparison-divider-vertical::before {
+        content: '→';
+        color: #c5a059;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+ 
+    .comparison-card:hover .comparison-divider-vertical {
+        background: #c5a059;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+ 
+    .comparison-card:hover .comparison-divider-vertical::before {
+        color: white;
+    }
+ 
+    .comparison-info {
+        padding: 1.75rem 2rem;
+        text-align: center;
+        background: white;
+    }
+ 
+    .timeframe-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        margin-bottom: 0.75rem;
+        border: 1px solid #c5a059;
+    }
+ 
+    .comparison-info h4 {
+        color: #2d5016;
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+        letter-spacing: -0.3px;
+    }
+ 
+    .comparison-info p {
+        color: #666;
+        font-size: 0.9rem;
+    }
+ 
+    /* Responsive */
+    @media (max-width: 992px) {
+        .comparison-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+ 
+    @media (max-width: 600px) {
+        .comparison-grid { grid-template-columns: 1fr; }
+        .comparison-images { height: 320px; }
+        .before-after-content h2 { font-size: 2.25rem; }
     }
 </style>
 

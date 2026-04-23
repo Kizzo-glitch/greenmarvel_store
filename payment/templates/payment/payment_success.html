@@ -1,9 +1,444 @@
-{% extends 'base.html' %}
+{% extends 'base1.html' %}
 {% load static %}
+
 {% block content %}
 
+<section class="success-section">
+    <!-- Celebration confetti -->
+    <div class="confetti" id="confetti"></div>
+
+    <div class="success-container">
+        <!-- Success Header -->
+        <div class="success-header">
+            <div class="success-icon-wrapper">
+                <div class="success-icon">✓</div>
+                <div class="success-ripple"></div>
+                <div class="success-ripple ripple-2"></div>
+            </div>
+            <div class="success-badge">✨ PAYMENT COMPLETE</div>
+            <h1 class="success-title">Thank <span>You!</span></h1>
+            <p class="success-subtitle">Your order has been confirmed and is being prepared with love 💚</p>
+        </div>
+
+        {% if order %}
+        <!-- Order Confirmation Card -->
+        <div class="success-card">
+            <div class="card-header">
+                <div class="header-left">
+                    <div class="order-id-label">ORDER NUMBER</div>
+                    <div class="order-id">#{{ order.id }}</div>
+                </div>
+                <div class="header-right">
+                    <div class="status-badge status-paid">
+                        <span class="status-dot"></span>
+                        Paid
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick info bar -->
+            <div class="info-bar">
+                <div class="info-item">
+                    <span class="info-icon">📧</span>
+                    <div class="info-text">
+                        <strong>Confirmation sent</strong>
+                        <span>{{ order.email }}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">📦</span>
+                    <div class="info-text">
+                        <strong>Estimated delivery</strong>
+                        <span>2-5 business days</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">💳</span>
+                    <div class="info-text">
+                        <strong>Total paid</strong>
+                        <span>R{{ order.amount_paid }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order items -->
+            {% if items %}
+            <div class="items-section">
+                <h3>Your Items ({{ items|length }})</h3>
+                <div class="items-list">
+                    {% for item in items %}
+                    <div class="order-item">
+                        <div class="item-image">
+                            {% if item.product.image %}
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                            {% else %}
+                                <div class="item-placeholder">🌿</div>
+                            {% endif %}
+                            <span class="item-qty">{{ item.quantity }}</span>
+                        </div>
+                        <div class="item-details">
+                            <h4>{{ item.product.name }}</h4>
+                            {% if item.product.subtitle %}
+                                <p class="item-subtitle">{{ item.product.subtitle }}</p>
+                            {% endif %}
+                            <div class="item-price">R{{ item.price }} × {{ item.quantity }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="success-actions">
+                <a href="{% url 'order_detail' order.id %}" class="btn-primary-action">
+                    View Order Details →
+                </a>
+                <a href="{% url 'track_order' %}?order_id={{ order.id }}&email={{ order.email }}" class="btn-secondary-action">
+                    🚚 Track Order
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <!-- Fallback: order not found -->
+        <div class="success-card">
+            <div class="no-order">
+                <p>Your payment was successful, but we're still processing the order details. You'll receive a confirmation email and SMS shortly.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- What happens next -->
+        <div class="next-steps">
+            <h3>What happens next?</h3>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-icon">📧</div>
+                    <div class="step-number">1</div>
+                    <h4>Email Confirmation</h4>
+                    <p>Check your inbox for an order confirmation with full details.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon">📦</div>
+                    <div class="step-number">2</div>
+                    <h4>Order Processing</h4>
+                    <p>We'll carefully package your organic products within 1-2 days.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon">🚚</div>
+                    <div class="step-number">3</div>
+                    <h4>Shipping Update</h4>
+                    <p>You'll get an SMS with tracking info when it ships.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon">💚</div>
+                    <div class="step-number">4</div>
+                    <h4>Enjoy!</h4>
+                    <p>Your hair care products arrive — enjoy the transformation!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="success-footer">
+            <a href="{% url 'shop' %}" class="btn-continue-shopping">
+                ← Continue Shopping
+            </a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'order_history' %}" class="btn-view-orders">
+                View All Orders
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Social sharing -->
+        <div class="share-love">
+            <p>🌿 Love our products? Share the love</p>
+            <div class="share-buttons">
+                <a href="#" class="share-btn">Instagram</a>
+                <a href="#" class="share-btn">WhatsApp</a>
+                <a href="#" class="share-btn">Facebook</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<style>
+    /* SUCCESS-SPECIFIC */
+    .success-section {
+        background: linear-gradient(135deg, #f8fdf8 0%, #fafbf9 100%);
+        padding: 3rem 5% 5rem;
+        min-height: calc(100vh - 80px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .confetti {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 300px;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .confetti-piece {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        opacity: 0.8;
+        animation: fall 4s linear forwards;
+    }
+
+    @keyframes fall {
+        0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(400px) rotate(720deg); opacity: 0; }
+    }
+
+    .success-container {
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
+
+    .success-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .success-icon-wrapper {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1.5rem;
+    }
+
+    .success-icon {
+        width: 90px;
+        height: 90px;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        border: 3px solid #c5a059;
+        border-radius: 50%;
+        color: #c5a059;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+        animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        box-shadow: 0 10px 30px rgba(197, 160, 89, 0.3);
+    }
+
+    .success-ripple {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 90px;
+        height: 90px;
+        border: 2px solid #c5a059;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        animation: ripple 2s infinite;
+    }
+
+    .ripple-2 { animation-delay: 1s; }
+
+    @keyframes ripple {
+        0% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+        100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+    }
+
+    @keyframes bounceIn {
+        0% { transform: scale(0); }
+        60% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+    }
+
+    .success-badge {
+        background: rgba(197, 160, 89, 0.15);
+        border: 1px solid #c5a059;
+        color: #8a6d2e;
+        padding: 0.5rem 1.2rem;
+        border-radius: 30px;
+        display: inline-block;
+        margin-bottom: 1.25rem;
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+        font-weight: 700;
+    }
+
+    .success-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #2d5016;
+        margin-bottom: 0.75rem;
+        letter-spacing: -1px;
+    }
+
+    .success-title span {
+        color: #c5a059;
+        font-style: italic;
+    }
+
+    .success-subtitle {
+        color: #555;
+        font-size: 1.1rem;
+    }
+
+    /* Next Steps */
+    .next-steps {
+        margin-top: 3rem;
+    }
+
+    .next-steps h3 {
+        color: #2d5016;
+        font-size: 1.5rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        font-weight: 700;
+    }
+
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.25rem;
+    }
+
+    .step-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem 1.25rem;
+        text-align: center;
+        border: 1px solid rgba(197, 160, 89, 0.2);
+        position: relative;
+        transition: all 0.3s;
+    }
+
+    .step-card:hover {
+        transform: translateY(-5px);
+        border-color: #c5a059;
+        box-shadow: 0 10px 25px rgba(197, 160, 89, 0.1);
+    }
+
+    .step-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .step-number {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 28px;
+        height: 28px;
+        background: #f8fdf8;
+        border: 1px solid #c5a059;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: #c5a059;
+    }
+
+    .step-card h4 {
+        color: #2d5016;
+        font-size: 1rem;
+        margin-bottom: 0.4rem;
+        font-weight: 700;
+    }
+
+    .step-card p {
+        color: #666;
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+
+    /* Share */
+    .share-love {
+        text-align: center;
+        margin-top: 3rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 15px;
+        border: 1px dashed #c5a059;
+    }
+
+    .share-love p {
+        color: #2d5016;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .share-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .share-btn {
+        padding: 0.6rem 1.3rem;
+        background: white;
+        color: #2d5016;
+        border: 2px solid #c5a059;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+    }
+
+    .share-btn:hover {
+        background: #2d5016;
+        color: #c5a059;
+        border-color: #2d5016;
+    }
+
+    @media (max-width: 768px) {
+        .success-title { font-size: 2.5rem; }
+        .steps-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 500px) {
+        .steps-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<script>
+    // Confetti celebration
+    document.addEventListener('DOMContentLoaded', function() {
+        const confettiContainer = document.getElementById('confetti');
+        const colors = ['#c5a059', '#2d5016', '#4CAF50', '#d4b374', '#fcf8ef'];
+        
+        for (let i = 0; i < 50; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + '%';
+            piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.animationDelay = Math.random() * 2 + 's';
+            piece.style.animationDuration = (3 + Math.random() * 2) + 's';
+            piece.style.width = (6 + Math.random() * 8) + 'px';
+            piece.style.height = piece.style.width;
+            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+            confettiContainer.appendChild(piece);
+        }
+
+        // Clear confetti after animation
+        setTimeout(() => { confettiContainer.innerHTML = ''; }, 6000);
+    });
+</script>
+
+
+
         <!-- Header-->
-        <header class="bg-dark py-5">
+        <!--<header class="bg-dark py-5">
             <div class="container px-4 px-lg-5 my-5">
                 <div class="text-center text-white">
                     <h1 class="display-4 fw-bolder">Payment Notification</h1>
@@ -36,7 +471,7 @@
     
     <br/><br/>
     <br/><br>
-    <br/><br>
+    <br/><br>-->
    
 
 

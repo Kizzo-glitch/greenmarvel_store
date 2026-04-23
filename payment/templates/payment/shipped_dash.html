@@ -1,10 +1,179 @@
-{% extends 'base.html' %}
+{% extends 'base1.html' %}
 {% load static %}
+
 {% block content %}
+
+<!-- Admin Hero -->
+<section class="admin-hero">
+    <div class="admin-hero-container">
+        <div class="admin-hero-badge">⚡ ADMIN · SHIPPING RECORDS</div>
+        <div class="admin-hero-flex">
+            <div>
+                <h1 class="admin-hero-title">Shipped <span>Orders</span></h1>
+                <p class="admin-hero-subtitle">Orders that have been dispatched to customers</p>
+            </div>
+            <div class="admin-hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-number">{{ orders|length }}</div>
+                    <div class="hero-stat-label">Completed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Tab Nav -->
+<section class="admin-tabs-strip">
+    <div class="admin-tabs-container">
+        <a href="{% url 'not_shipped_dash' %}" class="admin-tab">
+            📋 Unshipped
+        </a>
+        <a href="{% url 'shipped_dash' %}" class="admin-tab active">
+            🚚 Shipped 
+            <span class="tab-count">{{ orders|length }}</span>
+        </a>
+        <a href="{% url 'successful_payments' %}" class="admin-tab">
+            💳 Payfast Log
+        </a>
+    </div>
+</section>
+
+<section class="admin-dash-section">
+    <div class="admin-dash-container">
+        <!-- Toolbar -->
+        <div class="admin-toolbar">
+            <div class="toolbar-left">
+                <h2 class="toolbar-title">
+                    🚚 {{ orders|length }} order{{ orders|length|pluralize }} shipped
+                </h2>
+            </div>
+            <div class="toolbar-right">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" 
+                           id="orderSearch" 
+                           placeholder="Search orders..." 
+                           class="admin-search"
+                           onkeyup="filterOrders()">
+                </div>
+            </div>
+        </div>
+
+        {% if orders %}
+        <!-- Orders Table -->
+        <div class="admin-table-wrapper">
+            <table class="admin-table" id="ordersTable">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Order</th>
+                        <th>Customer</th>
+                        <th>Date Shipped</th>
+                        <th>Items</th>
+                        <th style="width: 110px;">Amount</th>
+                        <th style="width: 280px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in orders %}
+                    <tr data-search="{{ item.id }} {{ item.full_name|lower }} {{ item.email|lower }}">
+                        <td>
+                            <a href="{% url 'orders' item.id %}" class="order-id-link">
+                                #{{ item.id }}
+                            </a>
+                        </td>
+                        <td>
+                            <div class="customer-cell">
+                                <strong>{{ item.full_name }}</strong>
+                                <a href="mailto:{{ item.email }}" class="customer-email">{{ item.email }}</a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="date-cell">
+                                <strong>{{ item.date_shipped|date:"d M Y"|default:"—" }}</strong>
+                                <span>{{ item.date_shipped|date:"H:i" }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="items-badge">
+                                {% with item_count=item.orderitem_set.count %}
+                                    {{ item_count }} item{{ item_count|pluralize }}
+                                {% endwith %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="amount-cell">R{{ item.amount_paid }}</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'orders' item.id %}" class="btn-admin-action secondary">
+                                    👁 View
+                                </a>
+                                <form method="POST" style="display: inline;" onsubmit="return confirm('Revert this order to unshipped? The customer will see it as processing again.');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="shipping_status" value="false">
+                                    <input type="hidden" name="num" value="{{ item.id }}">
+                                    <button type="submit" class="btn-admin-action danger">
+                                        ↶ Revert
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No results message for search -->
+        <div class="no-search-results" id="noResults" style="display: none;">
+            <div class="empty-icon">🔍</div>
+            <h3>No orders match your search</h3>
+            <p>Try a different search term or clear the search.</p>
+        </div>
+
+        {% else %}
+        <!-- Empty state -->
+        <div class="empty-dash">
+            <div class="empty-icon">📦</div>
+            <h3>No shipped orders yet</h3>
+            <p>Once you mark orders as shipped, they'll appear here.</p>
+            <a href="{% url 'not_shipped_dash' %}" class="btn-empty-action">
+                View Pending Orders →
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% include 'payment/admin_dash_styles.html' %}
+
+<script>
+    function filterOrders() {
+        const search = document.getElementById('orderSearch').value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#ordersTable tbody tr');
+        const noResults = document.getElementById('noResults');
+        const table = document.querySelector('.admin-table-wrapper');
+        
+        let visibleCount = 0;
+        rows.forEach(row => {
+            const searchData = row.dataset.search || '';
+            const match = !search || searchData.includes(search);
+            row.style.display = match ? '' : 'none';
+            if (match) visibleCount++;
+        });
+
+        if (noResults && table) {
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+            table.style.display = visibleCount === 0 ? 'none' : '';
+        }
+    }
+</script>
+
+
 
 
         <!-- Header-->
-        <header class="bg-dark py-5">
+        <!--<header class="bg-dark py-5">
             <div class="container px-4 px-lg-5 my-5">
                 <div class="text-center text-white">
                     <h1 class="display-4 fw-bolder">Shipped</h1>
@@ -27,7 +196,7 @@
                           <th scope="col">Customer name</th>
                           <th scope="col">Customer Email</th>
                           <th scope="col">Date Shipped</th>
-                          <!--<th scope="col">Shipped</th>-->
+                          <th scope="col">Shipped</th>
                           <th scope="col">Change Status</th>
                         </tr>
                       </thead>
@@ -64,7 +233,7 @@
 
     <br/><br/>
     <br/><br>
-    <br/><br>
+    <br/><br>-->
 
        
  {% endblock %}

@@ -8,6 +8,7 @@ urlpatterns = [
     path('process_order', views.process_order, name="process_order"),
     
     #For admin
+    path('orders-admin/<int:pk>', views.orders_admin, name='orders_admin'),
     path('orders/<int:pk>', views.orders, name='orders'),
     path('not_shipped_dash', views.not_shipped_dash, name="not_shipped_dash"),
     path('shipped_dash', views.shipped_dash, name="shipped_dash"),
@@ -19,6 +20,7 @@ urlpatterns = [
 
     path('order-history/', views.order_history, name='order_history'),
     path('track-order/<int:order_id>/', views.track_order, name='track_order'),
+    path('orders/<int:pk>/', views.order_detail, name='order_detail'),
     
     #path('upload_payment/', views.upload_payment, name="upload_payment"),
 ]

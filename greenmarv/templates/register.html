@@ -1,10 +1,133 @@
-{% extends 'base.html' %}
+
+{% extends 'base1.html' %}
 {% load static %}
 
 {% block content %}
 
+<section class="auth-section">
+    <div class="auth-container">
+        <!-- LEFT: Visual / Branding Panel -->
+        <div class="auth-visual">
+            <div class="auth-visual-leaves">
+                <span class="floating-leaf leaf-1">🍃</span>
+                <span class="floating-leaf leaf-2">🌿</span>
+                <span class="floating-leaf leaf-3">🍃</span>
+                <span class="floating-leaf leaf-4">🌱</span>
+            </div>
+            <div class="auth-visual-content">
+                <div class="auth-visual-badge">✨ JOIN THE COMMUNITY</div>
+                <h1 class="auth-visual-title">Start Your<br><span>Journey Today</span></h1>
+                <p class="auth-visual-subtitle">Create an account and discover why thousands of South Africans trust Marvelously Green for their natural hair care.</p>
+                
+                <div class="auth-perks">
+                    <div class="auth-perk">
+                        <span class="perk-icon">🎉</span>
+                        <div>
+                            <strong>10% Off First Order</strong>
+                            <span>Welcome discount on signup</span>
+                        </div>
+                    </div>
+                    <div class="auth-perk">
+                        <span class="perk-icon">🚚</span>
+                        <div>
+                            <strong>Free Shipping</strong>
+                            <span>On orders over R600</span>
+                        </div>
+                    </div>
+                    <div class="auth-perk">
+                        <span class="perk-icon">🌿</span>
+                        <div>
+                            <strong>100% Organic</strong>
+                            <span>Premium natural ingredients</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Form Panel -->
+        <div class="auth-form-panel">
+            <div class="auth-form-header">
+                <h2>Create Account</h2>
+                <p>Join our natural beauty community</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="auth-message {% if message.tags %}{{ message.tags }}{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" action="{% url 'register' %}" class="auth-form register-form" id="registerForm">
+                {% csrf_token %}
+                
+                <!-- Django form rendered with custom styling -->
+                <div class="django-form-fields">
+                    {% for field in form %}
+                        <div class="auth-field {% if field.errors %}has-error{% endif %}">
+                            <label for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="required">*</span>{% endif %}
+                            </label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small class="field-help">{{ field.help_text|safe }}</small>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="field-error">
+                                    {% for error in field.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="terms-agreement">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="terms" id="terms" required>
+                        <span class="checkbox-custom"></span>
+                        <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+                    </label>
+                </div>
+
+                <div class="marketing-opt-in">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="marketing" id="marketing" checked>
+                        <span class="checkbox-custom"></span>
+                        <span>Send me hair care tips and exclusive offers</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="auth-submit-btn">
+                    Create Account →
+                </button>
+
+                <div class="auth-divider">
+                    <span>OR</span>
+                </div>
+
+                <div class="auth-switch">
+                    Already have an account? 
+                    <a href="{% url 'login' %}">Sign in</a>
+                </div>
+            </form>
+
+            <div class="auth-trust">
+                <span>🔒</span>
+                <span>Your info is encrypted and secure</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include 'auth_styles.html' %}
+
         <!-- Header-->
-        <header class="bg-success py-5">
+        <!--<header class="bg-success py-5">
             <div class="container px-4 px-lg-5 my-5">
                 <div class="text-center text-white">
                     <h1 class="display-4 fw-bolder">Register</h1>
@@ -27,7 +150,8 @@
         </center>
     </div>
 
-    <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+    <br/><br/><br/><br/><br/><br/><br/><br/><br/>
+    <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>-->
 
 
 

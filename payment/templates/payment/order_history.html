@@ -1,62 +1,690 @@
-{% extends 'base.html' %}
+{% extends 'base1.html' %}
 {% load static %}
+
 {% block content %}
 
-        <!-- Header-->
-        <header class="bg-dark py-5">
-            <div class="container px-4 px-lg-5 my-5">
-                <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">Order History</h1>
-                    
+<!-- Hero -->
+<section class="order-hero">
+    <div class="order-hero-leaves">
+        <span class="floating-leaf leaf-1">🍃</span>
+        <span class="floating-leaf leaf-2">🌿</span>
+        <span class="floating-leaf leaf-3">🍃</span>
+    </div>
+    <div class="order-hero-container">
+        <div class="order-hero-badge">📦 ORDER CENTER</div>
+        <h1 class="order-hero-title">Your <span>Orders</span></h1>
+        <p class="order-hero-subtitle">Track, review, and reorder your favorite products</p>
+    </div>
+</section>
+
+<!-- Stats Strip -->
+<section class="stats-strip">
+    <div class="stats-container">
+        <div class="stat-box">
+            <div class="stat-icon">📋</div>
+            <div class="stat-number">{{ stats.total }}</div>
+            <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-number">{{ stats.processing }}</div>
+            <div class="stat-label">Processing</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-icon">🚚</div>
+            <div class="stat-number">{{ stats.shipped }}</div>
+            <div class="stat-label">Shipped</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-icon">❌</div>
+            <div class="stat-number">{{ stats.cancelled }}</div>
+            <div class="stat-label">Cancelled</div>
+        </div>
+    </div>
+</section>
+
+<!-- Orders Section -->
+<section class="orders-section">
+    <div class="orders-container">
+        <!-- Filters Bar -->
+        <div class="filters-bar">
+            <div class="filter-tabs">
+                <a href="?status=all" class="filter-tab {% if current_status == 'all' %}active{% endif %}">
+                    All Orders
+                </a>
+                <a href="?status=processing" class="filter-tab {% if current_status == 'processing' %}active{% endif %}">
+                    Processing
+                </a>
+                <a href="?status=shipped" class="filter-tab {% if current_status == 'shipped' %}active{% endif %}">
+                    Shipped
+                </a>
+                <a href="?status=cancelled" class="filter-tab {% if current_status == 'cancelled' %}active{% endif %}">
+                    Cancelled
+                </a>
+            </div>
+
+            <form method="GET" class="search-form">
+                <input type="hidden" name="status" value="{{ current_status }}">
+                <div class="search-input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" 
+                           name="q" 
+                           placeholder="Search by order number..." 
+                           value="{{ search_query }}"
+                           class="search-input">
+                </div>
+                <button type="submit" class="search-btn">Search</button>
+            </form>
+        </div>
+
+        <!-- Track Order Link -->
+        <div class="track-link-banner">
+            <span>💡 Placed an order as a guest?</span>
+            <a href="{% url 'track_order' %}?order_id={{ order.id }}&email={{ order.email|urlencode }}">
+                Track it with your order number →</a>
+        </div>
+
+        <!-- Orders List -->
+        {% if orders %}
+            {% for order in orders %}
+            <div class="order-card">
+                <div class="order-card-header">
+                    <div class="order-card-left">
+                        <div class="order-number">
+                            <span class="label">ORDER</span>
+                            <strong>#{{ order.id }}</strong>
+                        </div>
+                        <div class="order-date">
+                            <span class="label">PLACED</span>
+                            <strong>{{ order.date_ordered|date:"d M Y" }}</strong>
+                        </div>
+                        <div class="order-total">
+                            <span class="label">TOTAL</span>
+                            <strong>R{{ order.amount_paid }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="order-card-right">
+                        {% if order.status == 'paid' and order.shipped %}
+                            <div class="status-pill shipped">
+                                <span class="pill-dot"></span> Shipped
+                            </div>
+                        {% elif order.status == 'paid' and not order.shipped %}
+                            <div class="status-pill processing">
+                                <span class="pill-dot"></span> Processing
+                            </div>
+                        {% elif order.status == 'cancelled' %}
+                            <div class="status-pill cancelled">
+                                <span class="pill-dot"></span> Cancelled
+                            </div>
+                        {% elif order.status == 'failed' %}
+                            <div class="status-pill failed">
+                                <span class="pill-dot"></span> Failed
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Item previews -->
+                <div class="order-items-preview">
+                    {% for item in order.preview_items %}
+                    <div class="preview-item" title="{{ item.product.name }}">
+                        {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                        {% else %}
+                            <div class="preview-placeholder">🌿</div>
+                        {% endif %}
+                        {% if item.quantity > 1 %}
+                            <span class="preview-qty">×{{ item.quantity }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% if order.total_items > 3 %}
+                    <div class="preview-more">
+                        +{{ order.total_items|add:"-3" }} more
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="order-card-footer">
+                    <a href="{% url 'order_detail' order.id %}" class="btn-order-action">
+                        View Details →
+                    </a>
+                    {% if order.status == 'paid' %}
+                    <a href="{% url 'track_order' %}?order_id={{ order.id }}&email={{ order.email }}" class="btn-order-action outline">
+                        🚚 Track Order
+                    </a>
+                    {% endif %}
                 </div>
             </div>
-        </header>
+            {% endfor %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-orders">
+                <div class="empty-icon">🌿</div>
+                <h3>
+                    {% if search_query %}
+                        No orders match "{{ search_query }}"
+                    {% elif current_status != 'all' %}
+                        No {{ current_status }} orders
+                    {% else %}
+                        No orders yet
+                    {% endif %}
+                </h3>
+                <p>
+                    {% if search_query or current_status != 'all' %}
+                        Try adjusting your filters or search.
+                    {% else %}
+                        Start your natural beauty journey by exploring our collection.
+                    {% endif %}
+                </p>
+                {% if current_status != 'all' or search_query %}
+                    <a href="{% url 'order_history' %}" class="btn-empty-cta">
+                        Show All Orders
+                    </a>
+                {% else %}
+                    <a href="{% url 'shop' %}" class="btn-empty-cta">
+                        Start Shopping →
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</section>
 
-        <div class="container">
-        	<center>
-	            <div class="col-8">
-	                <br/><br/>
-	                <div class="alert alert-info mt-3">
-				<h2>My Orders</h2>
-				{% for order in orders %}
-				  <div class="order">
-				    <p><strong>Order ID:</strong> {{ order.id }}</p>
-				    <p><strong>Amount Paid:</strong> R{{ order.amount_paid }}</p>
-				    <p><strong>Shipping Address:</strong> {{ order.shipping_address }}</p>
-				    <p><strong>Date:</strong> {{ order.created_at|date:"d M Y H:i" }}</p>
-				    
-				    {% if order.shipped %}
-				      <p style="color: green;"><strong>Status:</strong> Shipped on {{ order.date_shipped|date:"d M Y H:i" }}</p>
-				    {% else %}
-				      <p style="color: orange;"><strong>Status:</strong> Not yet shipped</p>
-				    {% endif %}
-				  </div>
-				  <hr>
-				{% endfor %}
+<style>
+    .order-hero {
+        background: linear-gradient(135deg, #1b3022 0%, #2d5016 50%, #c5a059 100%);
+        padding: 4rem 5% 3rem;
+        text-align: center;
+        color: #fcf8ef;
+        position: relative;
+        overflow: hidden;
+    }
 
-				<!--{% if orders %}
-				    <ul class="order-history">
-				        {% for order in orders %}
-				            <li>
-				                <strong>Order ID:</strong> {{ order.id }}<br>
-				                <strong>Date:</strong> {{ order.date_ordered|date:"Y-m-d H:i" }}<br>
-				                <strong>Status:</strong> {{ order.shipped }}<br><br/>
-				                <a href="{% url 'track_order' order.id %}" class="btn btn-outline-secondary">Track Order</a>
-				            </li>
-				        {% endfor %}
-				    </ul>
-				{% else %}
-				    <p>You have no past orders.</p>
-				{% endif %}-->
-				</div>
-			</div>
-		</center>
-		</div>
+    .order-hero-leaves {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+    }
 
-		    <br/><br><br/><br><br/><br><br/><br><br/><br><br/><br><br/><br><br/><br><br/><br>
-		    
-   
+    .order-hero-leaves .floating-leaf {
+        position: absolute;
+        font-size: 2rem;
+        opacity: 0.35;
+    }
 
+    .order-hero-leaves .leaf-1 { top: 25%; left: 12%; }
+    .order-hero-leaves .leaf-2 { top: 60%; right: 15%; }
+    .order-hero-leaves .leaf-3 { top: 35%; right: 8%; opacity: 0.25; }
 
+    .order-hero-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
 
-  {% endblock %}
+    .order-hero-badge {
+        background: rgba(27, 48, 34, 0.4);
+        border: 1px solid #c5a059;
+        color: #fcf8ef;
+        padding: 0.5rem 1.2rem;
+        border-radius: 30px;
+        display: inline-block;
+        margin-bottom: 1.25rem;
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+        font-weight: 600;
+    }
+
+    .order-hero-title {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #fcf8ef;
+        margin-bottom: 0.5rem;
+        letter-spacing: -1px;
+    }
+
+    .order-hero-title span {
+        color: #c5a059;
+        font-style: italic;
+    }
+
+    .order-hero-subtitle {
+        color: #fcf8ef;
+        opacity: 0.9;
+        font-size: 1.05rem;
+    }
+
+    /* Stats strip */
+    .stats-strip {
+        background: white;
+        padding: 1.5rem 5%;
+        border-bottom: 1px solid rgba(197, 160, 89, 0.15);
+    }
+
+    .stats-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+
+    .stat-box {
+        background: #f8fdf8;
+        border: 1px solid #e8f5e9;
+        padding: 1.25rem;
+        border-radius: 15px;
+        text-align: center;
+        transition: all 0.3s;
+    }
+
+    .stat-box:hover {
+        border-color: #c5a059;
+        transform: translateY(-3px);
+    }
+
+    .stat-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #2d5016;
+        line-height: 1;
+    }
+    .stat-label {
+        color: #666;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 0.3rem;
+        font-weight: 600;
+    }
+
+    /* Orders section */
+    .orders-section {
+        padding: 2.5rem 5% 5rem;
+        background: #fafbf9;
+        min-height: 50vh;
+    }
+
+    .orders-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Filters */
+    .filters-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 0.5rem;
+        background: white;
+        padding: 0.35rem;
+        border-radius: 12px;
+        border: 1px solid rgba(197, 160, 89, 0.2);
+        flex-wrap: wrap;
+    }
+
+    .filter-tab {
+        padding: 0.6rem 1.2rem;
+        color: #666;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border-radius: 9px;
+        transition: all 0.3s;
+    }
+
+    .filter-tab:hover {
+        color: #2d5016;
+        background: #f8fdf8;
+    }
+
+    .filter-tab.active {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    .search-input {
+        padding: 0.7rem 1rem 0.7rem 2.5rem;
+        border: 2px solid #e8f5e9;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        width: 240px;
+        transition: all 0.3s;
+    }
+
+    .search-input:focus {
+        border-color: #c5a059;
+        outline: none;
+    }
+
+    .search-btn {
+        padding: 0.7rem 1.5rem;
+        background: #2d5016;
+        color: #c5a059;
+        border: 1px solid #c5a059;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: all 0.3s;
+    }
+
+    .search-btn:hover {
+        background: #1b3022;
+    }
+
+    /* Track order banner */
+    .track-link-banner {
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        border: 1px dashed #c5a059;
+        padding: 0.9rem 1.25rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .track-link-banner span {
+        color: #2d5016;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .track-link-banner a {
+        color: #c5a059;
+        text-decoration: none;
+        font-weight: 700;
+        transition: color 0.3s;
+    }
+
+    .track-link-banner a:hover { color: #2d5016; }
+
+    /* Order cards */
+    .order-card {
+        background: white;
+        border-radius: 18px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(197, 160, 89, 0.15);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s;
+    }
+
+    .order-card:hover {
+        border-color: #c5a059;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+    }
+
+    .order-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+    }
+
+    .order-card-left {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .order-number, .order-date, .order-total {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .order-card-left .label {
+        font-size: 0.7rem;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .order-number strong {
+        color: #c5a059;
+        font-size: 1.1rem;
+        font-weight: 800;
+        font-style: italic;
+    }
+
+    .order-date strong,
+    .order-total strong {
+        color: #2d5016;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    /* Status pills */
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 1rem;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .pill-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+    }
+
+    .status-pill.shipped {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+    }
+    .status-pill.shipped .pill-dot { background: #c5a059; }
+
+    .status-pill.processing {
+        background: #fff9e6;
+        color: #8a6d2e;
+        border: 1px solid #c5a059;
+    }
+    .status-pill.processing .pill-dot {
+        background: #c5a059;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .status-pill.cancelled {
+        background: #fdf0ef;
+        color: #c0392b;
+        border: 1px solid #e74c3c;
+    }
+    .status-pill.cancelled .pill-dot { background: #e74c3c; }
+
+    .status-pill.failed {
+        background: #f5f5f5;
+        color: #666;
+        border: 1px solid #ddd;
+    }
+    .status-pill.failed .pill-dot { background: #999; }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    /* Item previews */
+    .order-items-preview {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .preview-item {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        border: 1px solid rgba(197, 160, 89, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .preview-item img {
+        max-width: 80%;
+        max-height: 80%;
+        object-fit: contain;
+    }
+
+    .preview-placeholder { font-size: 1.5rem; }
+
+    .preview-qty {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        background: #2d5016;
+        color: #c5a059;
+        padding: 0.15rem 0.4rem;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        border: 2px solid white;
+    }
+
+    .preview-more {
+        color: #666;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding-left: 0.5rem;
+    }
+
+    /* Card footer */
+    .order-card-footer {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-order-action {
+        padding: 0.65rem 1.3rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+        border: 1px solid #c5a059;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.88rem;
+        transition: all 0.3s;
+    }
+
+    .btn-order-action:hover {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+    }
+
+    .btn-order-action.outline {
+        background: white;
+        color: #2d5016;
+        border-color: #e8f5e9;
+    }
+
+    .btn-order-action.outline:hover {
+        background: #f8fdf8;
+        border-color: #c5a059;
+    }
+
+    /* Empty state */
+    .empty-orders {
+        background: white;
+        border-radius: 20px;
+        padding: 4rem 2rem;
+        text-align: center;
+        border: 1px dashed #c5a059;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-orders h3 {
+        color: #2d5016;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .empty-orders p {
+        color: #666;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn-empty-cta {
+        display: inline-block;
+        padding: 1rem 2.5rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        border: 1px solid #c5a059;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        transition: all 0.3s;
+    }
+
+    .btn-empty-cta:hover {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+        transform: translateY(-3px);
+    }
+
+    @media (max-width: 768px) {
+        .stats-container { grid-template-columns: repeat(2, 1fr); }
+        .filters-bar { flex-direction: column; align-items: stretch; }
+        .search-input { width: 100%; flex: 1; }
+        .search-form { display: flex; }
+        .order-hero-title { font-size: 2.25rem; }
+        .order-card-header { flex-direction: column; align-items: stretch; }
+        .order-card-left { gap: 1rem; }
+    }
+</style>
+
+{% endblock %}

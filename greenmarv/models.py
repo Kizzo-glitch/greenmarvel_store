@@ -45,9 +45,6 @@ class Category(models.Model):
 		verbose_name_plural = 'Categories'
 
 
-#class CustomUser(AbstractUser):
-#	email = models.EmailField(unique=True)
-
 
 class Customer(models.Model):
 	first_name = models.CharField(max_length=50)
@@ -95,6 +92,7 @@ class Product(models.Model):
         if self.is_sale:
             return self.sale_price
         return self.price
+
 """
 class Product(models.Model):
 	name = models.CharField(max_length=50)
@@ -113,7 +111,7 @@ class Product(models.Model):
 		return f'{self.name}'
 """
 
-
+"""
 class Order(models.Model):
 	product = models.ForeignKey(Product, on_delete=models.CASCADE)
 	customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -125,7 +123,7 @@ class Order(models.Model):
 
 	def __str__(self):
 		return self.product
-
+"""
 
 
 class Influencer(models.Model):

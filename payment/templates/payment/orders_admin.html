@@ -1,0 +1,793 @@
+{% extends 'base1.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- Admin Hero -->
+<section class="admin-hero">
+    <div class="admin-hero-container">
+        <div class="admin-breadcrumb">
+            <a href="{% url 'not_shipped_dash' %}">← Unshipped</a>
+            <span>·</span>
+            <a href="{% url 'shipped_dash' %}">Shipped</a>
+        </div>
+        <div class="admin-hero-badge">⚡ ADMIN · ORDER MANAGEMENT</div>
+        <h1 class="admin-hero-title">Order <span>#{{ order.id }}</span></h1>
+        <div class="admin-hero-meta">
+            <span>Placed {{ order.date_ordered|date:"d M Y, H:i" }}</span>
+            {% if order.date_paid %}
+                <span>·</span>
+                <span>Paid {{ order.date_paid|date:"d M Y, H:i" }}</span>
+            {% endif %}
+            {% if order.date_shipped %}
+                <span>·</span>
+                <span>Shipped {{ order.date_shipped|date:"d M Y, H:i" }}</span>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Payment Status Strip -->
+<section class="payment-status-strip">
+    <div class="payment-status-container">
+        <div class="payment-info">
+            {% if order.status == 'paid' %}
+                <div class="payment-pill paid">
+                    <span class="pill-dot"></span>
+                    Paid · R{{ order.amount_paid }}
+                </div>
+            {% elif order.status == 'cancelled' %}
+                <div class="payment-pill cancelled">
+                    <span class="pill-dot"></span>
+                    Payment Cancelled
+                </div>
+            {% elif order.status == 'failed' %}
+                <div class="payment-pill failed">
+                    <span class="pill-dot"></span>
+                    Payment Failed
+                </div>
+            {% else %}
+                <div class="payment-pill pending">
+                    <span class="pill-dot"></span>
+                    Pending Payment
+                </div>
+            {% endif %}
+
+            {% if order.shipped %}
+                <div class="payment-pill shipping-pill shipped">
+                    <span class="pill-dot"></span>
+                    ✓ Shipped
+                </div>
+            {% else %}
+                <div class="payment-pill shipping-pill not-shipped">
+                    <span class="pill-dot"></span>
+                    Not Shipped
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="admin-section">
+    <div class="admin-container">
+        <div class="admin-layout">
+            <!-- LEFT: Items + Customer -->
+            <div class="admin-main-column">
+                <!-- Customer Info -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3>👤 Customer</h3>
+                    </div>
+                    <div class="customer-grid">
+                        <div class="customer-row">
+                            <span class="customer-label">Name</span>
+                            <span class="customer-value">{{ order.full_name }}</span>
+                        </div>
+                        <div class="customer-row">
+                            <span class="customer-label">Email</span>
+                            <span class="customer-value">
+                                <a href="mailto:{{ order.email }}">{{ order.email }}</a>
+                            </span>
+                        </div>
+                        {% if order.phone %}
+                        <div class="customer-row">
+                            <span class="customer-label">Phone</span>
+                            <span class="customer-value">
+                                <a href="tel:{{ order.phone }}">{{ order.phone }}</a>
+                            </span>
+                        </div>
+                        {% endif %}
+                        <div class="customer-row">
+                            <span class="customer-label">Account</span>
+                            <span class="customer-value">
+                                {% if order.user %}
+                                    <span class="account-badge logged-in">Logged In · {{ order.user.username }}</span>
+                                {% else %}
+                                    <span class="account-badge guest">Guest Checkout</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Address -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3>📍 Shipping Address</h3>
+                    </div>
+                    <div class="admin-address-block">
+                        {{ order.shipping_address|linebreaksbr }}
+                    </div>
+                </div>
+
+                <!-- Items -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3>🛍️ Order Items ({{ items|length }})</h3>
+                    </div>
+                    <div class="admin-items-list">
+                        {% for item in items %}
+                        <div class="admin-item">
+                            <div class="admin-item-image">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                                {% else %}
+                                    <div class="item-placeholder">🌿</div>
+                                {% endif %}
+                            </div>
+                            <div class="admin-item-info">
+                                <h4>{{ item.product.name }}</h4>
+                                <div class="admin-item-meta">
+                                    <span>SKU: #{{ item.product.id }}</span>
+                                    {% if item.product.weight %}
+                                    <span>·</span>
+                                    <span>{{ item.product.weight }}kg</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="admin-item-qty">
+                                <div class="qty-pill">×{{ item.quantity }}</div>
+                                <div class="item-line-total">R{{ item.price }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Actions + Summary -->
+            <div class="admin-side-column">
+                <!-- Shipping Action Panel -->
+                <div class="admin-card action-card">
+                    <div class="admin-card-header">
+                        <h3>🚚 Shipping Actions</h3>
+                    </div>
+
+                    {% if order.status != 'paid' %}
+                    <div class="warning-box">
+                        ⚠️ This order is <strong>{{ order.status }}</strong>. Only paid orders should be shipped.
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" class="action-form">
+                        {% csrf_token %}
+                        {% if not order.shipped %}
+                            <p class="action-description">
+                                Mark this order as shipped. This will move it to the "Shipped" dashboard and record today's date.
+                            </p>
+                            <input type="hidden" name="shipping_status" value="true">
+                            <button type="submit" class="btn-mark-shipped" {% if order.status != 'paid' %}disabled{% endif %}>
+                                ✓ Mark as Shipped
+                            </button>
+                        {% else %}
+                            <p class="action-description">
+                                This order was shipped on <strong>{{ order.date_shipped|date:"d M Y" }}</strong>. Click below to revert status if needed.
+                            </p>
+                            <input type="hidden" name="shipping_status" value="false">
+                            <button type="submit" class="btn-mark-unshipped">
+                                ↶ Revert to Unshipped
+                            </button>
+                        {% endif %}
+                    </form>
+                </div>
+
+                <!-- Summary -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3>💰 Totals</h3>
+                    </div>
+                    <div class="summary-rows">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span class="value">R{{ subtotal|floatformat:2 }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Shipping</span>
+                            <span class="value">R{{ shipping_cost|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-total">
+                        <span>Total Paid</span>
+                        <span class="total-value">R{{ order.amount_paid }}</span>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3>⚡ Quick Actions</h3>
+                    </div>
+                    <div class="quick-actions-list">
+                        <a href="mailto:{{ order.email }}?subject=Regarding%20Order%20%23{{ order.id }}" class="quick-action">
+                            <span class="quick-action-icon">📧</span>
+                            <span>Email Customer</span>
+                        </a>
+                        {% if order.phone %}
+                        <a href="tel:{{ order.phone }}" class="quick-action">
+                            <span class="quick-action-icon">📞</span>
+                            <span>Call Customer</span>
+                        </a>
+                        {% endif %}
+                        <button onclick="window.print()" class="quick-action">
+                            <span class="quick-action-icon">🖨️</span>
+                            <span>Print Order</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* HERO */
+    .admin-hero {
+        background: linear-gradient(135deg, #1b3022 0%, #2d5016 100%);
+        padding: 2.5rem 5% 2rem;
+        color: #fcf8ef;
+        position: relative;
+    }
+
+    .admin-hero::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #c5a059, #d4b374, #c5a059);
+    }
+
+    .admin-hero-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .admin-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 1rem;
+        color: #fcf8ef;
+        opacity: 0.7;
+        font-size: 0.85rem;
+    }
+
+    .admin-breadcrumb a {
+        color: #c5a059;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s;
+    }
+
+    .admin-breadcrumb a:hover {
+        color: #d4b374;
+    }
+
+    .admin-hero-badge {
+        background: rgba(197, 160, 89, 0.2);
+        border: 1px solid #c5a059;
+        color: #c5a059;
+        padding: 0.35rem 0.9rem;
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 0.75rem;
+        font-size: 0.7rem;
+        letter-spacing: 1.5px;
+        font-weight: 700;
+    }
+
+    .admin-hero-title {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: #fcf8ef;
+        margin-bottom: 0.4rem;
+        letter-spacing: -0.5px;
+    }
+
+    .admin-hero-title span {
+        color: #c5a059;
+        font-style: italic;
+    }
+
+    .admin-hero-meta {
+        color: #fcf8ef;
+        opacity: 0.75;
+        font-size: 0.85rem;
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    /* STATUS STRIP */
+    .payment-status-strip {
+        background: white;
+        border-bottom: 1px solid rgba(197, 160, 89, 0.15);
+        padding: 1rem 5%;
+    }
+
+    .payment-status-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .payment-info {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .payment-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .pill-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .payment-pill.paid {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+    }
+    .payment-pill.paid .pill-dot { background: #c5a059; }
+
+    .payment-pill.pending {
+        background: #fff9e6;
+        color: #8a6d2e;
+        border: 1px solid #c5a059;
+    }
+    .payment-pill.pending .pill-dot { 
+        background: #c5a059;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .payment-pill.cancelled, .payment-pill.failed {
+        background: #fdf0ef;
+        color: #c0392b;
+        border: 1px solid #e74c3c;
+    }
+    .payment-pill.cancelled .pill-dot, .payment-pill.failed .pill-dot { background: #e74c3c; }
+
+    .payment-pill.shipping-pill.shipped {
+        background: rgba(76, 175, 80, 0.1);
+        color: #2d5016;
+        border: 1px solid #4CAF50;
+    }
+    .payment-pill.shipping-pill.shipped .pill-dot { background: #4CAF50; }
+
+    .payment-pill.shipping-pill.not-shipped {
+        background: #f8fdf8;
+        color: #666;
+        border: 1px solid #e8f5e9;
+    }
+    .payment-pill.shipping-pill.not-shipped .pill-dot { background: #999; }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    /* LAYOUT */
+    .admin-section {
+        padding: 2rem 5% 4rem;
+        background: #fafbf9;
+        min-height: 50vh;
+    }
+
+    .admin-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .admin-layout {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    .admin-main-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .admin-side-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        position: sticky;
+        top: 100px;
+    }
+
+    /* CARDS */
+    .admin-card {
+        background: white;
+        border-radius: 18px;
+        padding: 1.5rem;
+        border: 1px solid rgba(197, 160, 89, 0.15);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .admin-card.action-card {
+        border-color: #c5a059;
+        background: linear-gradient(135deg, #fffcf5, white);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .admin-card.action-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #c5a059, #d4b374, #c5a059);
+    }
+
+    .admin-card-header {
+        margin-bottom: 1.25rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .admin-card-header h3 {
+        color: #2d5016;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    /* CUSTOMER GRID */
+    .customer-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .customer-row {
+        display: grid;
+        grid-template-columns: 80px 1fr;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .customer-label {
+        color: #999;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+    }
+
+    .customer-value {
+        color: #333;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .customer-value a {
+        color: #c5a059;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .customer-value a:hover {
+        color: #2d5016;
+        text-decoration: underline;
+    }
+
+    .account-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+
+    .account-badge.logged-in {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+    }
+
+    .account-badge.guest {
+        background: #f8fdf8;
+        color: #666;
+        border: 1px solid #e8f5e9;
+    }
+
+    /* ADDRESS */
+    .admin-address-block {
+        padding: 1rem 1.25rem;
+        background: #f8fdf8;
+        border-radius: 10px;
+        border-left: 3px solid #c5a059;
+        color: #444;
+        font-size: 0.9rem;
+        line-height: 1.7;
+    }
+
+    /* ITEMS */
+    .admin-items-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .admin-item {
+        display: flex;
+        gap: 1rem;
+        padding: 0.9rem;
+        background: #f8fdf8;
+        border-radius: 12px;
+        align-items: center;
+        border: 1px solid transparent;
+        transition: all 0.3s;
+    }
+
+    .admin-item:hover {
+        border-color: rgba(197, 160, 89, 0.3);
+        background: white;
+    }
+
+    .admin-item-image {
+        width: 60px;
+        height: 60px;
+        background: white;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border: 1px solid rgba(197, 160, 89, 0.15);
+        flex-shrink: 0;
+    }
+
+    .admin-item-image img {
+        max-width: 85%;
+        max-height: 85%;
+        object-fit: contain;
+    }
+
+    .item-placeholder { font-size: 1.4rem; }
+
+    .admin-item-info { flex: 1; min-width: 0; }
+
+    .admin-item-info h4 {
+        color: #2d5016;
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+    }
+
+    .admin-item-meta {
+        display: flex;
+        gap: 0.3rem;
+        color: #888;
+        font-size: 0.78rem;
+    }
+
+    .admin-item-qty {
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    .qty-pill {
+        display: inline-block;
+        padding: 0.25rem 0.7rem;
+        background: #2d5016;
+        color: #c5a059;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+    }
+
+    .item-line-total {
+        color: #2d5016;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    /* ACTION PANEL */
+    .warning-box {
+        padding: 0.85rem 1rem;
+        background: #fff9e6;
+        border: 1px solid #c5a059;
+        border-radius: 10px;
+        color: #8a6d2e;
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+    }
+
+    .action-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .action-description {
+        color: #666;
+        font-size: 0.88rem;
+        line-height: 1.6;
+    }
+
+    .action-description strong {
+        color: #2d5016;
+    }
+
+    .btn-mark-shipped {
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        border: 1px solid #c5a059;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-mark-shipped:hover:not(:disabled) {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(197, 160, 89, 0.35);
+    }
+
+    .btn-mark-shipped:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-mark-unshipped {
+        padding: 1rem 1.5rem;
+        background: white;
+        color: #c0392b;
+        border: 2px solid #e74c3c;
+        border-radius: 50px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-mark-unshipped:hover {
+        background: #e74c3c;
+        color: white;
+    }
+
+    /* SUMMARY */
+    .summary-rows { margin-bottom: 0.75rem; }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.4rem 0;
+        color: #555;
+        font-size: 0.9rem;
+    }
+
+    .summary-row .value {
+        font-weight: 700;
+        color: #2d5016;
+    }
+
+    .summary-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #c5a059, transparent);
+        margin: 0.5rem 0;
+    }
+
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.4rem 0;
+    }
+
+    .summary-total span:first-child {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .total-value {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #2d5016;
+    }
+
+    /* QUICK ACTIONS */
+    .quick-actions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .quick-action {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: #f8fdf8;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        color: #2d5016;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        text-align: left;
+        font-family: inherit;
+        transition: all 0.3s;
+    }
+
+    .quick-action:hover {
+        background: white;
+        border-color: #c5a059;
+        transform: translateX(3px);
+    }
+
+    .quick-action-icon {
+        font-size: 1.1rem;
+        width: 32px;
+        height: 32px;
+        background: white;
+        border: 1px solid #e8f5e9;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+        .admin-layout { grid-template-columns: 1fr; }
+        .admin-side-column { position: static; }
+    }
+
+    @media (max-width: 768px) {
+        .admin-hero-title { font-size: 1.75rem; }
+        .customer-row { grid-template-columns: 1fr; gap: 0.2rem; }
+        .admin-item { flex-wrap: wrap; }
+    }
+
+    /* PRINT STYLES */
+    @media print {
+        .admin-hero { background: white !important; color: black !important; }
+        .admin-side-column, .action-card, .quick-actions-list { display: none; }
+        .admin-layout { grid-template-columns: 1fr; }
+    }
+</style>
+
+{% endblock %}

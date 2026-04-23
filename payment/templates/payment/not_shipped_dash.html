@@ -1,55 +1,177 @@
-{% extends 'base.html' %}
+{% extends 'base1.html' %}
 {% load static %}
+
 {% block content %}
 
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
-        <title>Green Marvel</title>
-        <!-- Favicon-->
-        <link rel="icon" type="image/x-icon" href="{% static 'products/assets/gm.jpeg' %}" />
-        <!-- Bootstrap icons-->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
-        <!-- Core theme CSS (includes Bootstrap)-->
-        <link href="{% static 'products/css/styles.css' %}" rel="stylesheet" />
-    </head>
-    <body>
-        <!-- Navigation-->
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="container px-4 px-lg-5">
-                <a class="navbar-brand" href="#!">Green Marvel</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
-                        <li class="nav-item"><a class="nav-link active" aria-current="page" href="{% url 'index' %}">Home</a></li>
-                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Orders</a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="{% url 'shipped_dash' %}">Shipped Orders</a></li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li><a class="dropdown-item" href="{% url 'not_shipped_dash' %}">Unshipped Orders</a></li>
-                                
-                            </ul>
-                        </li> 
-                    </ul>
-
+<!-- Admin Hero -->
+<section class="admin-hero">
+    <div class="admin-hero-container">
+        <div class="admin-hero-badge">⚡ ADMIN · ORDER FULFILLMENT</div>
+        <div class="admin-hero-flex">
+            <div>
+                <h1 class="admin-hero-title">Unshipped <span>Orders</span></h1>
+                <p class="admin-hero-subtitle">Orders awaiting dispatch — ship these as soon as possible</p>
+            </div>
+            <div class="admin-hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-number">{{ orders|length }}</div>
+                    <div class="hero-stat-label">Pending</div>
                 </div>
             </div>
-        </nav>
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                  {{message}}
-                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+</section>
+
+<!-- Tab Nav -->
+<section class="admin-tabs-strip">
+    <div class="admin-tabs-container">
+        <a href="{% url 'not_shipped_dash' %}" class="admin-tab active">
+            📋 Unshipped 
+            <span class="tab-count">{{ orders|length }}</span>
+        </a>
+        <a href="{% url 'shipped_dash' %}" class="admin-tab">
+            🚚 Shipped
+        </a>
+        <a href="{% url 'successful_payments' %}" class="admin-tab">
+            💳 Payfast Log
+        </a>
+    </div>
+</section>
+
+<section class="admin-dash-section">
+    <div class="admin-dash-container">
+        <!-- Toolbar -->
+        <div class="admin-toolbar">
+            <div class="toolbar-left">
+                <h2 class="toolbar-title">
+                    📦 {{ orders|length }} order{{ orders|length|pluralize }} to ship
+                </h2>
+            </div>
+            <div class="toolbar-right">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" 
+                           id="orderSearch" 
+                           placeholder="Search orders..." 
+                           class="admin-search"
+                           onkeyup="filterOrders()">
                 </div>
-            {% endfor %}
-        {% endif %} 
+            </div>
+        </div>
+
+        {% if orders %}
+        <!-- Orders Table -->
+        <div class="admin-table-wrapper">
+            <table class="admin-table" id="ordersTable">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Order</th>
+                        <th>Customer</th>
+                        <th>Date Ordered</th>
+                        <th>Items</th>
+                        <th style="width: 110px;">Amount</th>
+                        <th style="width: 280px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in orders %}
+                    <tr data-search="{{ item.id }} {{ item.full_name|lower }} {{ item.email|lower }}">
+                        <td>
+                            <a href="{% url 'orders' item.id %}" class="order-id-link">
+                                #{{ item.id }}
+                            </a>
+                        </td>
+                        <td>
+                            <div class="customer-cell">
+                                <strong>{{ item.full_name }}</strong>
+                                <a href="mailto:{{ item.email }}" class="customer-email">{{ item.email }}</a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="date-cell">
+                                <strong>{{ item.date_ordered|date:"d M Y" }}</strong>
+                                <span>{{ item.date_ordered|date:"H:i" }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="items-badge">
+                                {% with item_count=item.orderitem_set.count %}
+                                    {{ item_count }} item{{ item_count|pluralize }}
+                                {% endwith %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="amount-cell">R{{ item.amount_paid }}</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'orders' item.id %}" class="btn-admin-action secondary">
+                                    👁 View
+                                </a>
+                                <form method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="shipping_status" value="true">
+                                    <input type="hidden" name="num" value="{{ item.id }}">
+                                    <button type="submit" class="btn-admin-action primary">
+                                        ✓ Mark Shipped
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No results message for search -->
+        <div class="no-search-results" id="noResults" style="display: none;">
+            <div class="empty-icon">🔍</div>
+            <h3>No orders match your search</h3>
+            <p>Try a different search term or clear the search.</p>
+        </div>
+
+        {% else %}
+        <!-- Empty state -->
+        <div class="empty-dash">
+            <div class="empty-icon">🎉</div>
+            <h3>All caught up!</h3>
+            <p>No unshipped orders right now. Great work keeping up with fulfillment.</p>
+            <a href="{% url 'shipped_dash' %}" class="btn-empty-action">
+                View Shipped Orders →
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% include 'payment/admin_dash_styles.html' %}
+
+<script>
+    function filterOrders() {
+        const search = document.getElementById('orderSearch').value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#ordersTable tbody tr');
+        const noResults = document.getElementById('noResults');
+        const table = document.querySelector('.admin-table-wrapper');
+        
+        let visibleCount = 0;
+        rows.forEach(row => {
+            const searchData = row.dataset.search || '';
+            const match = !search || searchData.includes(search);
+            row.style.display = match ? '' : 'none';
+            if (match) visibleCount++;
+        });
+
+        if (noResults && table) {
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+            table.style.display = visibleCount === 0 ? 'none' : '';
+        }
+    }
+</script>
+
+
         <!-- Header-->
-        <header class="bg-dark py-5">
+        <!--<header class="bg-dark py-5">
             <div class="container px-4 px-lg-5 my-5">
                 <div class="text-center text-white">
                     <h1 class="display-4 fw-bolder">Not Shipped</h1>
@@ -73,7 +195,7 @@
                               <th scope="col">Customer Name</th>
                               <th scope="col">Customer Email</th>
                               <th scope="col">Date Ordered</th>
-                              <!--<th scope="col">Shipped</th>-->
+                              <th scope="col">Shipped</th>
                               <th scope="col">Change Status</th>
                             </tr>
                           </thead>
@@ -84,7 +206,7 @@
                               <td>R{{ item.amount_paid }}</td>
                               <td>{{ item.full_name }}</td>
                               <td>{{ item.email }}</td> 
-                              <!--<td>{{ item.full_name }}</td>-->
+                              <td>{{ item.full_name }}</td>
                               <td>{{ item.date_ordered }}</td>
                               <td>
                                <form method="POST">
@@ -110,6 +232,6 @@
 
     <br/><br/>
     <br/><br>
-    <br/><br>
+    <br/><br>-->
 
  {% endblock %}

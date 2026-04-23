@@ -44,7 +44,12 @@ post_save.connect(create_shipping, sender=User)
 
 # Create Order Model
 class Order(models.Model):
-	# Foreign Key
+	STATUS_CHOICES = [
+		('pending_payment', 'Pending Payment'),
+		('paid', 'Paid'),
+		('cancelled', 'Cancelled'),
+		('failed', 'Failed'),
+	]
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 	full_name = models.CharField(max_length=250)
 	email = models.EmailField(max_length=250)
@@ -55,6 +60,10 @@ class Order(models.Model):
 	date_shipped = models.DateTimeField(blank=True, null=True)
 	total_weight = models.DecimalField(default=0, max_digits=7, decimal_places=2)
 	session_key = models.CharField(max_length=100, null=True, blank=True)
+
+	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending_payment')
+	phone = models.CharField(max_length=20, blank=True)  
+	date_paid = models.DateTimeField(null=True, blank=True)  
 	
 	
 	def __str__(self):
@@ -82,6 +91,7 @@ class CourierGuy(models.Model):
 		return f"Shipping Info - {self.order.id}"
 
 class PayfastPayment(models.Model):
+	pf_payment_id = models.CharField(max_length=100, blank=True)
 	order_id = models.CharField(max_length=100, null=True)
 	name_first = models.CharField(max_length=100)
 	name_last = models.CharField(max_length=100)

@@ -9,7 +9,6 @@ admin.site.register(OrderItem)
 admin.site.register(PayfastPayment)
 admin.site.register(CourierGuy)
 
-
 # Create an OrderItem Inline
 class OrderItemInline(admin.StackedInline):
 	model = OrderItem

@@ -56,7 +56,7 @@ def update_info(request):
 		return render(request, "update_info.html", {'form':form, 'shipping_form':shipping_form})
 	else:
 		messages.success(request, "You Must Be Logged In To Access That Page!!")
-		return redirect('index')
+		return redirect('home')
 
 
 
@@ -199,7 +199,7 @@ def register_user(request):
 			return redirect('update_info')
 		else:
 			messages.error(request, 'Oops, there was a problem registering. Please correct the errors below.')
-			return render(request, 'register.html', {'form': form})  # <- don't redirect
+			return render(request, 'register.html', {'form': form})  
 	else:
 		form = SignUpForm()
 		return render(request, 'register.html', {'form': form})

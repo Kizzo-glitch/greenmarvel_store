@@ -173,6 +173,10 @@ PAYFAST_MERCHANT_ID = '24614055'
 PAYFAST_MERCHANT_KEY = 'cybdmhnyiv7q6' 
 PAYFAST_PASSPHRASE = 'Marvelousgreen2024'
 
+# Sandbox
+#PAYFAST_MERCHANT_ID = '10048141'
+#PAYFAST_MERCHANT_KEY = 'xg64ihybowxw5' 
+#PAYFAST_PASSPHRASE = 'MarvGreenTest'
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -187,5 +191,6 @@ EMAIL_USE_SSL = False
 COURIER_GUY_USERNAME = str(os.getenv("COURIER_GUY_USERNAME")) 
 COURIER_GUY_API_KEY = str(os.getenv("COURIER_GUY_API_KEY"))
 
+ADMIN_SMS_PHONE = str(os.getenv("ADMIN_SMS_PHONE"))
 
 
