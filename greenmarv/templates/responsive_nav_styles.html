@@ -1,0 +1,944 @@
+<!-- ============================================ -->
+<!-- NAV CSS + JS — add to base1.html -->
+<!-- Paste the <style> into your existing <style> block -->
+<!-- Paste the <script> before </body> -->
+<!-- ============================================ -->
+
+<style>
+    /* ============================================ */
+    /* NAV RESET — kill Bootstrap/default list styles */
+    /* ============================================ */
+    .mg-nav *, .mg-mobile-menu * {
+        box-sizing: border-box;
+    }
+
+    .mg-nav ul, .mg-mobile-menu ul {
+        list-style: none !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    .mg-nav ul li, .mg-mobile-menu ul li {
+        list-style: none !important;
+    }
+
+    .mg-nav ul li::before, .mg-mobile-menu ul li::before {
+        content: none !important;
+    }
+
+    /* ============================================ */
+    /* ANNOUNCEMENT BAR */
+    /* ============================================ */
+    .announcement {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+        text-align: center;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    /* ============================================ */
+    /* HEADER + NAV */
+    /* ============================================ */
+    header#header {
+        background: white;
+        padding: 0.9rem 5%;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        border-bottom: 1px solid rgba(197, 160, 89, 0.12);
+        transition: all 0.3s ease;
+    }
+
+    header#header.scrolled {
+        padding: 0.6rem 5%;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .mg-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Logo */
+    .mg-logo {
+        flex-shrink: 0;
+        text-decoration: none;
+    }
+
+    .mg-logo img {
+        max-width: 160px;
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    /* ============================================ */
+    /* DESKTOP LINKS */
+    /* ============================================ */
+    .mg-nav-links {
+        display: flex;
+        gap: 2.5rem;
+        align-items: center;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .mg-nav-links li a {
+        text-decoration: none;
+        color: #1a1a1a;
+        font-weight: 500;
+        font-size: 0.95rem;
+        letter-spacing: 0.3px;
+        padding: 0.5rem 0;
+        position: relative;
+        transition: color 0.3s;
+    }
+
+    .mg-nav-links li a:hover {
+        color: #2d5016;
+    }
+
+    .mg-nav-links li a::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background: #c5a059;
+        transition: width 0.3s;
+    }
+
+    .mg-nav-links li a:hover::after {
+        width: 100%;
+    }
+
+    /* ============================================ */
+    /* RIGHT ACTIONS */
+    /* ============================================ */
+    .mg-nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-shrink: 0;
+    }
+
+    .mg-search-icon,
+    .mg-cart-icon {
+        font-size: 1.3rem;
+        cursor: pointer;
+        color: #1a1a1a;
+        transition: transform 0.3s;
+        position: relative;
+        text-decoration: none;
+    }
+
+    .mg-search-icon:hover,
+    .mg-cart-icon:hover {
+        transform: scale(1.1);
+    }
+
+    .mg-cart-count {
+        position: absolute;
+        top: -8px;
+        right: -10px;
+        background: #e74c3c;
+        color: white;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 5px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+
+    /* ============================================ */
+    /* AUTH BUTTONS (logged out, desktop) */
+    /* ============================================ */
+    .mg-auth-buttons {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .mg-auth-link {
+        color: #2d5016;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: 20px;
+        transition: all 0.3s;
+    }
+
+    .mg-auth-link:hover {
+        background: #f8fdf8;
+        color: #c5a059;
+    }
+
+    .mg-auth-btn {
+        padding: 0.55rem 1.2rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059 !important;
+        border: 1px solid #c5a059;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.88rem;
+        white-space: nowrap;
+        transition: all 0.3s;
+    }
+
+    .mg-auth-btn:hover {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(197, 160, 89, 0.3);
+    }
+
+    /* ============================================ */
+    /* PROFILE DROPDOWN (desktop) */
+    /* ============================================ */
+
+    /* ============================================ */
+    /* Ensure dropdown is VISIBLE on desktop */
+    /* (The mobile media query had `display: none` 
+       but no explicit `display` rule for desktop) */
+    /* ============================================ */
+    .mg-dropdown {
+        display: block;
+        position: relative;
+    }
+ 
+    /* Make sure toggle button is not being squashed or hidden */
+    .mg-dropdown-toggle {
+        display: flex !important;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.25rem 0.6rem 0.25rem 0.3rem;
+        background: transparent;
+        border: 2px solid transparent;
+        border-radius: 30px;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.3s;
+        position: relative;
+        z-index: 10;
+    }
+ 
+    .mg-dropdown-toggle:hover,
+    .mg-dropdown.open .mg-dropdown-toggle {
+        background: #f8fdf8;
+        border-color: rgba(197, 160, 89, 0.3);
+    }
+ 
+    /* Ensure dropdown menu renders correctly when .open */
+    .mg-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        min-width: 280px;
+        background: white;
+        border: 1px solid rgba(197, 160, 89, 0.25);
+        border-radius: 16px;
+        padding: 0.5rem;
+        box-shadow: 0 15px 40px rgba(27, 48, 34, 0.15);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: opacity 0.25s, transform 0.25s, visibility 0.25s;
+        z-index: 1500;             /* Must be above sticky header */
+        list-style: none !important;
+        margin: 0;
+    }
+ 
+    .mg-dropdown.open .mg-dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+ 
+    /* Hide dropdown ONLY on mobile (below 768px) */
+    @media (max-width: 768px) {
+        .mg-dropdown {
+            display: none;
+        }
+    }
+    /*.mg-dropdown {
+        position: relative;
+    }
+
+    .mg-dropdown-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+        background: transparent;
+        border: 2px solid transparent;
+        border-radius: 30px;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.3s;
+    }
+
+    .mg-dropdown-toggle:hover,
+    .mg-dropdown.open .mg-dropdown-toggle {
+        background: #f8fdf8;
+        border-color: rgba(197, 160, 89, 0.3);
+    }*/
+
+    .mg-avatar {
+        width: 34px;
+        height: 34px;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+        border: 1px solid #c5a059;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .mg-avatar.admin {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+    }
+
+    .mg-dropdown-arrow {
+        font-size: 0.6rem;
+        color: #666;
+        transition: transform 0.3s;
+    }
+
+    .mg-dropdown.open .mg-dropdown-arrow {
+        transform: rotate(180deg);
+        color: #c5a059;
+    }
+
+    .mg-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        min-width: 280px;
+        background: white;
+        border: 1px solid rgba(197, 160, 89, 0.25);
+        border-radius: 16px;
+        padding: 0.5rem;
+        box-shadow: 0 15px 40px rgba(27, 48, 34, 0.15);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: opacity 0.25s, transform 0.25s, visibility 0.25s;
+    }
+
+    .mg-dropdown.open .mg-dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .mg-dropdown-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        border-radius: 10px;
+        margin-bottom: 0.3rem;
+    }
+
+    .mg-dropdown-header.admin {
+        background: linear-gradient(135deg, #1b3022, #2d5016);
+    }
+
+    .mg-dropdown-avatar {
+        width: 42px;
+        height: 42px;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+        border: 1px solid #c5a059;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .mg-dropdown-avatar.admin {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+    }
+
+    .mg-dropdown-user { overflow: hidden; }
+
+    .mg-dropdown-user strong {
+        display: block;
+        color: #2d5016;
+        font-size: 0.9rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mg-dropdown-header.admin .mg-dropdown-user strong { color: #c5a059; }
+
+    .mg-dropdown-user span {
+        color: #666;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+
+    .mg-dropdown-header.admin .mg-dropdown-user span {
+        color: #fcf8ef;
+        opacity: 0.8;
+    }
+
+    .mg-dropdown-divider {
+        height: 1px;
+        background: #f0f0f0;
+        margin: 0.3rem 0;
+    }
+
+    .mg-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 0.75rem;
+        border-radius: 10px;
+        color: #1a1a1a;
+        text-decoration: none;
+        transition: all 0.25s;
+    }
+
+    .mg-dropdown-item:hover {
+        background: #f8fdf8;
+        transform: translateX(2px);
+    }
+
+    .mg-dropdown-icon {
+        width: 32px;
+        height: 32px;
+        background: #f8fdf8;
+        border: 1px solid #e8f5e9;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+        transition: all 0.3s;
+    }
+
+    .mg-dropdown-item:hover .mg-dropdown-icon {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        border-color: #c5a059;
+    }
+
+    .mg-dropdown-item div { overflow: hidden; }
+
+    .mg-dropdown-item strong {
+        color: #2d5016;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .mg-dropdown-item.danger:hover { background: #fdf0ef; }
+    .mg-dropdown-item.danger:hover strong { color: #c0392b; }
+    .mg-dropdown-item.danger:hover .mg-dropdown-icon {
+        background: #fdf0ef;
+        border-color: #e74c3c;
+    }
+
+    /* ============================================ */
+    /* HAMBURGER — hidden on desktop */
+    /* ============================================ */
+    .mg-hamburger {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+        width: 40px;
+        height: 40px;
+        background: transparent;
+        border: 2px solid #e8f5e9;
+        border-radius: 10px;
+        cursor: pointer;
+        padding: 0;
+        transition: all 0.3s;
+    }
+
+    .mg-hamburger:hover {
+        background: #f8fdf8;
+        border-color: #c5a059;
+    }
+
+    .mg-hamburger span {
+        display: block;
+        width: 18px;
+        height: 2px;
+        background: #2d5016;
+        margin: 0 auto;
+        border-radius: 2px;
+        transition: all 0.3s;
+    }
+
+    /* ============================================ */
+    /* MOBILE SLIDE-OUT MENU */
+    /* ============================================ */
+    .mg-mobile-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(27, 48, 34, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 2000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s, visibility 0.3s;
+    }
+
+    .mg-mobile-overlay.open {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .mg-mobile-menu {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 85%;
+        max-width: 360px;
+        height: 100%;
+        background: white;
+        z-index: 2001;
+        transform: translateX(100%);
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        box-shadow: -10px 0 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .mg-mobile-menu.open {
+        transform: translateX(0);
+    }
+
+    /* Mobile menu header */
+    .mg-mobile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid rgba(197, 160, 89, 0.15);
+        background: linear-gradient(135deg, #f8fdf8, white);
+    }
+
+    .mg-mobile-logo img {
+        max-width: 140px;
+        height: auto;
+    }
+
+    .mg-mobile-close {
+        width: 40px;
+        height: 40px;
+        background: #f8fdf8;
+        border: 2px solid #e8f5e9;
+        border-radius: 50%;
+        font-size: 1.1rem;
+        color: #2d5016;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mg-mobile-close:hover {
+        background: #1b3022;
+        color: #c5a059;
+        border-color: #c5a059;
+        transform: rotate(90deg);
+    }
+
+    /* Mobile user card (if logged in) */
+    .mg-mobile-user {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+        background: linear-gradient(135deg, #1b3022, #2d5016);
+        color: #fcf8ef;
+    }
+
+    .mg-mobile-avatar {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #4CAF50, #66BB6A);
+        color: #c5a059;
+        border: 2px solid #c5a059;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .mg-mobile-avatar.admin {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+    }
+
+    .mg-mobile-user-info { overflow: hidden; }
+
+    .mg-mobile-user-info strong {
+        display: block;
+        color: #c5a059;
+        font-size: 1rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mg-mobile-user-info span {
+        color: #fcf8ef;
+        opacity: 0.8;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+
+    /* Mobile nav links */
+    .mg-mobile-nav {
+        flex: 1;
+        padding: 1rem 0;
+    }
+
+    .mg-mobile-section {
+        padding: 0 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .mg-mobile-section-label {
+        color: #999;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        padding: 0 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .mg-mobile-link {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        padding: 0.85rem 0.75rem;
+        color: #1a1a1a;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        border-radius: 10px;
+        transition: all 0.3s;
+    }
+
+    .mg-mobile-link:hover,
+    .mg-mobile-link:active {
+        background: #f8fdf8;
+        color: #2d5016;
+        transform: translateX(3px);
+    }
+
+    .mg-mobile-link > span:first-child {
+        font-size: 1.25rem;
+        width: 32px;
+        text-align: center;
+    }
+
+    .mg-mobile-link.danger {
+        color: #c0392b;
+    }
+
+    .mg-mobile-link.danger:hover {
+        background: #fdf0ef;
+    }
+
+    .mg-mobile-badge {
+        margin-left: auto;
+        background: #e74c3c;
+        color: white;
+        padding: 0.15rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .mg-mobile-cta {
+        display: block;
+        margin-top: 0.5rem;
+        padding: 0.9rem 1rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+        border: 1px solid #c5a059;
+        border-radius: 30px;
+        text-align: center;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+
+    .mg-mobile-cta:hover,
+    .mg-mobile-cta:active {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+    }
+
+    /* Mobile footer */
+    .mg-mobile-footer {
+        padding: 1.5rem;
+        text-align: center;
+        border-top: 1px solid #f0f0f0;
+        color: #666;
+    }
+
+    .mg-mobile-footer p {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #2d5016;
+    }
+
+    .mg-mobile-tagline {
+        color: #c5a059 !important;
+        font-style: italic;
+        font-weight: 500 !important;
+        font-size: 0.8rem !important;
+        margin-top: 0.25rem !important;
+    }
+
+    /* Body lock when menu open */
+    body.mg-menu-open {
+        overflow: hidden;
+    }
+
+    /* ============================================ */
+    /* RESPONSIVE BREAKPOINTS */
+    /* ============================================ */
+
+    /* Tablet: hide nav links, keep auth buttons visible */
+    @media (max-width: 1024px) {
+        .mg-nav-links {
+            display: none;
+        }
+
+        .mg-hamburger {
+            display: flex;
+        }
+    }
+
+    /* Mobile: hide inline auth buttons, only hamburger + cart */
+    @media (max-width: 768px) {
+        header#header {
+            padding: 0.75rem 4%;
+        }
+
+        .mg-logo img {
+            max-width: 130px;
+        }
+
+        /* Hide desktop auth area entirely — show in mobile menu instead */
+        .mg-auth-buttons {
+            display: none;
+        }
+
+        /* Hide desktop profile dropdown — show profile in mobile menu */
+        .mg-dropdown {
+            display: none;
+        }
+
+        .mg-nav-actions {
+            gap: 0.6rem;
+        }
+
+        .mg-search-icon,
+        .mg-cart-icon {
+            font-size: 1.2rem;
+        }
+
+        .announcement {
+            font-size: 0.75rem;
+            padding: 0.6rem 0.75rem;
+        }
+    }
+
+    @media (max-width: 400px) {
+        header#header {
+            padding: 0.65rem 3%;
+        }
+
+        .mg-logo img {
+            max-width: 110px;
+        }
+
+        .mg-nav-actions {
+            gap: 0.4rem;
+        }
+    }
+</style>
+
+<script>
+    // ============================================
+    // DROPDOWN TOGGLE — standalone, robust version
+    // Put this BEFORE </body>, or AFTER your existing script
+    // ============================================
+    (function() {
+        function initDropdowns() {
+            const dropdowns = document.querySelectorAll('.mg-dropdown');
+            console.log('Dropdowns found:', dropdowns.length);  // Debug: check console
+ 
+            if (dropdowns.length === 0) return;
+ 
+            dropdowns.forEach(dropdown => {
+                const toggle = dropdown.querySelector('.mg-dropdown-toggle');
+                if (!toggle) {
+                    console.warn('No toggle button found in dropdown', dropdown);
+                    return;
+                }
+ 
+                // Click toggle → open/close
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+ 
+                    // Close other open dropdowns first
+                    dropdowns.forEach(d => {
+                        if (d !== dropdown) d.classList.remove('open');
+                    });
+ 
+                    // Toggle this one
+                    dropdown.classList.toggle('open');
+                    console.log('Dropdown toggled:', dropdown.classList.contains('open'));
+                });
+            });
+ 
+            // Click anywhere else → close all dropdowns
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.mg-dropdown')) {
+                    dropdowns.forEach(d => d.classList.remove('open'));
+                }
+            });
+ 
+            // Escape key → close
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    dropdowns.forEach(d => d.classList.remove('open'));
+                }
+            });
+        }
+ 
+        // Run on DOM ready, or immediately if already ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDropdowns);
+        } else {
+            initDropdowns();
+        }
+    })();
+</script>
+
+<script>
+    // ============================================
+    // DROPDOWN TOGGLE (desktop profile/admin)
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+        // Desktop dropdowns
+        const dropdowns = document.querySelectorAll('[data-nav-dropdown]');
+        dropdowns.forEach(dropdown => {
+            const toggle = dropdown.querySelector('.mg-dropdown-toggle');
+            if (!toggle) return;
+
+            toggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdowns.forEach(d => { if (d !== dropdown) d.classList.remove('open'); });
+                dropdown.classList.toggle('open');
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('[data-nav-dropdown]')) {
+                dropdowns.forEach(d => d.classList.remove('open'));
+            }
+        });
+
+        // ============================================
+        // MOBILE MENU TOGGLE
+        // ============================================
+        const hamburger = document.getElementById('mgHamburger');
+        const closeBtn = document.getElementById('mgMobileClose');
+        const mobileMenu = document.getElementById('mgMobileMenu');
+        const overlay = document.getElementById('mgMobileOverlay');
+
+        function openMobileMenu() {
+            mobileMenu.classList.add('open');
+            overlay.classList.add('open');
+            document.body.classList.add('mg-menu-open');
+        }
+
+        function closeMobileMenu() {
+            mobileMenu.classList.remove('open');
+            overlay.classList.remove('open');
+            document.body.classList.remove('mg-menu-open');
+        }
+
+        if (hamburger) hamburger.addEventListener('click', openMobileMenu);
+        if (closeBtn) closeBtn.addEventListener('click', closeMobileMenu);
+        if (overlay) overlay.addEventListener('click', closeMobileMenu);
+
+        // Close mobile menu when a link is tapped (except external-tagged ones)
+        document.querySelectorAll('.mg-mobile-link, .mg-mobile-cta').forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeMobileMenu();
+                dropdowns.forEach(d => d.classList.remove('open'));
+            }
+        });
+
+        // ============================================
+        // STICKY HEADER SCROLL EFFECT
+        // ============================================
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+    });
+</script>

@@ -1,4 +1,5 @@
 {% load static %}
+{% include 'responsive_nav_styles.html' %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -60,7 +61,7 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
-        nav {
+        /*nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -106,12 +107,12 @@
             display: flex;
             gap: 1.5rem;
             align-items: center;
-        }
+        }*/
 
          /* ============================================ */
     /* MARVELOUSLY GREEN DROPDOWN (mg- prefix) */
     /* ============================================ */
-    .mg-dropdown {
+    /*.mg-dropdown {
         position: relative;
         list-style: none;
     }
@@ -137,7 +138,7 @@
         border-color: rgba(197, 160, 89, 0.3);
     }
  
-    /* Open state — keeps button highlighted while menu is visible */
+   
     .mg-dropdown.open .mg-dropdown-toggle {
         background: #f8fdf8;
         border-color: #c5a059;
@@ -179,9 +180,7 @@
         color: #c5a059;
     }
  
-    /* ============================================ */
-    /* DROPDOWN MENU */
-    /* ============================================ */
+ 
     .mg-dropdown-menu {
         position: absolute;
         top: calc(100% + 12px);
@@ -220,7 +219,7 @@
         transform: translateY(0);
     }
  
-    /* Dropdown header (user info) */
+   
     .mg-dropdown-header {
         display: flex;
         align-items: center;
@@ -288,14 +287,14 @@
         opacity: 0.8;
     }
  
-    /* Divider */
+
     .mg-dropdown-divider {
         height: 1px;
         background: #f0f0f0;
         margin: 0.35rem 0;
     }
  
-    /* Dropdown items */
+
     .mg-dropdown-item {
         display: flex;
         align-items: center;
@@ -353,8 +352,7 @@
         color: #888;
         font-size: 0.75rem;
     }
- 
-    /* Danger variant (logout) */
+
     .mg-dropdown-item.danger:hover {
         background: #fdf0ef;
     }
@@ -368,9 +366,7 @@
         border-color: #e74c3c;
     }
  
-    /* ============================================ */
-    /* LOGGED-OUT BUTTONS */
-    /* ============================================ */
+
     .nav-auth-link {
         padding: 0.55rem 1.2rem;
         color: #2d5016 !important;
@@ -402,9 +398,7 @@
         box-shadow: 0 5px 15px rgba(197, 160, 89, 0.3);
     }
  
-    /* ============================================ */
-    /* RESPONSIVE */
-    /* ============================================ */
+
     @media (max-width: 768px) {
         .mg-dropdown-menu {
             min-width: 280px;
@@ -412,7 +406,7 @@
         }
  
         .mg-dropdown-label {
-            display: none; /* Hide label, show only avatar on mobile */
+            display: none; 
         }
  
         .mg-dropdown-toggle {
@@ -428,7 +422,7 @@
             right: 10px;
             min-width: auto;
         }
-    }
+    }*/
 
         .search-icon, .cart-icon {
             cursor: pointer;
@@ -515,6 +509,7 @@
     gap: 4rem;
     z-index: 2;
 }
+
 
 .hero-content h1 {
     font-size: 4.5rem;
@@ -1383,7 +1378,173 @@
 </head>
 
 <body>
-    <div class="announcement">
+
+    <!-- ============================================ -->
+<!-- REPLACE YOUR ENTIRE <header> + <nav> WITH THIS -->
+<!-- ============================================ -->
+
+<div class="announcement">
+    FREE SHIPPING ON ALL ORDERS OVER R600 | 100% ORGANIC & CHEMICAL FREE
+</div>
+
+<header id="header">
+    <nav class="mg-nav">
+        <!-- LOGO -->
+        <a href="{% url 'home' %}" class="mg-logo">
+            <img src="{% static 'landing/assets/logo3.png' %}" alt="Marvelously Green">
+        </a>
+
+        <!-- DESKTOP NAV LINKS -->
+        <ul class="mg-nav-links">
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'shop' %}">Shop</a></li>
+            <li><a href="{% url 'home' %}#about">About</a></li>
+            <li><a href="{% url 'home' %}#reviews">Reviews</a></li>
+            <li><a href="{% url 'home' %}#contact">Contact</a></li>
+        </ul>
+
+        <!-- RIGHT ACTIONS -->
+        <div class="mg-nav-actions">
+            <!-- Search + Cart (always visible) -->
+            <div class="mg-search-icon" title="Search">🔍</div>
+            <a href="{% url 'cart_summary' %}" class="mg-cart-icon" title="View Cart">
+                🛒
+                <span class="mg-cart-count" id="cartCount">{{ cart|length|default:0 }}</span>
+            </a>
+
+            <!-- Auth area (desktop) / Profile dropdown if logged in -->
+            {% if user.is_authenticated %}
+                {% if not user.is_superuser %}
+                <div class="mg-dropdown" data-nav-dropdown>
+                    <button class="mg-dropdown-toggle" aria-label="Profile menu">
+                        <span class="mg-avatar">{{ user.username|first|upper }}</span>
+                        <span class="mg-dropdown-arrow">▼</span>
+                    </button>
+                    <ul class="mg-dropdown-menu">
+                        <li class="mg-dropdown-header">
+                            <div class="mg-dropdown-avatar">{{ user.username|first|upper }}</div>
+                            <div class="mg-dropdown-user">
+                                <strong>{{ user.username }}</strong>
+                                <span>{{ user.email }}</span>
+                            </div>
+                        </li>
+                        <li class="mg-dropdown-divider"></li>
+                        <li><a class="mg-dropdown-item" href="{% url 'order_history' %}"><span class="mg-dropdown-icon">📦</span><div><strong>My Orders</strong></div></a></li>
+                        <li><a class="mg-dropdown-item" href="{% url 'update_user' %}"><span class="mg-dropdown-icon">🔑</span><div><strong>Login Details</strong></div></a></li>
+                        <li><a class="mg-dropdown-item" href="{% url 'update_info' %}"><span class="mg-dropdown-icon">👤</span><div><strong>Profile Details</strong></div></a></li>
+                        <li class="mg-dropdown-divider"></li>
+                        <li><a class="mg-dropdown-item danger" href="{% url 'logout' %}"><span class="mg-dropdown-icon">🚪</span><div><strong>Sign Out</strong></div></a></li>
+                    </ul>
+                </div>
+                {% else %}
+                <div class="mg-dropdown" data-nav-dropdown>
+                    <button class="mg-dropdown-toggle admin" aria-label="Admin menu">
+                        <span class="mg-avatar admin">⚡</span>
+                        <span class="mg-dropdown-arrow">▼</span>
+                    </button>
+                    <ul class="mg-dropdown-menu">
+                        <li class="mg-dropdown-header admin">
+                            <div class="mg-dropdown-avatar admin">⚡</div>
+                            <div class="mg-dropdown-user">
+                                <strong>Admin Panel</strong>
+                                <span>{{ user.username }}</span>
+                            </div>
+                        </li>
+                        <li class="mg-dropdown-divider"></li>
+                        <li><a class="mg-dropdown-item" href="{% url 'not_shipped_dash' %}"><span class="mg-dropdown-icon">📋</span><div><strong>Unshipped Orders</strong></div></a></li>
+                        <li><a class="mg-dropdown-item" href="{% url 'shipped_dash' %}"><span class="mg-dropdown-icon">🚚</span><div><strong>Shipped Orders</strong></div></a></li>
+                        <li><a class="mg-dropdown-item" href="{% url 'successful_payments' %}"><span class="mg-dropdown-icon">💳</span><div><strong>Payfast Log</strong></div></a></li>
+                        <li class="mg-dropdown-divider"></li>
+                        <li><a class="mg-dropdown-item danger" href="{% url 'logout' %}"><span class="mg-dropdown-icon">🚪</span><div><strong>Sign Out</strong></div></a></li>
+                    </ul>
+                </div>
+                {% endif %}
+            {% else %}
+                <!-- Desktop only: inline Sign In + Join Us buttons -->
+                <div class="mg-auth-buttons">
+                    <a href="{% url 'login' %}" class="mg-auth-link">Sign In</a>
+                    <a href="{% url 'register' %}" class="mg-auth-btn">Join Us</a>
+                </div>
+            {% endif %}
+
+            <!-- HAMBURGER (mobile only) -->
+            <button class="mg-hamburger" id="mgHamburger" aria-label="Open menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+</header>
+
+<!-- ============================================ -->
+<!-- MOBILE SLIDE-OUT MENU (off-canvas) -->
+<!-- ============================================ -->
+<div class="mg-mobile-overlay" id="mgMobileOverlay"></div>
+
+<aside class="mg-mobile-menu" id="mgMobileMenu">
+    <div class="mg-mobile-header">
+        <div class="mg-mobile-logo">
+            <img src="{% static 'landing/assets/logo3.png' %}" alt="Marvelously Green">
+        </div>
+        <button class="mg-mobile-close" id="mgMobileClose" aria-label="Close menu">✕</button>
+    </div>
+
+    {% if user.is_authenticated %}
+    <div class="mg-mobile-user">
+        <div class="mg-mobile-avatar {% if user.is_superuser %}admin{% endif %}">
+            {% if user.is_superuser %}⚡{% else %}{{ user.username|first|upper }}{% endif %}
+        </div>
+        <div class="mg-mobile-user-info">
+            <strong>{% if user.is_superuser %}Admin Panel{% else %}{{ user.username }}{% endif %}</strong>
+            <span>{{ user.email }}</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <nav class="mg-mobile-nav">
+        <div class="mg-mobile-section">
+            <div class="mg-mobile-section-label">Browse</div>
+            <a href="{% url 'home' %}" class="mg-mobile-link"><span>🏠</span> Home</a>
+            <a href="{% url 'shop' %}" class="mg-mobile-link"><span>🛍️</span> Shop</a>
+            <a href="{% url 'home' %}#about" class="mg-mobile-link"><span>🌿</span> About Us</a>
+            <a href="{% url 'home' %}#reviews" class="mg-mobile-link"><span>⭐</span> Reviews</a>
+            <a href="{% url 'home' %}#contact" class="mg-mobile-link"><span>📞</span> Contact</a>
+        </div>
+
+        <div class="mg-mobile-section">
+            <div class="mg-mobile-section-label">My Account</div>
+            <a href="{% url 'cart_summary' %}" class="mg-mobile-link">
+                <span>🛒</span> My Cart
+                <span class="mg-mobile-badge">{{ cart|length|default:0 }}</span>
+            </a>
+            {% if user.is_authenticated %}
+                {% if not user.is_superuser %}
+                <a href="{% url 'order_history' %}" class="mg-mobile-link"><span>📦</span> My Orders</a>
+                <a href="{% url 'update_user' %}" class="mg-mobile-link"><span>🔑</span> Login Details</a>
+                <a href="{% url 'update_info' %}" class="mg-mobile-link"><span>👤</span> Profile Details</a>
+                {% else %}
+                <a href="{% url 'not_shipped_dash' %}" class="mg-mobile-link"><span>📋</span> Unshipped Orders</a>
+                <a href="{% url 'shipped_dash' %}" class="mg-mobile-link"><span>🚚</span> Shipped Orders</a>
+                <a href="{% url 'successful_payments' %}" class="mg-mobile-link"><span>💳</span> Payfast Log</a>
+                {% endif %}
+                <a href="{% url 'track_order' %}" class="mg-mobile-link"><span>🔍</span> Track Order</a>
+                <a href="{% url 'logout' %}" class="mg-mobile-link danger"><span>🚪</span> Sign Out</a>
+            {% else %}
+                <a href="{% url 'track_order' %}" class="mg-mobile-link"><span>🔍</span> Track Order</a>
+                <a href="{% url 'login' %}" class="mg-mobile-link"><span>🔐</span> Sign In</a>
+                <a href="{% url 'register' %}" class="mg-mobile-cta">Join Us Today →</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="mg-mobile-footer">
+        <p>🌿 Marvelously Green</p>
+        <p class="mg-mobile-tagline">Natural Beauty, Naturally You</p>
+    </div>
+</aside>
+
+    <!--<div class="announcement">
         FREE SHIPPING ON ALL ORDERS OVER R600 | 100% ORGANIC & CHEMICAL FREE
     </div>
 
@@ -1406,7 +1567,7 @@
             <ul>
                 {% if user.is_authenticated %}                  
                     {% if not user.is_superuser %}
-                    <!-- PROFILE DROPDOWN (regular users) -->
+                    {# PROFILE DROPDOWN (regular users) #}
                     <li class="mg-dropdown">
                         <button class="mg-dropdown-toggle" aria-label="Profile menu">
                             <span class="mg-avatar">{{ user.username|first|upper }}</span>
@@ -1461,7 +1622,7 @@
                         </ul>
                     </li>
                     {% else %}
-                    <!-- ADMIN DROPDOWN (superuser) -->
+                     {# ADMIN DROPDOWN (superuser) #} 
                     <li class="mg-dropdown">
                         <button class="mg-dropdown-toggle admin" aria-label="Admin menu">
                             <span class="mg-avatar admin">⚡</span>
@@ -1534,7 +1695,7 @@
                 </a>
             </div>
         </nav>
-    </header>
+    </header>-->
    
     <body>
   

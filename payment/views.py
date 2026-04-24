@@ -235,128 +235,128 @@ def checkout(request):
 # PROCESS ORDER — saves as pending_payment, redirects to Payfast
 # ================================================================
 def process_order(request):
-    if not request.POST:
-        return redirect('cart_summary')
+	if not request.POST:
+		return redirect('cart_summary')
  
-    # Get the cart + session data
-    cart = Cart(request)
-    cart_products = cart.get_prods
-    quantities = cart.get_quants
-    total_after_discount = request.session.get('total_after_discount')
-    total_with_shipping = request.session.get('total_with_shipping')
-    my_shipping = request.session.get('my_shipping')
+	# Get the cart + session data
+	cart = Cart(request)
+	cart_products = cart.get_prods
+	quantities = cart.get_quants
+	total_after_discount = request.session.get('total_after_discount')
+	total_with_shipping = request.session.get('total_with_shipping')
+	my_shipping = request.session.get('my_shipping')
  
-    if not my_shipping:
-        messages.error(request, "Your shipping information has expired. Please try again.")
-        return redirect('cart_summary')
+	if not my_shipping:
+		messages.error(request, "Your shipping information has expired. Please try again.")
+		return redirect('cart_summary')
  
-    # Gather Order Info
-    full_name = my_shipping['shipping_full_name']
-    email = my_shipping['shipping_email']
-    phone = my_shipping['shipping_phone']
+	# Gather Order Info
+	full_name = my_shipping['shipping_full_name']
+	email = my_shipping['shipping_email']
+	phone = my_shipping['shipping_phone']
  
-    shipping_address = (
-        f"{phone}\n{my_shipping['shipping_address1']}\n"
-        f"{my_shipping.get('shipping_apartment', '')}\n"
-        f"{my_shipping['shipping_city']}\n{my_shipping['shipping_province']}\n"
-        f"{my_shipping['shipping_zipcode']}\n{my_shipping['shipping_country']}"
-    )
+	shipping_address = (
+		f"{phone}\n{my_shipping['shipping_address1']}\n"
+		f"{my_shipping.get('shipping_apartment', '')}\n"
+		f"{my_shipping['shipping_city']}\n{my_shipping['shipping_province']}\n"
+		f"{my_shipping['shipping_zipcode']}\n{my_shipping['shipping_country']}"
+	)
  
-    amount_paid = total_with_shipping
+	amount_paid = total_with_shipping
  
-    # ============================================================
-    # Create Order with status='pending_payment' (NOT confirmed yet)
-    # ============================================================
-    create_order = Order(
-        full_name=full_name,
-        email=email,
-        phone=phone,
-        shipping_address=shipping_address,
-        amount_paid=amount_paid,
-        status='pending_payment',  # <-- KEY CHANGE
-    )
+	# ============================================================
+	# Create Order with status='pending_payment' (NOT confirmed yet)
+	# ============================================================
+	create_order = Order(
+		full_name=full_name,
+		email=email,
+		phone=phone,
+		shipping_address=shipping_address,
+		amount_paid=amount_paid,
+		status='pending_payment',  # <-- KEY CHANGE
+	)
  
-    if request.user.is_authenticated:
-        create_order.user = request.user
-    else:
-        if not request.session.session_key:
-            request.session.create()
-        create_order.session_key = request.session.session_key
+	if request.user.is_authenticated:
+		create_order.user = request.user
+	else:
+		if not request.session.session_key:
+			request.session.create()
+		create_order.session_key = request.session.session_key
  
-    create_order.save()
-    order_id = create_order.pk
+	create_order.save()
+	order_id = create_order.pk
  
-    # ============================================================
-    # Create Order Items — unified for authenticated + guest
-    # ============================================================
-    user = request.user if request.user.is_authenticated else None
+	# ============================================================
+	# Create Order Items — unified for authenticated + guest
+	# ============================================================
+	user = request.user if request.user.is_authenticated else None
  
-    for product in cart_products():
-        price = product.sale_price if product.is_sale else product.price
+	for product in cart_products():
+		price = product.sale_price if product.is_sale else product.price
  
-        for key, value in quantities().items():
-            if int(key) == product.id:
-                OrderItem.objects.create(
-                    order_id=order_id,
-                    product_id=product.id,
-                    user=user,  # None for guests, which should be allowed at model level
-                    quantity=value,
-                    price=price,
-                )
+		for key, value in quantities().items():
+			if int(key) == product.id:
+				OrderItem.objects.create(
+					order_id=order_id,
+					product_id=product.id,
+					user=user,  # None for guests, which should be allowed at model level
+					quantity=value,
+					price=price,
+				)
  
-    # ============================================================
-    # Create PayfastPayment record
-    # ============================================================
-    name_parts = create_order.full_name.strip().split()
-    name_first = name_parts[0] if name_parts else ''
-    name_last = name_parts[-1] if len(name_parts) > 1 else ''
+	# ============================================================
+	# Create PayfastPayment record
+	# ============================================================
+	name_parts = create_order.full_name.strip().split()
+	name_first = name_parts[0] if name_parts else ''
+	name_last = name_parts[-1] if len(name_parts) > 1 else ''
  
-    payment = PayfastPayment.objects.create(
-        order_id=order_id,
-        amount=amount_paid,
-        status='Pending',
-        name_first=name_first,
-        name_last=name_last,
-        email=email,
-        phone=phone,
-    )
+	payment = PayfastPayment.objects.create(
+		order_id=order_id,
+		amount=amount_paid,
+		status='Pending',
+		name_first=name_first,
+		name_last=name_last,
+		email=email,
+		phone=phone,
+	)
  
-    # ============================================================
-    # Build Payfast payload
-    # ============================================================
-    data = {
-        'merchant_id': settings.PAYFAST_MERCHANT_ID,
-        'merchant_key': settings.PAYFAST_MERCHANT_KEY,
-        'return_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_success/',  
+	# ============================================================
+	# Build Payfast payload
+	# ============================================================
+	data = {
+		'merchant_id': settings.PAYFAST_MERCHANT_ID,
+		'merchant_key': settings.PAYFAST_MERCHANT_KEY,
+		'return_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_success/',  
 		'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
 		'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
  
-        'name_first': payment.name_first,
-        'name_last': payment.name_last,
-        'email_address': payment.email,
+		'name_first': payment.name_first,
+		'name_last': payment.name_last,
+		'email_address': payment.email,
  
-        'm_payment_id': payment.order_id,
-        'amount': payment.amount,
-        'item_name': f'Green Marvel Order #{order_id}',
-    }
+		'm_payment_id': payment.order_id,
+		'amount': payment.amount,
+		'item_name': f'Green Marvel Order #{order_id}',
+	}
  
-    signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
-    data['signature'] = signature
+	signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
+	data['signature'] = signature
  
-    payfast_url = "https://www.payfast.co.za/eng/process?"
-    payment_url = payfast_url + urllib.parse.urlencode(data)
+	payfast_url = "https://www.payfast.co.za/eng/process?"
+	payment_url = payfast_url + urllib.parse.urlencode(data)
  
-    # ============================================================
-    # Clear cart from session ONLY — don't delete the Order yet
-    # The order exists as pending_payment and waits for Payfast ITN
-    # ============================================================
-    if 'session_key' in request.session:
-        del request.session['session_key']
+	# ============================================================
+	# Clear cart from session ONLY — don't delete the Order yet
+	# The order exists as pending_payment and waits for Payfast ITN
+	# ============================================================
+	if 'session_key' in request.session:
+		del request.session['session_key']
  
-    if request.user.is_authenticated:
-        Profile.objects.filter(user__id=request.user.id).update(old_cart="")
+	if request.user.is_authenticated:
+		Profile.objects.filter(user__id=request.user.id).update(old_cart="")
  
-    return redirect(payment_url)
+	return redirect(payment_url)
 
 # ================================================================
 # PAYMENT_NOTIFY — the Payfast ITN webhook
@@ -365,87 +365,87 @@ def process_order(request):
 @csrf_exempt
 @require_POST
 def payment_notify(request):
-    """
-    Payfast ITN (Instant Transaction Notification) webhook.
-    Called server-to-server by Payfast after payment succeeds/fails.
-    This is the only reliable way to confirm payment.
-    """
-    # Get all POST data
-    post_data = request.POST.dict()
-    logger.info(f"Payfast ITN received: {post_data}")
+	"""
+	Payfast ITN (Instant Transaction Notification) webhook.
+	Called server-to-server by Payfast after payment succeeds/fails.
+	This is the only reliable way to confirm payment.
+	"""
+	# Get all POST data
+	post_data = request.POST.dict()
+	logger.info(f"Payfast ITN received: {post_data}")
  
-    # Extract critical fields
-    payment_status = post_data.get('payment_status', '')
-    order_id = post_data.get('m_payment_id', '')
-    amount_gross = post_data.get('amount_gross', '0')
-    pf_payment_id = post_data.get('pf_payment_id', '')
-    signature_received = post_data.pop('signature', None)
+	# Extract critical fields
+	payment_status = post_data.get('payment_status', '')
+	order_id = post_data.get('m_payment_id', '')
+	amount_gross = post_data.get('amount_gross', '0')
+	pf_payment_id = post_data.get('pf_payment_id', '')
+	signature_received = post_data.pop('signature', None)
  
-    # ============================================================
-    # Security step 1: Verify signature
-    # ============================================================
-    calculated_signature = generate_signature(post_data, settings.PAYFAST_PASSPHRASE)
-    if signature_received != calculated_signature:
-        logger.warning(f"Invalid Payfast signature for order {order_id}")
-        return HttpResponse(status=400)
+	# ============================================================
+	# Security step 1: Verify signature
+	# ============================================================
+	calculated_signature = generate_signature(post_data, settings.PAYFAST_PASSPHRASE)
+	if signature_received != calculated_signature:
+		logger.warning(f"Invalid Payfast signature for order {order_id}")
+		return HttpResponse(status=400)
  
-    # ============================================================
-    # Security step 2: Get the order and verify amount
-    # ============================================================
-    try:
-        order = Order.objects.get(id=order_id)
-    except Order.DoesNotExist:
-        logger.error(f"Payfast ITN for unknown order {order_id}")
-        return HttpResponse(status=404)
+	# ============================================================
+	# Security step 2: Get the order and verify amount
+	# ============================================================
+	try:
+		order = Order.objects.get(id=order_id)
+	except Order.DoesNotExist:
+		logger.error(f"Payfast ITN for unknown order {order_id}")
+		return HttpResponse(status=404)
  
-    # Verify amount matches what we expected
-    try:
-        if abs(Decimal(amount_gross) - Decimal(str(order.amount_paid))) > Decimal('0.01'):
-            logger.warning(
-                f"Payfast amount mismatch for order {order_id}: "
-                f"got R{amount_gross}, expected R{order.amount_paid}"
-            )
-            return HttpResponse(status=400)
-    except Exception as e:
-        logger.error(f"Error validating amount for order {order_id}: {e}")
-        return HttpResponse(status=400)
+	# Verify amount matches what we expected
+	try:
+		if abs(Decimal(amount_gross) - Decimal(str(order.amount_paid))) > Decimal('0.01'):
+			logger.warning(
+				f"Payfast amount mismatch for order {order_id}: "
+				f"got R{amount_gross}, expected R{order.amount_paid}"
+			)
+			return HttpResponse(status=400)
+	except Exception as e:
+		logger.error(f"Error validating amount for order {order_id}: {e}")
+		return HttpResponse(status=400)
  
-    # ============================================================
-    # Handle payment status
-    # ============================================================
-    if payment_status == 'COMPLETE':
-        # Idempotency: only process if not already paid
-        if order.status != 'paid':
-            
-            order.status = 'paid'
-            order.date_paid = timezone.now()
-            order.save()
+	# ============================================================
+	# Handle payment status
+	# ============================================================
+	if payment_status == 'COMPLETE':
+		# Idempotency: only process if not already paid
+		if order.status != 'paid':
+			
+			order.status = 'paid'
+			order.date_paid = timezone.now()
+			order.save()
  
-            # Update PayfastPayment record
-            PayfastPayment.objects.filter(order_id=order_id).update(
-                status='Complete',
-                pf_payment_id=pf_payment_id,
-            )
+			# Update PayfastPayment record
+			PayfastPayment.objects.filter(order_id=order_id).update(
+				status='Complete',
+				pf_payment_id=pf_payment_id,
+			)
  
-            # Send notifications
-            send_order_confirmation_sms(order)
-            send_admin_order_alert_sms(order)
+			# Send notifications
+			send_order_confirmation_sms(order)
+			send_admin_order_alert_sms(order)
  
-            logger.info(f"Order {order_id} confirmed as paid")
+			logger.info(f"Order {order_id} confirmed as paid")
  
-    elif payment_status == 'CANCELLED':
-        order.status = 'cancelled'
-        order.save()
-        PayfastPayment.objects.filter(order_id=order_id).update(status='Cancelled')
-        logger.info(f"Order {order_id} marked as cancelled")
+	elif payment_status == 'CANCELLED':
+		order.status = 'cancelled'
+		order.save()
+		PayfastPayment.objects.filter(order_id=order_id).update(status='Cancelled')
+		logger.info(f"Order {order_id} marked as cancelled")
  
-    elif payment_status == 'FAILED':
-        order.status = 'failed'
-        order.save()
-        PayfastPayment.objects.filter(order_id=order_id).update(status='Failed')
-        logger.info(f"Order {order_id} marked as failed")
+	elif payment_status == 'FAILED':
+		order.status = 'failed'
+		order.save()
+		PayfastPayment.objects.filter(order_id=order_id).update(status='Failed')
+		logger.info(f"Order {order_id} marked as failed")
  
-    return HttpResponse(status=200)
+	return HttpResponse(status=200)
 
 
 # ================================================================
@@ -453,89 +453,89 @@ def payment_notify(request):
 # These DON'T change order status (that's the webhook's job)
 # ================================================================
 def payment_success(request):
-    """User lands here after successful Payfast payment. Display-only."""
-    return render(request, 'payment/payment_success.html')
+	"""User lands here after successful Payfast payment. Display-only."""
+	return render(request, 'payment/payment_success.html')
  
  
 def payment_cancel(request):
-    """User lands here if they cancel at Payfast."""
-    return render(request, 'payment/payment_cancel.html')
+	"""User lands here if they cancel at Payfast."""
+	return render(request, 'payment/payment_cancel.html')
  
  
 # ================================================================
 # SMS NOTIFICATION HELPERS
 # ================================================================
 def send_order_confirmation_sms(order):
-    """Send order confirmation SMS to the customer.""" 
-    if not order.phone:
-        logger.warning(f"No phone number for order {order.id}; skipping customer SMS")
-        return
+	"""Send order confirmation SMS to the customer.""" 
+	if not order.phone:
+		logger.warning(f"No phone number for order {order.id}; skipping customer SMS")
+		return
  
-    # Format phone for SA (SMSPortal expects 27XXXXXXXXX format)
-    phone = _format_sa_phone(order.phone)
-    if not phone:
-        logger.warning(f"Invalid phone format for order {order.id}: {order.phone}")
-        return
+	# Format phone for SA (SMSPortal expects 27XXXXXXXXX format)
+	phone = _format_sa_phone(order.phone)
+	if not phone:
+		logger.warning(f"Invalid phone format for order {order.id}: {order.phone}")
+		return
  
-    first_name = order.full_name.split()[0] if order.full_name else 'Customer'
+	first_name = order.full_name.split()[0] if order.full_name else 'Customer'
  
-    message = (
-        f"Hi {first_name}, thank you for your Green Marvel order! "
-        f"Order #{order.id} for R{order.amount_paid} has been confirmed. "
-        f"We'll send you tracking info once your order ships. "
-        f"🌿 Marvelously Green"
-    )
+	message = (
+		f"Hi {first_name}, thank you for your Green Marvel order! "
+		f"Order #{order.id} for R{order.amount_paid} has been confirmed. "
+		f"We'll send you tracking info once your order ships. "
+		f"🌿 Marvelously Green"
+	)
  
-    result = send_sms_smsportal(phone, message)
-    if not result.get('success'):
-        logger.error(f"Customer SMS failed for order {order.id}: {result}")
+	result = send_sms_smsportal(phone, message)
+	if not result.get('success'):
+		logger.error(f"Customer SMS failed for order {order.id}: {result}")
  
  
 
 def send_admin_order_alert_sms(order):
-    """Alert admin that a new paid order has come in."""
-    admin_phone = getattr(settings, 'ADMIN_SMS_PHONE', None)
-    if not admin_phone:
-        return  # Silently skip if not configured
+	"""Alert admin that a new paid order has come in."""
+	admin_phone = getattr(settings, 'ADMIN_SMS_PHONE', None)
+	if not admin_phone:
+		return  # Silently skip if not configured
  
-    admin_phone = _format_sa_phone(admin_phone)
-    if not admin_phone:
-        return
+	admin_phone = _format_sa_phone(admin_phone)
+	if not admin_phone:
+		return
  
-    message = (
-        f"🔔 New Green Marvel Order!\n"
-        f"Order #{order.id}\n"
-        f"Customer: {order.full_name}\n"
-        f"Amount: R{order.amount_paid}\n"
-        f"Phone: {order.phone}"
-    )
+	message = (
+		f"🔔 New Green Marvel Order!\n"
+		f"Order #{order.id}\n"
+		f"Customer: {order.full_name}\n"
+		f"Amount: R{order.amount_paid}\n"
+		f"Phone: {order.phone}"
+	)
  
-    send_sms_smsportal(admin_phone, message)
+	send_sms_smsportal(admin_phone, message)
  
  
 def _format_sa_phone(phone):
-    """
-    Convert South African phone number to SMSPortal format (27XXXXXXXXX).
-    Accepts: 0831234567, +27831234567, 27831234567, 27 83 123 4567, etc.
-    """
-    if not phone:
-        return None
+	"""
+	Convert South African phone number to SMSPortal format (27XXXXXXXXX).
+	Accepts: 0831234567, +27831234567, 27831234567, 27 83 123 4567, etc.
+	"""
+	if not phone:
+		return None
  
-    # Strip all non-digit characters
-    digits = ''.join(c for c in str(phone) if c.isdigit())
+	# Strip all non-digit characters
+	digits = ''.join(c for c in str(phone) if c.isdigit())
  
-    if not digits:
-        return None
+	if not digits:
+		return None
  
-    # Handle different SA formats
-    if digits.startswith('27') and len(digits) == 11:
-        return digits  # Already 27XXXXXXXXX
-    elif digits.startswith('0') and len(digits) == 10:
-        return '27' + digits[1:]  # 0XXXXXXXXX -> 27XXXXXXXXX
-    elif len(digits) == 9:
-        return '27' + digits  # XXXXXXXXX -> 27XXXXXXXXX
-    else:
-        return None  # Unknown format
+	# Handle different SA formats
+	if digits.startswith('27') and len(digits) == 11:
+		return digits  # Already 27XXXXXXXXX
+	elif digits.startswith('0') and len(digits) == 10:
+		return '27' + digits[1:]  # 0XXXXXXXXX -> 27XXXXXXXXX
+	elif len(digits) == 9:
+		return '27' + digits  # XXXXXXXXX -> 27XXXXXXXXX
+	else:
+		return None  # Unknown format
 
 #Generate Payfast Signature
 def generate_signature(dataArray, passPhrase = ''):
@@ -556,178 +556,178 @@ def generate_signature(dataArray, passPhrase = ''):
 # ================================================================
 @login_required
 def order_detail(request, pk):
-    """
-    Customer-facing order detail page.
-    A user can only view their OWN orders. Anyone trying to access
-    another user's order gets a 404 (not a 403, so we don't leak existence).
-    """
-    order = get_object_or_404(Order, id=pk, user=request.user)
-    items = OrderItem.objects.filter(order=order.id)
+	"""
+	Customer-facing order detail page.
+	A user can only view their OWN orders. Anyone trying to access
+	another user's order gets a 404 (not a 403, so we don't leak existence).
+	"""
+	order = get_object_or_404(Order, id=pk, user=request.user)
+	items = OrderItem.objects.filter(order=order.id)
  
-    # Calculate subtotal (before shipping)
-    subtotal = sum(item.price * item.quantity for item in items)
-    shipping_cost = order.amount_paid - subtotal if order.amount_paid and subtotal else 0
+	# Calculate subtotal (before shipping)
+	subtotal = sum(item.price * item.quantity for item in items)
+	shipping_cost = order.amount_paid - subtotal if order.amount_paid and subtotal else 0
  
-    # Build timeline for visual progress
-    timeline = _build_order_timeline(order)
+	# Build timeline for visual progress
+	timeline = _build_order_timeline(order)
  
-    return render(request, 'payment/order_detail.html', {
-        'order': order,
-        'items': items,
-        'subtotal': subtotal,
-        'shipping_cost': shipping_cost,
-        'timeline': timeline,
-    })
+	return render(request, 'payment/order_detail.html', {
+		'order': order,
+		'items': items,
+		'subtotal': subtotal,
+		'shipping_cost': shipping_cost,
+		'timeline': timeline,
+	})
  
  
 def _build_order_timeline(order):
-    """Reusable timeline builder. Same logic as track_order."""
-    timeline = [
-        {
-            'key': 'ordered', 'title': 'Order Placed',
-            'description': 'Your order has been received',
-            'icon': '📝', 'date': order.date_ordered,
-            'completed': True, 'active': False,
-        },
-        {
-            'key': 'paid', 'title': 'Payment Confirmed',
-            'description': "We've received your payment",
-            'icon': '💳', 'date': getattr(order, 'date_paid', None),
-            'completed': order.status == 'paid', 'active': False,
-        },
-        {
-            'key': 'processing', 'title': 'Processing',
-            'description': "We're preparing your order",
-            'icon': '📦', 'date': None,
-            'completed': order.status == 'paid' and order.shipped,
-            'active': order.status == 'paid' and not order.shipped,
-        },
-        {
-            'key': 'shipped', 'title': 'Shipped',
-            'description': 'Your order is on the way',
-            'icon': '🚚', 'date': getattr(order, 'date_shipped', None),
-            'completed': order.shipped,
-            'active': order.shipped,
-        },
-        {
-            'key': 'delivered', 'title': 'Delivered',
-            'description': 'Enjoy your natural beauty products!',
-            'icon': '💚', 'date': None,
-            'completed': False, 'active': False,
-        },
-    ]
+	"""Reusable timeline builder. Same logic as track_order."""
+	timeline = [
+		{
+			'key': 'ordered', 'title': 'Order Placed',
+			'description': 'Your order has been received',
+			'icon': '📝', 'date': order.date_ordered,
+			'completed': True, 'active': False,
+		},
+		{
+			'key': 'paid', 'title': 'Payment Confirmed',
+			'description': "We've received your payment",
+			'icon': '💳', 'date': getattr(order, 'date_paid', None),
+			'completed': order.status == 'paid', 'active': False,
+		},
+		{
+			'key': 'processing', 'title': 'Processing',
+			'description': "We're preparing your order",
+			'icon': '📦', 'date': None,
+			'completed': order.status == 'paid' and order.shipped,
+			'active': order.status == 'paid' and not order.shipped,
+		},
+		{
+			'key': 'shipped', 'title': 'Shipped',
+			'description': 'Your order is on the way',
+			'icon': '🚚', 'date': getattr(order, 'date_shipped', None),
+			'completed': order.shipped,
+			'active': order.shipped,
+		},
+		{
+			'key': 'delivered', 'title': 'Delivered',
+			'description': 'Enjoy your natural beauty products!',
+			'icon': '💚', 'date': None,
+			'completed': False, 'active': False,
+		},
+	]
  
-    if order.status == 'cancelled':
-        timeline = [
-            timeline[0],
-            {
-                'key': 'cancelled', 'title': 'Order Cancelled',
-                'description': 'This order was cancelled',
-                'icon': '❌', 'date': None,
-                'completed': True, 'active': True, 'cancelled': True,
-            },
-        ]
+	if order.status == 'cancelled':
+		timeline = [
+			timeline[0],
+			{
+				'key': 'cancelled', 'title': 'Order Cancelled',
+				'description': 'This order was cancelled',
+				'icon': '❌', 'date': None,
+				'completed': True, 'active': True, 'cancelled': True,
+			},
+		]
  
-    return timeline
+	return timeline
  
  
 # ================================================================
 # ADMIN VIEW — improved version 
 # ================================================================
 def orders_admin(request, pk):
-    """Admin order management — superuser only."""
-    if not (request.user.is_authenticated and request.user.is_superuser):
-        messages.error(request, "Access Denied")
-        return redirect('home')
+	"""Admin order management — superuser only."""
+	if not (request.user.is_authenticated and request.user.is_superuser):
+		messages.error(request, "Access Denied")
+		return redirect('home')
  
-    order = get_object_or_404(Order, id=pk)
-    items = OrderItem.objects.filter(order=pk)
+	order = get_object_or_404(Order, id=pk)
+	items = OrderItem.objects.filter(order=pk)
  
-    # Calculate subtotal (before shipping)
-    subtotal = sum(item.price * item.quantity for item in items)
-    shipping_cost = order.amount_paid - subtotal if order.amount_paid and subtotal else 0
+	# Calculate subtotal (before shipping)
+	subtotal = sum(item.price * item.quantity for item in items)
+	shipping_cost = order.amount_paid - subtotal if order.amount_paid and subtotal else 0
  
-    if request.POST:
-        status = request.POST.get('shipping_status', '')
+	if request.POST:
+		status = request.POST.get('shipping_status', '')
  
-        if status == "true":
-            Order.objects.filter(id=pk).update(
-                shipped=True,
-                date_shipped=datetime.datetime.now()
-            )
-            messages.success(request, f"Order #{pk} marked as shipped")
-            return redirect('shipped_dash')
-        else:
-            Order.objects.filter(id=pk).update(shipped=False)
-            messages.success(request, f"Order #{pk} marked as not shipped")
-            return redirect('not_shipped_dash')
+		if status == "true":
+			Order.objects.filter(id=pk).update(
+				shipped=True,
+				date_shipped=datetime.datetime.now()
+			)
+			messages.success(request, f"Order #{pk} marked as shipped")
+			return redirect('shipped_dash')
+		else:
+			Order.objects.filter(id=pk).update(shipped=False)
+			messages.success(request, f"Order #{pk} marked as not shipped")
+			return redirect('not_shipped_dash')
  
-    return render(request, 'payment/orders_admin.html', {
-        "order": order,
-        "items": items,
-        "subtotal": subtotal,
-        "shipping_cost": shipping_cost,
-    })
+	return render(request, 'payment/orders_admin.html', {
+		"order": order,
+		"items": items,
+		"subtotal": subtotal,
+		"shipping_cost": shipping_cost,
+	})
 
 # ================================================================
 # ADMIN VIEWS — filter to only show PAID orders
 # ================================================================
 def orders(request, pk):
-    if not (request.user.is_authenticated and request.user.is_superuser):
-        messages.success(request, "Access Denied")
-        return redirect('home')
+	if not (request.user.is_authenticated and request.user.is_superuser):
+		messages.success(request, "Access Denied")
+		return redirect('home')
  
-    order = Order.objects.get(id=pk)
-    items = OrderItem.objects.filter(order=pk)
+	order = Order.objects.get(id=pk)
+	items = OrderItem.objects.filter(order=pk)
  
-    if request.POST:
-        status = request.POST['shipping_status']
-        if status == "true":
-            import datetime
-            Order.objects.filter(id=pk).update(shipped=True, date_shipped=datetime.datetime.now())
-        else:
-            Order.objects.filter(id=pk).update(shipped=False)
-        messages.success(request, "Shipping Status Updated")
-        return redirect('shipped_dash')
+	if request.POST:
+		status = request.POST['shipping_status']
+		if status == "true":
+			import datetime
+			Order.objects.filter(id=pk).update(shipped=True, date_shipped=datetime.datetime.now())
+		else:
+			Order.objects.filter(id=pk).update(shipped=False)
+		messages.success(request, "Shipping Status Updated")
+		return redirect('shipped_dash')
  
-    return render(request, 'payment/orders.html', {"order": order, "items": items})
+	return render(request, 'payment/orders.html', {"order": order, "items": items})
  
  
 def not_shipped_dash(request):
-    """Only shows PAID orders that haven't shipped yet."""
-    if not (request.user.is_authenticated and request.user.is_superuser):
-        messages.success(request, "Access Denied")
-        return redirect('home')
+	"""Only shows PAID orders that haven't shipped yet."""
+	if not (request.user.is_authenticated and request.user.is_superuser):
+		messages.success(request, "Access Denied")
+		return redirect('home')
  
-    # KEY CHANGE: only show orders that have been PAID
-    orders = Order.objects.filter(status='paid', shipped=False)
+	# KEY CHANGE: only show orders that have been PAID
+	orders = Order.objects.filter(status='paid', shipped=False)
  
-    if request.POST:
-        status = request.POST['shipping_status']
-        num = request.POST['num']
-        import datetime
-        Order.objects.filter(id=num).update(shipped=True, date_shipped=datetime.datetime.now())
-        messages.success(request, "Shipping Status Updated")
-        return redirect('shipped_dash')
+	if request.POST:
+		status = request.POST['shipping_status']
+		num = request.POST['num']
+		import datetime
+		Order.objects.filter(id=num).update(shipped=True, date_shipped=datetime.datetime.now())
+		messages.success(request, "Shipping Status Updated")
+		return redirect('shipped_dash')
  
-    return render(request, "payment/not_shipped_dash.html", {"orders": orders})
+	return render(request, "payment/not_shipped_dash.html", {"orders": orders})
  
  
 def shipped_dash(request):
-    """Only shows PAID orders that have shipped."""
-    if not (request.user.is_authenticated and request.user.is_superuser):
-        messages.success(request, "Access Denied")
-        return redirect('home')
+	"""Only shows PAID orders that have shipped."""
+	if not (request.user.is_authenticated and request.user.is_superuser):
+		messages.success(request, "Access Denied")
+		return redirect('home')
  
-    orders = Order.objects.filter(status='paid', shipped=True)
+	orders = Order.objects.filter(status='paid', shipped=True)
  
-    if request.POST:
-        num = request.POST['num']
-        Order.objects.filter(id=num).update(shipped=False)
-        messages.success(request, "Shipping Status Updated")
-        return redirect('not_shipped_dash')
+	if request.POST:
+		num = request.POST['num']
+		Order.objects.filter(id=num).update(shipped=False)
+		messages.success(request, "Shipping Status Updated")
+		return redirect('not_shipped_dash')
  
-    return render(request, "payment/shipped_dash.html", {"orders": orders})
+	return render(request, "payment/shipped_dash.html", {"orders": orders})
 
 
 #Process Order and Initiate Payfast payment
@@ -1084,8 +1084,22 @@ def order_history2(request):
 	return render(request, 'payment/order_history.html', {'orders': user_orders})
 
 
+def track_order(request):
+	order = None
+	items = []
+	timeline = []
+	tracking_error = None
+	
+	order_id_param = request.GET.get('order_id', '')
+	email_param = request.GET.get('email', '')
+	
+	if request.method == 'POST' or (order_id_param and email_param):
+		# ... lookup logic ...
+	
+		return render(request, 'payment/track_order.html', {...})
+
 @login_required
-def track_order(request, order_id):
+def track_order2(request, order_id):
 	try:
 		order = Order.objects.get(id=order_id, customer=request.user)
 		tracking_events = order.tracking_events.order_by('timestamp')
