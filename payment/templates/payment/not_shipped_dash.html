@@ -77,7 +77,7 @@
                     {% for item in orders %}
                     <tr data-search="{{ item.id }} {{ item.full_name|lower }} {{ item.email|lower }}">
                         <td>
-                            <a href="{% url 'orders' item.id %}" class="order-id-link">
+                            <a href="{% url 'orders_admin' item.id %}" class="order-id-link">
                                 #{{ item.id }}
                             </a>
                         </td>
@@ -105,7 +105,7 @@
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <a href="{% url 'orders' item.id %}" class="btn-admin-action secondary">
+                                <a href="{% url 'orders_admin' item.id %}" class="btn-admin-action secondary">
                                     👁 View
                                 </a>
                                 <form method="POST" style="display: inline;">
