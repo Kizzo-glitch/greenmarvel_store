@@ -133,12 +133,34 @@
                             {% if base_total >= 600 %}FREE{% else %}Calculated at checkout{% endif %}
                         </span>
                     </div>
+                    {% if qualifies_for_free_shipping %}
+                        <div class="free-shipping-nudge qualified">
+                            <div class="nudge-icon">🎉</div>
+                            <div class="nudge-content">
+                                <strong>You qualify for FREE shipping!</strong>
+                                <span>Your order ships at no extra cost</span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="free-shipping-nudge">
+                            <div class="nudge-text">
+                                💚 Add <strong>R{{ amount_needed_for_free_shipping|floatformat:2 }}</strong> 
+                                more for <strong>FREE shipping!</strong>
+                            </div>
+                            <div class="nudge-progress">
+                                <div class="nudge-progress-fill" style="width: {{ free_shipping_progress_pct }}%"></div>
+                            </div>
+                            <div class="nudge-meta">
+                                R{{ total_after_discount|floatformat:2 }} / R{{ free_shipping_threshold|floatformat:2 }}
+                            </div>
+                        </div>
+                    {% endif %}
 
-                    {% if base_total < 600 %}
+                    <!--{% if base_total < 600 %}
                     <div class="free-shipping-notice">
                         💚 Add R{{ base_total|floatformat:2|add:"-600"|cut:"-" }} more for FREE shipping!
                     </div>
-                    {% endif %}
+                    {% endif %}-->
 
                     <div class="summary-divider"></div>
 
@@ -822,6 +844,76 @@
         color: #666;
         font-size: 0.9rem;
         font-weight: 500;
+    }
+    
+    .free-shipping-nudge {
+        padding: 1rem 1.25rem;
+        background: linear-gradient(135deg, #fff9e6, #fef5d4);
+        border: 1px solid #c5a059;
+        border-radius: 12px;
+        margin: 1rem 0;
+    }
+ 
+    .free-shipping-nudge.qualified {
+        background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        border-color: #4CAF50;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+ 
+    .nudge-icon {
+        font-size: 2rem;
+        flex-shrink: 0;
+    }
+ 
+    .nudge-content strong {
+        display: block;
+        color: #2d5016;
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.15rem;
+    }
+ 
+    .nudge-content span {
+        color: #555;
+        font-size: 0.85rem;
+    }
+ 
+    .nudge-text {
+        color: #8a6d2e;
+        font-size: 0.95rem;
+        margin-bottom: 0.6rem;
+        line-height: 1.5;
+    }
+ 
+    .nudge-text strong {
+        color: #2d5016;
+        font-weight: 800;
+    }
+ 
+    .nudge-progress {
+        height: 8px;
+        background: rgba(197, 160, 89, 0.2);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 0.4rem;
+    }
+ 
+    .nudge-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4CAF50, #c5a059);
+        border-radius: 4px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 0 8px rgba(197, 160, 89, 0.4);
+    }
+ 
+    .nudge-meta {
+        color: #8a6d2e;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-align: right;
+        opacity: 0.85;
     }
 
     .empty-feature .feature-icon { font-size: 1.4rem; }

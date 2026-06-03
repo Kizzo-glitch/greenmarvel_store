@@ -17,7 +17,131 @@ from django.utils import timezone
 
 
 
+# ============================================
+# Free shipping threshold — single source of truth
+# ============================================
+FREE_SHIPPING_THRESHOLD = Decimal('600.00')
+
+
+def _calc_free_shipping(total):
+    """
+    Returns a tuple: (amount_needed, qualifies, progress_pct)
+    All values calculated cleanly so the template just displays them.
+    """
+    total = Decimal(str(total))
+    if total >= FREE_SHIPPING_THRESHOLD:
+        return Decimal('0.00'), True, 100
+    
+    amount_needed = (FREE_SHIPPING_THRESHOLD - total).quantize(
+        Decimal('0.01'), rounding=ROUND_HALF_UP
+    )
+    
+    # Progress percentage (0-100)
+    progress_pct = int((total / FREE_SHIPPING_THRESHOLD) * 100)
+    
+    return amount_needed, False, progress_pct
+
+
 def cart_summary(request):
+    cart = Cart(request)
+    cart_products = cart.get_prods
+    quantities = cart.get_quants
+
+    # Initialize ALL variables upfront — prevents UnboundLocalError edge cases
+    base_total = cart.cart_total()
+    discount_amount = Decimal('0.00')
+    total_after_discount = base_total  # Default: no discount applied
+    commission = Decimal('0.00')
+    applied_promo = None
+    discount_code = None
+
+    # ============================================
+    # Step 1: Check POST for discount code
+    # ============================================
+    if request.method == "POST" and 'discount_code' in request.POST:
+        discount_code = request.POST.get('discount_code', '').strip()
+        try:
+            discount = DiscountCode.objects.get(code=discount_code, is_active=True)
+            
+            discount_amount = (
+                Decimal(discount.discount_percentage) / 100 * base_total
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            
+            total_after_discount = (base_total - discount_amount).quantize(
+                Decimal('0.01'), rounding=ROUND_HALF_UP
+            )
+
+            if discount.influencer:
+                commission = (
+                    Decimal(discount.influencer.commission_rate) / 100 * base_total
+                ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+            applied_promo = f"Code: {discount.code}"
+            messages.success(request, f"Discount code '{discount.code}' applied!")
+
+        except ObjectDoesNotExist:
+            messages.error(request, "Invalid discount code")
+            # total_after_discount already defaults to base_total — no change needed
+
+    # ============================================
+    # Step 2: Heritage Day promo (only if no discount code POST)
+    # ============================================
+    else:
+        try:
+            heritage_special = Promotion.objects.get(
+                name="Heritage Day Buy 3", is_active=True
+            )
+        except Promotion.DoesNotExist:
+            heritage_special = None
+
+        if heritage_special:
+            heritage_total = cart.heritage_total()
+            total_after_discount = heritage_total.quantize(
+                Decimal('0.01'), rounding=ROUND_HALF_UP
+            )
+            applied_promo = "Heritage Day: Cheapest Item Free"
+        # else: total_after_discount stays at base_total (already set above)
+
+    # ============================================
+    # Step 3: Calculate free-shipping nudge
+    # Based on total_after_discount (post-discount), so a customer who
+    # discounted their way below R600 doesn't get free shipping
+    # ============================================
+    amount_needed_for_free_shipping, qualifies_for_free_shipping, free_shipping_progress_pct = \
+        _calc_free_shipping(total_after_discount)
+
+    # ============================================
+    # Step 4: Save key values to session
+    # ============================================
+    request.session['total_after_discount'] = str(total_after_discount)
+    request.session['commission'] = str(commission)
+    request.session['discount_code'] = discount_code
+    request.session['applied_promo'] = applied_promo
+
+    # ============================================
+    # Step 5: Render
+    # ============================================
+    return render(
+        request,
+        "cart_summary.html",
+        {
+            "cart_products": cart_products,
+            "quantities": quantities,
+            "base_total": base_total,
+            "discount_amount": discount_amount,
+            "total_after_discount": total_after_discount,
+            "commission": commission,
+            "applied_promo": applied_promo,
+            # Free shipping context
+            "free_shipping_threshold": FREE_SHIPPING_THRESHOLD,
+            "amount_needed_for_free_shipping": amount_needed_for_free_shipping,
+            "qualifies_for_free_shipping": qualifies_for_free_shipping,
+            "free_shipping_progress_pct": free_shipping_progress_pct,
+        },
+    )
+
+
+def cart_summary2(request):
 	cart = Cart(request)
 	cart_products = cart.get_prods
 	quantities = cart.get_quants

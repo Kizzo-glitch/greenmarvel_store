@@ -76,6 +76,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'cart.context_processors.cart',
+                'cart.context_processors.free_shipping',
             ],
         },
     },
@@ -191,7 +192,7 @@ EMAIL_USE_SSL = False
 COURIER_GUY_USERNAME = str(os.getenv("COURIER_GUY_USERNAME")) 
 COURIER_GUY_API_KEY = str(os.getenv("COURIER_GUY_API_KEY"))
 
-ADMIN_SMS_PHONE = str(os.getenv("ADMIN_SMS_PHONE"))
+ADMIN_SMS_PHONES = str(os.getenv("ADMIN_SMS_PHONES", ''))
 
  # SMSPortal
 SMS_API_URL = "https://rest.smsportal.com/bulkmessages"
