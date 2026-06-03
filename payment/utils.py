@@ -24,7 +24,7 @@ def send_sms_smsportal(destination_number, message_content):
 		dict: A dictionary containing the response from the SMSPortal API
 			  or an error message.
 	"""
-	api_key = settings.CLIENT_ID
+	api_key = settings.SMS_CLIENT_ID
 	api_secret = settings.SMS_API_SECRET
 	sender_id = getattr(settings, 'SMS_CLIENT_ID', None) 
 
