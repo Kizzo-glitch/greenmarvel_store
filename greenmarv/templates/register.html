@@ -90,7 +90,13 @@
                     <label class="checkbox-label">
                         <input type="checkbox" name="terms" id="terms" required>
                         <span class="checkbox-custom"></span>
-                        <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+                        <span>
+                            I agree to the 
+                            <a href="{% url 'terms_of_service' %}" target="_blank" rel="noopener">Terms of Service</a>, 
+                            <a href="{% url 'privacy_policy' %}" target="_blank" rel="noopener">Privacy Policy</a>, 
+                            and <a href="{% url 'cookie_policy' %}" target="_blank" rel="noopener">Cookie Policy</a>
+                        </span>
+                        <!--<span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>-->
                     </label>
                 </div>
 
@@ -123,6 +129,7 @@
         </div>
     </div>
 </section>
+
 
 {% include 'auth_styles.html' %}
 

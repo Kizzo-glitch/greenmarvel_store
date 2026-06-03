@@ -14,4 +14,9 @@ urlpatterns = [
     path('product/<int:pk>', views.product, name='product'),
     path('shop/', views.shop_all, name='shop'),
     path('search/', views.search, name='search'),
+    
+    # Legal pages
+    path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('cookie-policy/', views.cookie_policy, name='cookie_policy'),
 ]

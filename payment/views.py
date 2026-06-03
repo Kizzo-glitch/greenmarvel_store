@@ -544,8 +544,45 @@ def send_order_confirmation_sms(order):
 		logger.error(f"Customer SMS failed for order {order.id}: {result}")
  
  
-
 def send_admin_order_alert_sms(order):
+    """Alert all configured admins that a new paid order has come in."""
+    admin_phones = getattr(settings, 'ADMIN_SMS_PHONES', None)
+    
+    # Backwards compatibility: support old single-phone setting too
+    if not admin_phones:
+        legacy_phone = getattr(settings, 'ADMIN_SMS_PHONE', None)
+        admin_phones = [legacy_phone] if legacy_phone else []
+    
+    # Accept either a list or a comma-separated string
+    if isinstance(admin_phones, str):
+        admin_phones = [p.strip() for p in admin_phones.split(',') if p.strip()]
+    
+    if not admin_phones:
+        return  # No admins configured
+    
+    message = (
+        f"🔔 New Marvelously Green Order!\n"
+        f"Order #{order.id}\n"
+        f"Customer: {order.full_name}\n"
+        f"Amount: R{order.amount_paid}\n"
+        f"Phone: {order.phone}"
+    )
+    
+    for phone in admin_phones:
+        formatted = _format_sa_phone(phone)
+        if not formatted:
+            print(f"[SMS] Skipping invalid admin phone: {phone!r}", flush=True)
+            continue
+        
+        try:
+            send_sms_smsportal(formatted, message)
+            print(f"[SMS] Admin alert sent to {formatted}", flush=True)
+        except Exception as e:
+            # Don't let one failed SMS stop the others
+            print(f"[SMS] Failed to send to {formatted}: {e}", flush=True)
+
+
+def send_admin_order_alert_sms2(order):
 	"""Alert admin that a new paid order has come in."""
 	admin_phone = getattr(settings, 'ADMIN_SMS_PHONE', None)
 	if not admin_phone:

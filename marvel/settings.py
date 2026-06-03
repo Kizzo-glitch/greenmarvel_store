@@ -192,6 +192,7 @@ EMAIL_USE_SSL = False
 COURIER_GUY_USERNAME = str(os.getenv("COURIER_GUY_USERNAME")) 
 COURIER_GUY_API_KEY = str(os.getenv("COURIER_GUY_API_KEY"))
 
+ADMIN_SMS_PHONE = str(os.getenv("ADMIN_SMS_PHONE"))
 ADMIN_SMS_PHONES = str(os.getenv("ADMIN_SMS_PHONES", ''))
 
  # SMSPortal

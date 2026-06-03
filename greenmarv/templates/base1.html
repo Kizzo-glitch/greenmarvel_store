@@ -1022,7 +1022,13 @@
 <!-- ============================================ -->
 
 <div class="announcement">
-    FREE SHIPPING ON ALL ORDERS OVER R600 | 100% ORGANIC & CHEMICAL FREE
+    {% if request.session.cart and global_amount_needed_for_free_shipping > 0 %}
+        💚 You're R{{ global_amount_needed_for_free_shipping|floatformat:2 }} away from FREE shipping!
+    {% elif request.session.cart and global_qualifies_for_free_shipping %}
+        🎉 You qualify for FREE shipping!
+    {% else %}
+        FREE SHIPPING ON ALL ORDERS OVER R600 | 100% ORGANIC & CHEMICAL FREE
+    {% endif %}
 </div>
 
 <header id="header">
@@ -1376,7 +1382,14 @@
         </div>
 
         <div class="footer-bottom">
-            <p>&copy; 2026 Marvelously Green. All rights reserved. | Privacy Policy | Terms of Service</p>
+            <div class="footer-legal-links">
+                <a href="{% url 'terms_of_service' %}">Terms of Service</a>
+                <span class="footer-divider">·</span>
+                <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+                <span class="footer-divider">·</span>
+                <a href="{% url 'cookie_policy' %}">Cookie Policy</a>
+            </div>
+            <p>&copy; 2026 Marvelously Green. All rights reserved.</p>
         </div>
     </footer>
 
@@ -1388,6 +1401,31 @@
         </filter>
     </defs>
     </svg>
-
+<style>
+    .footer-legal-links {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+ 
+    .footer-legal-links a {
+        color: #c5a059;
+        text-decoration: none;
+        font-size: 0.82rem;
+        font-weight: 500;
+        transition: color 0.3s;
+    }
+ 
+    .footer-legal-links a:hover {
+        color: #fcf8ef;
+        text-decoration: underline;
+    }
+ 
+    .footer-divider {
+        color: rgba(197, 160, 89, 0.4);
+    }
+</style>
 </body>
 </html>

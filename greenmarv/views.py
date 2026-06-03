@@ -206,6 +206,62 @@ def register_user(request):
 
 
 
+# ================================================================
+# VIEWS — Add to your views.py (e.g., store/views.py or a new legal/views.py)
+# ================================================================
+from django.views.generic import TemplateView
+
+
+class TermsOfServiceView(TemplateView):
+    template_name = 'legal/terms_of_service.html'
+
+
+class PrivacyPolicyView(TemplateView):
+    template_name = 'legal/privacy_policy.html'
+
+
+class CookiePolicyView(TemplateView):
+    template_name = 'legal/cookie_policy.html'
+
+
+# ================================================================
+# Alternative: simple function views (use these if you prefer)
+# ================================================================
+from django.shortcuts import render
+
+def terms_of_service(request):
+    return render(request, 'legal/terms_of_service.html')
+
+def privacy_policy(request):
+    return render(request, 'legal/privacy_policy.html')
+
+def cookie_policy(request):
+    return render(request, 'legal/cookie_policy.html')
+
+
+# ================================================================
+# URLS — Add to your urls.py
+# ================================================================
+"""
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    # ... existing patterns ...
+    
+    # Legal pages
+    path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('cookie-policy/', views.cookie_policy, name='cookie_policy'),
+    
+    # Or using class-based views:
+    # path('terms-of-service/', views.TermsOfServiceView.as_view(), name='terms_of_service'),
+    # path('privacy-policy/', views.PrivacyPolicyView.as_view(), name='privacy_policy'),
+    # path('cookie-policy/', views.CookiePolicyView.as_view(), name='cookie_policy'),
+]
+"""
+
+
 def register_user2(request):
 	form = SignUpForm()
 	if request.method == 'POST':

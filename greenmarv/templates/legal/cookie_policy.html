@@ -1,0 +1,228 @@
+{% extends 'base1.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="legal-hero">
+    <div class="legal-hero-container">
+        <div class="legal-hero-badge">🍪 LEGAL</div>
+        <h1 class="legal-hero-title">Cookie <span>Policy</span></h1>
+        <p class="legal-hero-meta">Last updated: 03 June 2026</p>
+    </div>
+</section>
+
+<section class="legal-section">
+    <div class="legal-container">
+        <!-- Sidebar TOC -->
+        <aside class="legal-sidebar">
+            <div class="legal-toc">
+                <div class="toc-label">On this page</div>
+                <a href="#what-are-cookies" class="toc-link">1. What Are Cookies?</a>
+                <a href="#types" class="toc-link">2. Cookies We Use</a>
+                <a href="#third-party" class="toc-link">3. Third-Party Cookies</a>
+                <a href="#managing" class="toc-link">4. Managing Cookies</a>
+                <a href="#changes" class="toc-link">5. Changes</a>
+                <a href="#contact" class="toc-link">6. Contact Us</a>
+
+                <div class="toc-related">
+                    <a href="{% url 'terms_of_service' %}" class="toc-related-link">
+                        📜 Terms of Service
+                    </a>
+                    <a href="{% url 'privacy_policy' %}" class="toc-related-link">
+                        🔒 Privacy Policy
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <div class="legal-content">
+            <div class="legal-intro-card">
+                <div class="intro-icon">🍪</div>
+                <div>
+                    <strong>About cookies on our site</strong>
+                    <p>We use cookies to keep your cart working, remember your login, and understand how visitors use our site. Here's the full breakdown.</p>
+                </div>
+            </div>
+
+            <article id="what-are-cookies" class="legal-article">
+                <h2>1. What Are Cookies?</h2>
+                <p>Cookies are small text files stored on your device when you visit a website. They allow the website to recognize your device on subsequent visits and provide a better browsing experience.</p>
+                <p>Cookies are essential for many modern web features, such as:</p>
+                <ul class="legal-list">
+                    <li>Keeping you logged in as you navigate between pages</li>
+                    <li>Remembering items in your shopping cart</li>
+                    <li>Saving your preferences (e.g., language, currency)</li>
+                    <li>Helping us understand how visitors use our site so we can improve it</li>
+                </ul>
+            </article>
+
+            <article id="types" class="legal-article">
+                <h2>2. Cookies We Use</h2>
+                <p>We categorize our cookies into the following types:</p>
+
+                <h3>2.1 Strictly Necessary Cookies</h3>
+                <p>These cookies are essential for the website to function. They cannot be disabled in our system, but you can block them through your browser settings (note that doing so will break key features).</p>
+                <div class="cookie-table-wrap">
+                    <table class="cookie-table">
+                        <thead>
+                            <tr>
+                                <th>Cookie</th>
+                                <th>Purpose</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>sessionid</code></td>
+                                <td>Maintains your login session</td>
+                                <td>2 weeks</td>
+                            </tr>
+                            <tr>
+                                <td><code>csrftoken</code></td>
+                                <td>Prevents cross-site request forgery (security)</td>
+                                <td>1 year</td>
+                            </tr>
+                            <tr>
+                                <td><code>cart</code></td>
+                                <td>Remembers items in your shopping cart</td>
+                                <td>Session</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>2.2 Performance & Analytics Cookies</h3>
+                <p>These help us understand how visitors interact with our website. We use this information to improve the user experience.</p>
+                <div class="cookie-table-wrap">
+                    <table class="cookie-table">
+                        <thead>
+                            <tr>
+                                <th>Cookie</th>
+                                <th>Purpose</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>_ga</code></td>
+                                <td>Google Analytics — distinguishes users</td>
+                                <td>2 years</td>
+                            </tr>
+                            <tr>
+                                <td><code>_gid</code></td>
+                                <td>Google Analytics — daily session tracking</td>
+                                <td>24 hours</td>
+                            </tr>
+                            <tr>
+                                <td><code>_ttp</code></td>
+                                <td>TikTok Pixel — ad performance tracking</td>
+                                <td>13 months</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>2.3 Functional Cookies</h3>
+                <p>These remember your preferences to provide a more personalized experience.</p>
+                <div class="cookie-table-wrap">
+                    <table class="cookie-table">
+                        <thead>
+                            <tr>
+                                <th>Cookie</th>
+                                <th>Purpose</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>marketing_consent</code></td>
+                                <td>Remembers your marketing preferences</td>
+                                <td>1 year</td>
+                            </tr>
+                            <tr>
+                                <td><code>cookie_consent</code></td>
+                                <td>Remembers your cookie preferences</td>
+                                <td>1 year</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+
+            <article id="third-party" class="legal-article">
+                <h2>3. Third-Party Cookies</h2>
+                <p>Some cookies are placed by third-party services on our pages. We have no direct control over these cookies. They include:</p>
+                
+                <div class="info-share-grid">
+                    <div class="share-card">
+                        <div class="share-icon">📊</div>
+                        <h4>Google Analytics</h4>
+                        <p>Helps us understand visitor behavior. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a></p>
+                    </div>
+                    <div class="share-card">
+                        <div class="share-icon">📱</div>
+                        <h4>TikTok Pixel</h4>
+                        <p>Tracks ad campaign performance. <a href="https://www.tiktok.com/legal/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a></p>
+                    </div>
+                    <div class="share-card">
+                        <div class="share-icon">💳</div>
+                        <h4>Payfast</h4>
+                        <p>Used only on the payment page during checkout. <a href="https://payfast.io/privacy-statement/" target="_blank" rel="noopener">Privacy Policy</a></p>
+                    </div>
+                </div>
+            </article>
+
+            <article id="managing" class="legal-article">
+                <h2>4. Managing Your Cookies</h2>
+                <p>You have several options for managing cookies:</p>
+
+                <h3>4.1 Browser Settings</h3>
+                <p>Most browsers let you control cookies through their settings. You can usually find these in your browser's "Privacy" or "Security" section:</p>
+                <ul class="legal-list">
+                    <li><strong>Chrome:</strong> Settings → Privacy and Security → Cookies and other site data</li>
+                    <li><strong>Firefox:</strong> Settings → Privacy & Security → Cookies and Site Data</li>
+                    <li><strong>Safari:</strong> Preferences → Privacy → Cookies and website data</li>
+                    <li><strong>Edge:</strong> Settings → Cookies and site permissions → Cookies and site data</li>
+                </ul>
+
+                <h3>4.2 Opt-Out Tools</h3>
+                <ul class="legal-list">
+                    <li><strong>Google Analytics:</strong> Install the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics Opt-out Browser Add-on</a></li>
+                    <li><strong>Do Not Track:</strong> Enable Do Not Track in your browser settings (we respect this signal)</li>
+                </ul>
+
+                <div class="legal-callout warning">
+                    <strong>⚠️ Important:</strong> Disabling strictly necessary cookies will prevent the website from functioning properly — your cart won't work, you can't log in, and checkout will fail.
+                </div>
+            </article>
+
+            <article id="changes" class="legal-article">
+                <h2>5. Changes to This Policy</h2>
+                <p>We may update this Cookie Policy from time to time. The "Last updated" date at the top of this page reflects the most recent revision.</p>
+            </article>
+
+            <article id="contact" class="legal-article">
+                <h2>6. Contact Us</h2>
+                <p>If you have questions about our use of cookies, contact us:</p>
+                <div class="contact-card">
+                    <div class="contact-row">
+                        <span class="contact-icon">🏢</span>
+                        <div>
+                            <strong>Green Marvel (Pty) Ltd</strong>
+                            <span>Reg: 2023/866045/07</span>
+                        </div>
+                    </div>
+                    <div class="contact-row">
+                        <span class="contact-icon">📧</span>
+                        <div><a href="mailto:admin@greenmarvel.co.za">admin@greenmarvel.co.za</a></div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+{% include 'legal/legal_styles.html' %}
+
+{% endblock %}
