@@ -345,7 +345,7 @@ def process_order(request):
 	signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 	data['signature'] = signature
  
-	payfast_url = "https://sandbox.payfast.co.za/eng/process?" #"https://www.payfast.co.za/eng/process?"
+	payfast_url = "https://www.payfast.co.za/eng/process?" #"https://sandbox.payfast.co.za/eng/process?"
 	payment_url = payfast_url + urllib.parse.urlencode(data)
  
 	# ============================================================
