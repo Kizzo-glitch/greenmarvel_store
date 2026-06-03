@@ -169,14 +169,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #django_heroku.settings(locals())
 
-PAYFAST_MERCHANT_ID = '24614055'
-PAYFAST_MERCHANT_KEY = 'cybdmhnyiv7q6' 
-PAYFAST_PASSPHRASE = 'Marvelousgreen2024'
+#PAYFAST_MERCHANT_ID = '24614055'
+#PAYFAST_MERCHANT_KEY = 'cybdmhnyiv7q6' 
+#PAYFAST_PASSPHRASE = 'Marvelousgreen2024'
 
 # Sandbox
-#PAYFAST_MERCHANT_ID = '10048141'
-#PAYFAST_MERCHANT_KEY = 'xg64ihybowxw5' 
-#PAYFAST_PASSPHRASE = 'MarvGreenTest'
+PAYFAST_MERCHANT_ID = '10048141'
+PAYFAST_MERCHANT_KEY = 'xg64ihybowxw5' 
+PAYFAST_PASSPHRASE = 'MarvGreenTest'
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
