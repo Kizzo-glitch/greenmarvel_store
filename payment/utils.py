@@ -10,6 +10,7 @@ import logging
 # SMSPortal
 logger = logging.getLogger(__name__)
 
+
 def send_sms_smsportal(destination_number, message_content):
 	"""
 	Sends an SMS using the SMSPortal API.
@@ -25,7 +26,7 @@ def send_sms_smsportal(destination_number, message_content):
 	"""
 	api_key = settings.CLIENT_ID
 	api_secret = settings.SMS_API_SECRET
-	sender_id = getattr(settings, 'CLIENT_ID', None) # Get sender ID if set
+	sender_id = getattr(settings, 'SMS_CLIENT_ID', None) 
 
 	if not api_key or not api_secret:
 		logger.error("SMSPortal API Key or Secret is not configured in settings.py")

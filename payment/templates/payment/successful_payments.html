@@ -1,69 +1,624 @@
-{% extends 'base.html' %}
+{% extends 'base1.html' %}
 {% load static %}
+
 {% block content %}
 
-        <!-- Header-->
-        <header class="bg-dark py-5">
-            <div class="container px-4 px-lg-5 my-5">
-                <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">Admin Payment Notifications</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">These Payments were successful</p>
+<!-- Admin Hero -->
+<section class="admin-hero">
+    <div class="admin-hero-container">
+        <div class="admin-hero-badge">⚡ ADMIN · PAYMENT RECORDS</div>
+        <div class="admin-hero-flex">
+            <div>
+                <h1 class="admin-hero-title">Payfast <span>Log</span></h1>
+                <p class="admin-hero-subtitle">Every successful payment confirmed by Payfast ITN</p>
+            </div>
+            <div class="admin-hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-number">{{ orders|length }}</div>
+                    <div class="hero-stat-label">Paid Orders</div>
+                </div>
+                <div class="hero-stat highlight">
+                    <div class="hero-stat-number">R{{ total_revenue|default:0|floatformat:0 }}</div>
+                    <div class="hero-stat-label">Total Revenue</div>
                 </div>
             </div>
-        </header>
+        </div>
+    </div>
+</section>
 
-        <br/><br/>
-        
-        <div class="container">
-            <div class="row">
-                <center>
-                    <div class="col-8">
-                        <br/><br/>
-                        <h3>Successful Orders</h3>
-                        <table class="table table-striped table-hover table-bordered">
-                          <thead class="table-dark">
-                            <tr>
-                              <th scope="col">Order</th>
-                              <th scope="col">Price</th>
-                              <th scope="col">Customer Email</th>
-                              <th scope="col">Customer Name</th>                             
-                              <th scope="col">Status</th>
-                              <th scope="col">itn_payload</th>
+<!-- Tab Nav -->
+<section class="admin-tabs-strip">
+    <div class="admin-tabs-container">
+        <a href="{% url 'not_shipped_dash' %}" class="admin-tab">
+            📋 Unshipped
+        </a>
+        <a href="{% url 'shipped_dash' %}" class="admin-tab">
+            🚚 Shipped
+        </a>
+        <a href="{% url 'successful_payments' %}" class="admin-tab active">
+            💳 Payfast Log
+            <span class="tab-count">{{ orders|length }}</span>
+        </a>
+    </div>
+</section>
 
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {% for payment in successful_payments %}
-                            <tr>
-                              <td>{{ successful_payments.order_id }}</td>
-                              <td>R{{ successful_payments.amount_paid }}</td>
-                              <td>{{ successful_payments.email }}</td> 
-                              <td>{{ successful_payments.name_first }}</td>
-                              <td>{{ successful_payments.status }}</td>
-                              <td>{{ successful_payments.itn_payload }}</td>
-                              <!--<td>
-                               <form method="POST">
-                                  {% csrf_token %}
-                                  <input type="hidden" name="shipping_status" value="true">
-                                  <input type="hidden" name="num" value={{item.id}}>
-                                  <button type="Submit" class="btn btn-success btn-sm">Mark Shipped</button>
-                                </form>
-                                </td>-->
-                            </tr>
-                            {% endfor %}                        
-                            
-                          </tbody>
-                        </table>
-
-                        <br/><br/>
-                        <br/><br/>
-                    </div>
-                </center>
+<section class="admin-dash-section">
+    <div class="admin-dash-container">
+        <!-- Revenue Summary Cards -->
+        <div class="revenue-stats-grid">
+            <div class="revenue-stat-card">
+                <div class="revenue-stat-icon">📅</div>
+                <div class="revenue-stat-content">
+                    <div class="revenue-stat-label">Today</div>
+                    <div class="revenue-stat-value">R{{ revenue_today|default:0|floatformat:2 }}</div>
+                    <div class="revenue-stat-meta">{{ orders_today|default:0 }} order{{ orders_today|pluralize }}</div>
+                </div>
+            </div>
+            <div class="revenue-stat-card">
+                <div class="revenue-stat-icon">📆</div>
+                <div class="revenue-stat-content">
+                    <div class="revenue-stat-label">This Week</div>
+                    <div class="revenue-stat-value">R{{ revenue_week|default:0|floatformat:2 }}</div>
+                    <div class="revenue-stat-meta">{{ orders_week|default:0 }} order{{ orders_week|pluralize }}</div>
+                </div>
+            </div>
+            <div class="revenue-stat-card">
+                <div class="revenue-stat-icon">🗓️</div>
+                <div class="revenue-stat-content">
+                    <div class="revenue-stat-label">This Month</div>
+                    <div class="revenue-stat-value">R{{ revenue_month|default:0|floatformat:2 }}</div>
+                    <div class="revenue-stat-meta">{{ orders_month|default:0 }} order{{ orders_month|pluralize }}</div>
+                </div>
+            </div>
+            <div class="revenue-stat-card highlight">
+                <div class="revenue-stat-icon">💰</div>
+                <div class="revenue-stat-content">
+                    <div class="revenue-stat-label">All Time</div>
+                    <div class="revenue-stat-value">R{{ total_revenue|default:0|floatformat:2 }}</div>
+                    <div class="revenue-stat-meta">{{ orders|length }} total order{{ orders|length|pluralize }}</div>
+                </div>
             </div>
         </div>
-    
-    <br/><br/>
-    <br/><br>
-    <br/><br>
-     
-  {% endblock %}
+
+        <!-- Toolbar -->
+        <div class="admin-toolbar">
+            <div class="toolbar-left">
+                <h2 class="toolbar-title">
+                    💳 Payment History
+                </h2>
+            </div>
+            <div class="toolbar-right">
+                <!-- Filter chips -->
+                <div class="filter-chips">
+                    <button class="filter-chip active" data-filter="all" onclick="filterByDate('all', this)">
+                        All
+                    </button>
+                    <button class="filter-chip" data-filter="today" onclick="filterByDate('today', this)">
+                        Today
+                    </button>
+                    <button class="filter-chip" data-filter="week" onclick="filterByDate('week', this)">
+                        Last 7 Days
+                    </button>
+                    <button class="filter-chip" data-filter="month" onclick="filterByDate('month', this)">
+                        This Month
+                    </button>
+                </div>
+
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" 
+                           id="paymentSearch" 
+                           placeholder="Search..." 
+                           class="admin-search"
+                           onkeyup="filterPayments()">
+                </div>
+
+                <button class="btn-export" onclick="exportToCSV()">
+                    📥 Export CSV
+                </button>
+            </div>
+        </div>
+
+        {% if orders %}
+        <!-- Payments Table -->
+        <div class="admin-table-wrapper">
+            <table class="admin-table" id="paymentsTable">
+                <thead>
+                    <tr>
+                        <th style="width: 90px;">Order</th>
+                        <th>Customer</th>
+                        <th>Date Paid</th>
+                        <th>Items</th>
+                        <th>Fulfillment</th>
+                        <th style="width: 130px;">Amount</th>
+                        <th style="width: 110px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in orders %}
+                    <tr data-search="{{ item.id }} {{ item.full_name|lower }} {{ item.email|lower }}" 
+                        data-date-paid="{{ item.date_paid|date:'Y-m-d'|default:item.date_ordered|date:'Y-m-d' }}"
+                        data-amount="{{ item.amount_paid }}">
+                        <td>
+                            <a href="{% url 'orders_admin' item.id %}" class="order-id-link">
+                                #{{ item.id }}
+                            </a>
+                        </td>
+                        <td>
+                            <div class="customer-cell">
+                                <strong>{{ item.full_name }}</strong>
+                                <a href="mailto:{{ item.email }}" class="customer-email">{{ item.email }}</a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="date-cell">
+                                {% if item.date_paid %}
+                                    <strong>{{ item.date_paid|date:"d M Y" }}</strong>
+                                    <span>{{ item.date_paid|date:"H:i" }}</span>
+                                {% else %}
+                                    <strong>{{ item.date_ordered|date:"d M Y" }}</strong>
+                                    <span class="time-fallback">{{ item.date_ordered|date:"H:i" }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="items-badge">
+                                {% with item_count=item.orderitem_set.count %}
+                                    {{ item_count }} item{{ item_count|pluralize }}
+                                {% endwith %}
+                            </span>
+                        </td>
+                        <td>
+                            {% if item.shipped %}
+                                <span class="status-pill shipped">
+                                    <span class="pill-dot"></span>
+                                    Shipped
+                                </span>
+                            {% else %}
+                                <span class="status-pill pending-ship">
+                                    <span class="pill-dot"></span>
+                                    Pending
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="amount-cell-wrap">
+                                <span class="amount-cell">R{{ item.amount_paid }}</span>
+                                <span class="payment-badge">
+                                    <span class="pf-dot"></span>
+                                    PAID
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <a href="{% url 'orders_admin' item.id %}" class="btn-admin-action secondary">
+                                👁 View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No results message for search -->
+        <div class="no-search-results" id="noResults" style="display: none;">
+            <div class="empty-icon">🔍</div>
+            <h3>No payments match your search</h3>
+            <p>Try a different search term or change the date filter.</p>
+        </div>
+
+        {% else %}
+        <!-- Empty state -->
+        <div class="empty-dash">
+            <div class="empty-icon">💸</div>
+            <h3>No payments yet</h3>
+            <p>Successful Payfast payments will appear here as soon as customers complete checkout.</p>
+            <a href="{% url 'home' %}" class="btn-empty-action">
+                Visit Storefront →
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% include 'payment/admin_dash_styles.html' %}
+
+<style>
+    /* ============================================ */
+    /* PAYFAST-SPECIFIC STYLES */
+    /* ============================================ */
+
+    /* Make the all-time stat in hero highlighted */
+    .admin-hero-stats .hero-stat.highlight {
+        background: rgba(197, 160, 89, 0.2);
+        border-color: #c5a059;
+    }
+
+    .admin-hero-stats .hero-stat.highlight .hero-stat-number {
+        color: #fcf8ef;
+    }
+
+    /* Revenue summary cards */
+    .revenue-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .revenue-stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem;
+        border: 1px solid rgba(197, 160, 89, 0.15);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s;
+    }
+
+    .revenue-stat-card:hover {
+        transform: translateY(-3px);
+        border-color: #c5a059;
+        box-shadow: 0 8px 25px rgba(197, 160, 89, 0.1);
+    }
+
+    .revenue-stat-card.highlight {
+        background: linear-gradient(135deg, #1b3022, #2d5016);
+        border-color: #c5a059;
+    }
+
+    .revenue-stat-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        border: 1px solid rgba(197, 160, 89, 0.3);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .revenue-stat-card.highlight .revenue-stat-icon {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        border-color: #fcf8ef;
+    }
+
+    .revenue-stat-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .revenue-stat-label {
+        color: #999;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 0.2rem;
+    }
+
+    .revenue-stat-card.highlight .revenue-stat-label {
+        color: #c5a059;
+    }
+
+    .revenue-stat-value {
+        color: #2d5016;
+        font-size: 1.45rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 0.2rem;
+        letter-spacing: -0.5px;
+    }
+
+    .revenue-stat-card.highlight .revenue-stat-value {
+        color: #fcf8ef;
+    }
+
+    .revenue-stat-meta {
+        color: #888;
+        font-size: 0.75rem;
+    }
+
+    .revenue-stat-card.highlight .revenue-stat-meta {
+        color: #fcf8ef;
+        opacity: 0.7;
+    }
+
+    /* Filter chips */
+    .filter-chips {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-chip {
+        padding: 0.5rem 1rem;
+        background: white;
+        border: 1px solid #e8f5e9;
+        border-radius: 25px;
+        color: #555;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-family: inherit;
+        white-space: nowrap;
+    }
+
+    .filter-chip:hover {
+        border-color: #c5a059;
+        color: #2d5016;
+    }
+
+    .filter-chip.active {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+        border-color: #c5a059;
+    }
+
+    /* Export button */
+    .btn-export {
+        padding: 0.6rem 1.2rem;
+        background: white;
+        border: 2px solid #c5a059;
+        color: #2d5016;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-family: inherit;
+        white-space: nowrap;
+    }
+
+    .btn-export:hover {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(197, 160, 89, 0.3);
+    }
+
+    /* Amount + paid badge cell */
+    .amount-cell-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .payment-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.15rem 0.5rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #c5a059;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        width: fit-content;
+        border: 1px solid #c5a059;
+    }
+
+    .pf-dot {
+        width: 6px;
+        height: 6px;
+        background: #c5a059;
+        border-radius: 50%;
+        animation: pulse-soft 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-soft {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    /* Fulfillment status pills */
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .status-pill .pill-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    .status-pill.shipped {
+        background: rgba(76, 175, 80, 0.12);
+        color: #2d5016;
+        border: 1px solid rgba(76, 175, 80, 0.5);
+    }
+    .status-pill.shipped .pill-dot { background: #4CAF50; }
+
+    .status-pill.pending-ship {
+        background: #fff9e6;
+        color: #8a6d2e;
+        border: 1px solid #c5a059;
+    }
+    .status-pill.pending-ship .pill-dot { 
+        background: #c5a059;
+        animation: pulse-soft 1.5s ease-in-out infinite;
+    }
+
+    .time-fallback {
+        font-style: italic;
+        opacity: 0.7;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 1200px) {
+        .revenue-stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .revenue-stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .toolbar-right {
+            flex-direction: column;
+            align-items: stretch;
+            width: 100%;
+        }
+
+        .filter-chips {
+            justify-content: center;
+        }
+
+        .admin-search {
+            width: 100%;
+        }
+
+        .btn-export {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+<script>
+    // ============================================
+    // SEARCH FILTERING
+    // ============================================
+    function filterPayments() {
+        const search = document.getElementById('paymentSearch').value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#paymentsTable tbody tr');
+        const noResults = document.getElementById('noResults');
+        const table = document.querySelector('.admin-table-wrapper');
+        const activeDateFilter = document.querySelector('.filter-chip.active')?.dataset.filter || 'all';
+        
+        let visibleCount = 0;
+        rows.forEach(row => {
+            // Apply BOTH date filter AND search
+            const searchMatch = !search || (row.dataset.search || '').includes(search);
+            const dateMatch = matchesDateFilter(row, activeDateFilter);
+            
+            const visible = searchMatch && dateMatch;
+            row.style.display = visible ? '' : 'none';
+            if (visible) visibleCount++;
+        });
+
+        if (noResults && table) {
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+            table.style.display = visibleCount === 0 ? 'none' : '';
+        }
+    }
+
+    // ============================================
+    // DATE FILTERING
+    // ============================================
+    function filterByDate(filter, btn) {
+        // Update active state on chips
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Trigger filtering (uses combined date + search logic)
+        filterPayments();
+    }
+
+    function matchesDateFilter(row, filter) {
+        if (filter === 'all') return true;
+        
+        const dateStr = row.dataset.datePaid;
+        if (!dateStr) return false;
+        
+        const rowDate = new Date(dateStr);
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        if (filter === 'today') {
+            return rowDate >= today;
+        }
+        
+        if (filter === 'week') {
+            const weekAgo = new Date(today);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return rowDate >= weekAgo;
+        }
+        
+        if (filter === 'month') {
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            return rowDate >= monthStart;
+        }
+        
+        return true;
+    }
+
+    // ============================================
+    // CSV EXPORT
+    // ============================================
+    function exportToCSV() {
+        const rows = document.querySelectorAll('#paymentsTable tbody tr');
+        const visibleRows = Array.from(rows).filter(r => r.style.display !== 'none');
+        
+        if (visibleRows.length === 0) {
+            alert('No data to export. Adjust your filters and try again.');
+            return;
+        }
+
+        // CSV header
+        let csv = 'Order ID,Customer Name,Email,Date Paid,Items,Fulfillment,Amount (R)\n';
+        
+        // CSV rows
+        visibleRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            const orderId = cells[0].innerText.trim().replace('#', '');
+            
+            // Customer cell has name + email stacked — split by newline
+            const customerLines = cells[1].innerText.trim().split('\n').map(l => l.trim()).filter(Boolean);
+            const name = customerLines[0] || '';
+            const email = customerLines[1] || '';
+            
+            // Date cell has date + time stacked
+            const datePaid = cells[2].innerText.trim().replace(/\s+/g, ' ');
+            
+            const items = cells[3].innerText.trim();
+            const fulfillment = cells[4].innerText.trim();
+            const amount = row.dataset.amount || '';
+            
+            // Escape commas/quotes in fields
+            const escape = (val) => {
+                const s = String(val);
+                return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
+            };
+            
+            csv += [
+                escape(orderId),
+                escape(name),
+                escape(email),
+                escape(datePaid),
+                escape(items),
+                escape(fulfillment),
+                escape(amount)
+            ].join(',') + '\n';
+        });
+
+        // Trigger download
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const today = new Date().toISOString().split('T')[0];
+        a.href = url;
+        a.download = `marvelously-green-payments-${today}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+</script>
+
+{% endblock %}

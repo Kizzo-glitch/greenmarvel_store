@@ -12,7 +12,8 @@ urlpatterns = [
     path('orders/<int:pk>', views.orders, name='orders'),
     path('not_shipped_dash', views.not_shipped_dash, name="not_shipped_dash"),
     path('shipped_dash', views.shipped_dash, name="shipped_dash"),
-    path('successful_payments/', views.successful_payments, name='successful_payments'),
+    #path('successful_payments/', views.successful_payments, name='successful_payments'),
+    path('admin/payfast-log/', views.successful_payments, name='successful_payments'),
     #For customers
     path('payment_success/', views.payment_success, name='payment_success'),
     path('payment_cancel/', views.payment_cancel, name='payment_cancel'),

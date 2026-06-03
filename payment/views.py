@@ -9,11 +9,12 @@ from django.conf import settings
 from django.utils import timezone
 from django.core.mail import send_mail
 
-import datetime
+from datetime import datetime, timedelta
 import hashlib
 import urllib.parse
 import json
 from decimal import Decimal
+from django.db.models import Sum, Count
 import requests
 import logging
 
@@ -24,8 +25,9 @@ from .utils import send_sms_smsportal
 from greenmarv.models import Product, Profile, DiscountCode, Influencer
 
 
-logger = logging.getLogger(__name__)
 
+#logger = logging.getLogger(__name__)
+logger = logging.basicConfig()
 
 
 def billing_info(request):
@@ -273,7 +275,7 @@ def process_order(request):
 		phone=phone,
 		shipping_address=shipping_address,
 		amount_paid=amount_paid,
-		status='pending_payment',  # <-- KEY CHANGE
+		status='pending_payment',  
 	)
  
 	if request.user.is_authenticated:
@@ -299,7 +301,7 @@ def process_order(request):
 				OrderItem.objects.create(
 					order_id=order_id,
 					product_id=product.id,
-					user=user,  # None for guests, which should be allowed at model level
+					user=user,  
 					quantity=value,
 					price=price,
 				)
@@ -327,7 +329,7 @@ def process_order(request):
 	data = {
 		'merchant_id': settings.PAYFAST_MERCHANT_ID,
 		'merchant_key': settings.PAYFAST_MERCHANT_KEY,
-		'return_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_success/',  
+		'return_url': 'http://127.0.0.1:8000/payment/payment_success/', #'https://greenmarvelstore-production.up.railway.app/payment/payment_success/',  
 		'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
 		'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
  
@@ -343,7 +345,7 @@ def process_order(request):
 	signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 	data['signature'] = signature
  
-	payfast_url = "https://www.payfast.co.za/eng/process?"
+	payfast_url = "https://sandbox.payfast.co.za/eng/process?" #"https://www.payfast.co.za/eng/process?"
 	payment_url = payfast_url + urllib.parse.urlencode(data)
  
 	# ============================================================
@@ -362,9 +364,212 @@ def process_order(request):
 # PAYMENT_NOTIFY — the Payfast ITN webhook
 # This is where the order becomes REAL
 # ================================================================
+
+import hashlib
+import urllib.parse
+import logging
+from decimal import Decimal
+from django.conf import settings
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+logger = logging.getLogger(__name__)
+
+
+# ================================================================
+# PAYFAST SIGNATURE VERIFICATION — robust version
+# ================================================================
+def build_payfast_signature(data, passphrase=None):
+    """
+    Build the expected signature from the POST data.
+    
+    Payfast signature rules:
+    - Fields are signed in the order they were SENT (NOT alphabetical)
+    - Empty fields are SKIPPED entirely
+    - Values are stripped of leading/trailing whitespace
+    - Values are URL-encoded using quote_plus (spaces become +)
+    - Passphrase is appended ONLY if it has a value
+    """
+    fields = []
+    for key, value in data.items():
+        if key == 'signature':
+            continue
+        
+        # Skip empty fields — Payfast does
+        str_value = str(value).strip()
+        if not str_value:
+            continue
+        
+        # URL-encode (quote_plus uses + for spaces, matches Payfast)
+        encoded = urllib.parse.quote_plus(str_value)
+        fields.append(f'{key}={encoded}')
+    
+    querystring = '&'.join(fields)
+    
+    # Only append passphrase if non-empty
+    if passphrase:
+        querystring += f'&passphrase={urllib.parse.quote_plus(passphrase)}'
+    
+    return hashlib.md5(querystring.encode()).hexdigest(), querystring
+
+
 @csrf_exempt
 @require_POST
 def payment_notify(request):
+    """
+    Payfast ITN webhook with detailed debug logging.
+    Look at Railway logs to see exactly where verification fails.
+    """
+    
+    # ============================================
+    # STEP 1: Log the raw incoming data
+    # ============================================
+    logger.info("=" * 60)
+    logger.info("PAYFAST ITN RECEIVED")
+    logger.info("=" * 60)
+    logger.info(f"Method: {request.method}")
+    logger.info(f"Content-Type: {request.content_type}")
+    logger.info(f"Raw body: {request.body[:500]}")  # First 500 chars
+    logger.info(f"POST data: {dict(request.POST)}")
+    
+    data = request.POST.dict()
+    received_signature = data.get('signature', '')
+    order_id = data.get('m_payment_id', 'unknown')
+    
+    logger.info(f"Order ID (m_payment_id): {order_id}")
+    logger.info(f"Received signature: {received_signature}")
+    
+    # ============================================
+    # STEP 2: Build expected signature
+    # ============================================
+    passphrase = getattr(settings, 'PAYFAST_PASSPHRASE', '') or ''
+    logger.info(f"Passphrase configured: {'YES (length=' + str(len(passphrase)) + ')' if passphrase else 'NO (empty)'}")
+    
+    expected_signature, querystring = build_payfast_signature(data, passphrase)
+    
+    logger.info(f"Signed querystring: {querystring}")
+    logger.info(f"Expected signature: {expected_signature}")
+    logger.info(f"Match: {expected_signature == received_signature}")
+    
+    # ============================================
+    # STEP 3: Try WITHOUT passphrase if first attempt failed
+    # (helpful for catching sandbox/production mismatches)
+    # ============================================
+    if expected_signature != received_signature and passphrase:
+        logger.warning("Signature mismatch with passphrase. Trying WITHOUT passphrase...")
+        no_pass_sig, _ = build_payfast_signature(data, passphrase=None)
+        logger.warning(f"Signature without passphrase: {no_pass_sig}")
+        if no_pass_sig == received_signature:
+            logger.error(
+                "*** PASSPHRASE MISMATCH DETECTED *** "
+                "Your Django settings has a passphrase, but Payfast signed WITHOUT one. "
+                "Either remove PAYFAST_PASSPHRASE from settings OR set it in the Payfast dashboard."
+            )
+    elif expected_signature != received_signature and not passphrase:
+        logger.warning("Signature mismatch with no passphrase. Trying WITH a passphrase from settings...")
+        # Try the other way too
+        for try_pass in [getattr(settings, 'PAYFAST_PASSPHRASE_FALLBACK', None)]:
+            if try_pass:
+                test_sig, _ = build_payfast_signature(data, passphrase=try_pass)
+                if test_sig == received_signature:
+                    logger.error(f"*** Signature WOULD match if passphrase were '{try_pass}' ***")
+    
+    # ============================================
+    # STEP 4: Reject if invalid
+    # ============================================
+    if expected_signature != received_signature:
+        logger.error(f"Invalid Payfast signature for order {order_id}")
+        return HttpResponseBadRequest("Invalid signature")
+    
+    logger.info("✓ Signature verified successfully")
+    
+    # ============================================
+    # STEP 5: Verify amount matches order
+    # ============================================
+    try:
+        order = Order.objects.get(id=order_id)
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found in database")
+        return HttpResponseBadRequest("Order not found")
+    
+    amount_paid = Decimal(data.get('amount_gross', '0'))
+    if abs(amount_paid - Decimal(str(order.amount_paid))) > Decimal('0.01'):
+        logger.error(
+            f"Amount mismatch on order {order_id}: "
+            f"expected R{order.amount_paid}, got R{amount_paid}"
+        )
+        return HttpResponseBadRequest("Amount mismatch")
+    
+    logger.info(f"✓ Amount verified: R{amount_paid}")
+    
+    # ============================================
+    # STEP 6: Check payment status
+    # ============================================
+    payment_status = data.get('payment_status', '')
+    logger.info(f"Payment status: {payment_status}")
+    
+    if payment_status != 'COMPLETE':
+        logger.info(f"Payment not complete (status={payment_status}), skipping order update")
+        return HttpResponse("OK")
+    
+    # ============================================
+    # STEP 7: Update order to paid
+    # ============================================
+    from django.utils import timezone
+    
+    if order.status != 'paid':
+        order.status = 'paid'
+        order.date_paid = timezone.now()
+        order.save()
+        logger.info(f"✓ Order {order_id} marked as paid")
+        
+        # ============================================
+        # STEP 8: Send SMS notifications
+        # ============================================
+        try:
+            from .utils import send_sms_smsportal, _format_sa_phone
+            
+            # Customer SMS
+            if order.phone:
+                customer_phone = _format_sa_phone(order.phone)
+                customer_msg = (
+                    f"Hi {order.full_name.split()[0]}, your Marvelously Green order "
+                    f"#{order.id} has been received! Total: R{order.amount_paid}. "
+                    f"We'll dispatch within 24h. 🌿"
+                )
+                logger.info(f"Sending customer SMS to {customer_phone}")
+                result = send_sms_smsportal(customer_phone, customer_msg)
+                logger.info(f"Customer SMS result: {result}")
+            else:
+                logger.warning(f"No phone number on order {order_id}, skipping customer SMS")
+            
+            # Admin SMS
+            admin_phone = getattr(settings, 'ADMIN_SMS_PHONE', None)
+            if admin_phone:
+                admin_msg = (
+                    f"💚 New paid order #{order.id} from {order.full_name}. "
+                    f"R{order.amount_paid}. Check dashboard."
+                )
+                logger.info(f"Sending admin SMS to {admin_phone}")
+                result = send_sms_smsportal(_format_sa_phone(admin_phone), admin_msg)
+                logger.info(f"Admin SMS result: {result}")
+            else:
+                logger.warning("ADMIN_SMS_PHONE not configured, skipping admin SMS")
+                
+        except Exception as e:
+            logger.exception(f"SMS sending failed for order {order_id}: {e}")
+            # Don't fail the webhook because SMS failed — order is still paid
+    else:
+        logger.info(f"Order {order_id} already marked as paid (duplicate ITN?)")
+    
+    return HttpResponse("OK")
+
+
+
+@csrf_exempt
+@require_POST
+def payment_notify2(request):
 	"""
 	Payfast ITN (Instant Transaction Notification) webhook.
 	Called server-to-server by Payfast after payment succeeds/fails.
@@ -480,7 +685,7 @@ def send_order_confirmation_sms(order):
 	first_name = order.full_name.split()[0] if order.full_name else 'Customer'
  
 	message = (
-		f"Hi {first_name}, thank you for your Green Marvel order! "
+		f"Hi {first_name}, thank you for your Marvelously Green order! "
 		f"Order #{order.id} for R{order.amount_paid} has been confirmed. "
 		f"We'll send you tracking info once your order ships. "
 		f"🌿 Marvelously Green"
@@ -503,7 +708,7 @@ def send_admin_order_alert_sms(order):
 		return
  
 	message = (
-		f"🔔 New Green Marvel Order!\n"
+		f"🔔 New Marvelously Green Order!\n"
 		f"Order #{order.id}\n"
 		f"Customer: {order.full_name}\n"
 		f"Amount: R{order.amount_paid}\n"
@@ -513,6 +718,7 @@ def send_admin_order_alert_sms(order):
 	send_sms_smsportal(admin_phone, message)
  
  
+
 def _format_sa_phone(phone):
 	"""
 	Convert South African phone number to SMSPortal format (27XXXXXXXXX).
@@ -730,6 +936,73 @@ def shipped_dash(request):
 	return render(request, "payment/shipped_dash.html", {"orders": orders})
 
 
+
+
+# ================================================================
+# ADMIN VIEW - PAYFAST LOG
+# ================================================================
+def successful_payments(request):
+    """
+    Admin payment log — shows all paid orders with revenue stats.
+    Superuser only.
+    """
+    if not (request.user.is_authenticated and request.user.is_superuser):
+        messages.error(request, "Access Denied")
+        return redirect('home')
+
+    # All paid orders, newest first
+    orders = Order.objects.filter(status='paid') \
+        .prefetch_related('orderitem_set') \
+        .order_by('-date_paid', '-date_ordered')
+
+    # ============================================
+    # REVENUE CALCULATIONS
+    # ============================================
+    # We prefer date_paid, but fall back to date_ordered if date_paid is null
+    # (for orders made before you added the date_paid field)
+    now = timezone.now()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_ago = today_start - timedelta(days=7)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    def revenue_in_range(start_date):
+        """Sum amount_paid for orders paid since start_date."""
+        return orders.filter(date_paid__gte=start_date) \
+            .aggregate(total=Sum('amount_paid'))['total'] or 0
+
+    def count_in_range(start_date):
+        return orders.filter(date_paid__gte=start_date).count()
+
+    # All-time
+    total_revenue = orders.aggregate(total=Sum('amount_paid'))['total'] or 0
+
+    # Today
+    revenue_today = revenue_in_range(today_start)
+    orders_today = count_in_range(today_start)
+
+    # Last 7 days
+    revenue_week = revenue_in_range(week_ago)
+    orders_week = count_in_range(week_ago)
+
+    # This calendar month
+    revenue_month = revenue_in_range(month_start)
+    orders_month = count_in_range(month_start)
+
+    context = {
+        'orders': orders,
+        'total_revenue': total_revenue,
+        'revenue_today': revenue_today,
+        'revenue_week': revenue_week,
+        'revenue_month': revenue_month,
+        'orders_today': orders_today,
+        'orders_week': orders_week,
+        'orders_month': orders_month,
+    }
+
+    return render(request, 'payment/successful_payments.html', context)
+
+
+
 #Process Order and Initiate Payfast payment
 def process_order2(request):
 	if request.POST:
@@ -902,111 +1175,6 @@ def process_order2(request):
 			
 
 
-# Admin View
-def not_shipped_dash2(request):
-	if request.user.is_authenticated and request.user.is_superuser:
-		orders = Order.objects.filter(shipped=False)
-		if request.POST:
-			status = request.POST['shipping_status']
-			num = request.POST['num']
-			# Get the order
-			order = Order.objects.filter(id=num)
-			# grab Date and time
-			now = datetime.datetime.now()
-			# update order
-			order.update(shipped=True, date_shipped=now)
-			# redirect
-			messages.success(request, "Shipping Status Updated")
-			return redirect('shipped_dash')
-
-		return render(request, "payment/not_shipped_dash.html", {"orders":orders})
-		
-	else:
-		messages.success(request, "Access Denied")
-		return redirect('home')
-
-
-#For Admin View
-def shipped_dash2(request):
-	if request.user.is_authenticated and request.user.is_superuser:
-		orders = Order.objects.filter(shipped=True)
-		if request.POST:
-			status = request.POST['shipping_status']
-			num = request.POST['num']
-			# grab the order
-			order = Order.objects.filter(id=num)
-			# grab Date and time
-			now = datetime.datetime.now()
-			# update order
-			order.update(shipped=False)
-			# redirect
-			messages.success(request, "Shipping Status Updated")
-			return redirect('not_shipped_dash')
-
-		return render(request, "payment/shipped_dash.html", {"orders":orders})
-	else:
-		messages.success(request, "Access Denied")
-		return redirect('home')
-
-
-#For Admin View
-def successful_payments(request):
-	if request.user.is_authenticated and request.user.is_superuser:
-		# Retrieve all successful payments (assuming status 'COMPLETE' indicates success)
-		successful_payments = PayfastPayment.objects.filter(status='COMPLETE')
-
-		# Pass the successful payments to the template
-		#context = {
-		#'successful_payments': successful_payments,
-		#}
-
-		return render(request, 'payment/successful_payments.html', {
-			'successful_payments': successful_payments,
-			})
-
-
-
-
-@csrf_exempt
-def payment_notify2(request):
-	if request.method == 'POST':
-		data = request.POST.dict()
-		received_signature = data.pop('signature', None)
-		generated_signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
-
-
-		if generated_signature == received_signature:
-			payment_status = data.get('payment_status')
-			order_id = data.get('m_payment_id')
-
-			try:
-				payment = PayfastPayment.objects.get(order_id=order_id)
-
-				if payment_status == 'COMPLETE':
-					payment.status = 'Completed'
-					
-				else:
-					payment.status = 'Failed'
-					
-				payment.itn_payload = request.POST.urlencode()
-				payment.save()
-				
-
-				# Optionally, store order_id and amount_paid in session for success view
-				#request.session['order_id'] = order_id
-				#request.session['amount_paid'] = payment.amount_paid
-				#request.session['itn_payload'] = request.POST.urlencode()
-
-				return HttpResponse('Payment notification processed', status=200)
-
-			except (Payment.DoesNotExist, Order.DoesNotExist):
-				return HttpResponse('Order or payment not found', status=400)
-
-		else:
-			return HttpResponse('Signature mismatch', status=400)
-
-	return HttpResponse('Invalid request method', status=400)
-
 
 def notify_influencer(influencer, total_before_discount, discount_percentage, total_after_discount, discount_code, commission_rate, commission):
 	subject = "Your Discount Code Was Used!"
@@ -1032,37 +1200,12 @@ def notify_influencer(influencer, total_before_discount, discount_percentage, to
 
 
 
-def payment_cancel2(request):
-	return render(request, 'payment/payment_cancel.html')
 
 
 
 
-def payment_success2(request):
-	'''discount_code = request.session['discount_code']
-	
-	discount = DiscountCode.objects.get(code=discount_code, is_active=True)
-
-	# Retrieve the total amount before the discount
-	total_before_discount = discount.total_before_discount
-	
-	if discount.influencer:
-		# Retrieve discounted total from session
-		discount_code = request.session.get('discount_code')
-		#total_after_discount = cart.cart_total(discount_code=discount_code)
-		total_after_discount = request.session.get('total_after_discount')
-		#totals = request.session.get('totals')
-
-		commission = request.session.get('commission')
-		commission_rate = discount.influencer.commission_rate		
 
 
-		# Notify the influencer
-		notify_influencer(discount.influencer, total_before_discount, 
-							discount.discount_percentage, total_after_discount, 
-								discount_code, commission_rate, commission)'''
-	
-	return render(request, "payment/payment_success.html", {})
 
 
 
@@ -1079,9 +1222,7 @@ def order_history(request):
 	return render(request, 'payment/order_history.html', {'orders': orders})
 
 
-def order_history2(request):
-	user_orders = Order.objects.filter(user=request.user).order_by('-date_ordered')
-	return render(request, 'payment/order_history.html', {'orders': user_orders})
+
 
 
 def track_order(request):
@@ -1098,23 +1239,7 @@ def track_order(request):
 	
 		return render(request, 'payment/track_order.html', {...})
 
-@login_required
-def track_order2(request, order_id):
-	try:
-		order = Order.objects.get(id=order_id, customer=request.user)
-		tracking_events = order.tracking_events.order_by('timestamp')
 
-		# Fetch current status from the courier API (optional)
-		# Example: tracking_info = get_tracking_info(order.tracking_number)
-
-		return render(request, "payment/track_order.html", {
-			"order": order,
-			"tracking_events": tracking_events,
-			"current_status": order.shipment_status,  # Optional from API
-		})
-	except Order.DoesNotExist:
-		messages.error(request, "Order not found.")
-		return redirect('order_history')
 
 
 

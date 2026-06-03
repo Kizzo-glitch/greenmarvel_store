@@ -169,19 +169,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #django_heroku.settings(locals())
 
-PAYFAST_MERCHANT_ID = '24614055'
-PAYFAST_MERCHANT_KEY = 'cybdmhnyiv7q6' 
-PAYFAST_PASSPHRASE = 'Marvelousgreen2024'
+#PAYFAST_MERCHANT_ID = '24614055'
+#PAYFAST_MERCHANT_KEY = 'cybdmhnyiv7q6' 
+#PAYFAST_PASSPHRASE = 'Marvelousgreen2024'
 
 # Sandbox
-#PAYFAST_MERCHANT_ID = '10048141'
-#PAYFAST_MERCHANT_KEY = 'xg64ihybowxw5' 
-#PAYFAST_PASSPHRASE = 'MarvGreenTest'
+PAYFAST_MERCHANT_ID = '10048141'
+PAYFAST_MERCHANT_KEY = 'xg64ihybowxw5' 
+PAYFAST_PASSPHRASE = 'MarvGreenTest'
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Replace with your email provider's SMTP server
-EMAIL_PORT = 587  # Use the appropriate port
+EMAIL_HOST = 'smtp.gmail.com'  
+EMAIL_PORT = 587  
 EMAIL_HOST_USER = str(os.getenv("EMAIL_HOST_USER"))  
 EMAIL_HOST_PASSWORD = str(os.getenv("EMAIL_HOST_PASSWORD"))  
 EMAIL_USE_TLS = True
@@ -193,4 +193,22 @@ COURIER_GUY_API_KEY = str(os.getenv("COURIER_GUY_API_KEY"))
 
 ADMIN_SMS_PHONE = str(os.getenv("ADMIN_SMS_PHONE"))
 
+ # SMSPortal
+SMS_API_URL = "https://rest.smsportal.com/bulkmessages"
+SMS_API_SECRET = os.getenv('SMS_API_SECRET')
+SMS_CLIENT_ID = os.getenv('SMS_CLIENT_ID')
 
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
