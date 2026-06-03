@@ -329,7 +329,7 @@ def process_order(request):
 	data = {
 		'merchant_id': settings.PAYFAST_MERCHANT_ID,
 		'merchant_key': settings.PAYFAST_MERCHANT_KEY,
-		'return_url': 'http://127.0.0.1:8000/payment/payment_success/', #'https://greenmarvelstore-production.up.railway.app/payment/payment_success/',  
+		'return_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_success/',  
 		'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
 		'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
  
