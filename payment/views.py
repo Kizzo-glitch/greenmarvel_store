@@ -345,7 +345,7 @@ def process_order(request):
 	signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
 	data['signature'] = signature
  
-	payfast_url = "https://sandbox.payfast.co.za/eng/process?" # "https://www.payfast.co.za/eng/process?"
+	payfast_url = "https://www.payfast.co.za/eng/process?" #"https://sandbox.payfast.co.za/eng/process?" 
 	payment_url = payfast_url + urllib.parse.urlencode(data)
  
 	# ============================================================
@@ -357,6 +357,10 @@ def process_order(request):
  
 	if request.user.is_authenticated:
 		Profile.objects.filter(user__id=request.user.id).update(old_cart="")
+
+	print(f"[PAYFAST] Posting to URL: {payfast_url}", flush=True)
+	print(f"[PAYFAST] Merchant ID: {form_data.get('merchant_id')}", flush=True)
+	print(f"[PAYFAST] Passphrase: {settings.PAYFAST_PASSPHRASE!r}", flush=True)
  
 	return redirect(payment_url)
 
