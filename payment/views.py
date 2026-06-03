@@ -357,10 +357,6 @@ def process_order(request):
  
 	if request.user.is_authenticated:
 		Profile.objects.filter(user__id=request.user.id).update(old_cart="")
-
-	print(f"[PAYFAST] Posting to URL: {payfast_url}", flush=True)
-	print(f"[PAYFAST] Merchant ID: {form_data.get('merchant_id')}", flush=True)
-	print(f"[PAYFAST] Passphrase: {settings.PAYFAST_PASSPHRASE!r}", flush=True)
  
 	return redirect(payment_url)
 
