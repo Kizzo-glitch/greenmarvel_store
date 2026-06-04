@@ -1,10 +1,13 @@
-
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="" />
+    <meta name="author" content="" />
     <title>Marvelously Green - Natural Hair Care</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'landing/assets/img/logos/marv_logo.png' %}" />
 
     <!-- Google tag (gtag.js) -->
 		<script async src="https://www.googletagmanager.com/gtag/js?id=G-FNT0H9V61Y"></script>
@@ -28,7 +31,225 @@
 			}(window, document, 'ttq');
 		</script>
 		<!-- TikTok Pixel Code End -->
-    <style>
+    
+    
+</head>
+
+{% include 'nav_bar.html' %}
+
+
+   
+    <body>
+  
+    	{% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                  {{message}}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+    <main>
+        {% block content %} {% endblock %}
+    </main>
+
+    <div class="notification" id="notification">
+        <div class="notification-content">
+            <div class="notification-icon">✓</div>
+            <div>
+                <strong>Added to cart!</strong>
+                <p style="margin: 0; font-size: 0.9rem; color: #666;">Product successfully added</p>
+            </div>
+        </div>
+    </div>
+
+    
+
+
+<footer id="contact">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h3>🌿 Marvelously Green</h3>
+                <p>Premium organic hair care products designed to nourish your natural beauty. Made in South Africa with love.</p>
+                <div class="social-links">
+                    <a href="https://www.facebook.com/share/1E2oULR7En/?mibextid=wwXIfr" aria-label="Facebook">𝐟</a>
+                    <a href="https://www.instagram.com/marvelouslygreen_haircare/" aria-label="Instagram">🅾</a>
+                    <a href="https://www.tiktok.com/@marvellouslygreen" aria-label="TikTok">【ꚠ】</a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{% url 'shop' %}">Shop All</a></li>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#reviews">Reviews</a></li>
+                    <li><a href="#">Blog</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="{% url 'terms_of_service' %}">FAQ</a></li>
+                    <li><a href="{% url 'terms_of_service' %}">Shipping</a></li>
+                    <li><a href="{% url 'terms_of_service' %}">Returns</a></li>
+                    <li><a href="{% url 'login' %}">Track Order</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <ul>
+                    <li>📧 admin@greenmarvel.co.za</li>
+                    <li>📞 081 547 3512</li>
+                    <li>🌐 www.greenmarvel.co.za</li>
+                    <li>📍 South Africa</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="footer-legal-links">
+                <a href="{% url 'terms_of_service' %}">Terms of Service</a>
+                <span class="footer-divider">·</span>
+                <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+                <span class="footer-divider">·</span>
+                <a href="{% url 'cookie_policy' %}">Cookie Policy</a>
+            </div>
+            <p>&copy; 2026 Marvelously Green. All rights reserved.</p>
+        </div>
+    </footer>
+
+        <svg style="visibility: hidden; position: absolute;" width="0" height="0">
+    <defs>
+        <filter id="goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+        </filter>
+    </defs>
+    </svg>
+
+<script>
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        function addToCart(productName, price) {
+            cartCount++;
+            document.getElementById('cartCount').textContent = cartCount;
+            
+            const notification = document.getElementById('notification');
+            notification.querySelector('strong').textContent = `${productName} added!`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function scrollToProducts() {
+            document.getElementById('shop').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function scrollToAbout() {
+            document.getElementById('reviews').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function subscribeNewsletter(e) {
+            e.preventDefault();
+            const email = e.target.querySelector('input').value;
+            alert(`Thank you for subscribing! 🎉\n\nA confirmation email will be sent to ${email}\n\nYou'll receive your 10% discount code shortly.`);
+            e.target.reset();
+        }
+
+        // Pause testimonial scroll on hover
+        const testimonialScroll = document.querySelector('.testimonials-scroll');
+        testimonialScroll.addEventListener('mouseenter', () => {
+            testimonialScroll.style.animationPlayState = 'paused';
+        });
+        testimonialScroll.addEventListener('mouseleave', () => {
+            testimonialScroll.style.animationPlayState = 'running';
+        });
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements for animations
+        document.querySelectorAll('.product-card, .feature-item').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+
+
+	<script>
+	    document.addEventListener("DOMContentLoaded", function () {
+	        document.querySelectorAll(".clickable-card").forEach(function (card) {
+	            card.addEventListener("click", function (e) {
+	                // Prevent click if it's the View Product button
+	                if (!e.target.closest('.view-product-btn')) {
+	                    window.location.href = card.getAttribute("data-url");
+	                }
+	            });
+	        });
+	    });
+
+        // ============================================
+        // Pure JS dropdown toggle — no jQuery or Bootstrap needed
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdowns = document.querySelectorAll('.mg-dropdown');
+            
+            dropdowns.forEach(dropdown => {
+                const toggle = dropdown.querySelector('.mg-dropdown-toggle');
+                if (!toggle) return;
+    
+                toggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    // Close other open dropdowns
+                    dropdowns.forEach(d => {
+                        if (d !== dropdown) d.classList.remove('open');
+                    });
+                    // Toggle this one
+                    dropdown.classList.toggle('open');
+                });
+            });
+    
+            // Click outside to close
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.mg-dropdown')) {
+                    dropdowns.forEach(d => d.classList.remove('open'));
+                }
+            });
+    
+            // Escape key closes dropdown
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    dropdowns.forEach(d => d.classList.remove('open'));
+                }
+            });
+        });
+	</script>
+    
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -1010,400 +1231,8 @@
                 flex-direction: column;
             }
         }
-    </style>
-</head>
 
-<body>
-
-{% load static %}
-{% include 'responsive_nav_styles.html' %}
-
-    <!-- ============================================ -->
-<!-- REPLACE YOUR ENTIRE <header> + <nav> WITH THIS -->
-<!-- ============================================ -->
-
-<div class="announcement">
-    {% if request.session.cart and global_amount_needed_for_free_shipping > 0 %}
-        💚 You're R{{ global_amount_needed_for_free_shipping|floatformat:2 }} away from FREE shipping!
-    {% elif request.session.cart and global_qualifies_for_free_shipping %}
-        🎉 You qualify for FREE shipping!
-    {% else %}
-        FREE SHIPPING ON ALL ORDERS OVER R600 | 100% ORGANIC & CHEMICAL FREE
-    {% endif %}
-</div>
-
-<header id="header">
-    <nav class="mg-nav">
-        <!-- LOGO -->
-        <a href="{% url 'home' %}" class="mg-logo">
-            <img src="{% static 'landing/assets/logo3.png' %}" alt="Marvelously Green">
-        </a>
-
-        <!-- DESKTOP NAV LINKS -->
-        <ul class="mg-nav-links">
-            <li><a href="{% url 'home' %}">Home</a></li>
-            <li><a href="{% url 'shop' %}">Shop</a></li>
-            <li><a href="{% url 'about' %}#about">About</a></li>
-            <li><a href="{% url 'home' %}#reviews">Reviews</a></li>
-            <li><a href="{% url 'home' %}#contact">Contact</a></li>
-        </ul>
-
-        <!-- RIGHT ACTIONS -->
-        <div class="mg-nav-actions">
-            <!-- Search + Cart (always visible) -->
-            <div class="mg-search-icon" title="Search">🔍</div>
-            <a href="{% url 'cart_summary' %}" class="mg-cart-icon" title="View Cart">
-                🛒
-                <span class="mg-cart-count" id="cartCount">{{ cart|length|default:0 }}</span>
-            </a>
-
-            <!-- Auth area (desktop) / Profile dropdown if logged in -->
-            {% if user.is_authenticated %}
-                {% if not user.is_superuser %}
-                <div class="mg-dropdown" data-nav-dropdown>
-                    <button class="mg-dropdown-toggle" aria-label="Profile menu">
-                        <span class="mg-avatar">{{ user.username|first|upper }}</span>
-                        <span class="mg-dropdown-arrow">▼</span>
-                    </button>
-                    <ul class="mg-dropdown-menu">
-                        <li class="mg-dropdown-header">
-                            <div class="mg-dropdown-avatar">{{ user.username|first|upper }}</div>
-                            <div class="mg-dropdown-user">
-                                <strong>{{ user.username }}</strong>
-                                <span>{{ user.email }}</span>
-                            </div>
-                        </li>
-                        <li class="mg-dropdown-divider"></li>
-                        <li><a class="mg-dropdown-item" href="{% url 'order_history' %}"><span class="mg-dropdown-icon">📦</span><div><strong>My Orders</strong></div></a></li>
-                        <li><a class="mg-dropdown-item" href="{% url 'update_user' %}"><span class="mg-dropdown-icon">🔑</span><div><strong>Login Details</strong></div></a></li>
-                        <li><a class="mg-dropdown-item" href="{% url 'update_info' %}"><span class="mg-dropdown-icon">👤</span><div><strong>Profile Details</strong></div></a></li>
-                        <li class="mg-dropdown-divider"></li>
-                        <li><a class="mg-dropdown-item danger" href="{% url 'logout' %}"><span class="mg-dropdown-icon">🚪</span><div><strong>Sign Out</strong></div></a></li>
-                    </ul>
-                </div>
-                {% else %}
-                <div class="mg-dropdown" data-nav-dropdown>
-                    <button class="mg-dropdown-toggle admin" aria-label="Admin menu">
-                        <span class="mg-avatar admin">⚡</span>
-                        <span class="mg-dropdown-arrow">▼</span>
-                    </button>
-                    <ul class="mg-dropdown-menu">
-                        <li class="mg-dropdown-header admin">
-                            <div class="mg-dropdown-avatar admin">⚡</div>
-                            <div class="mg-dropdown-user">
-                                <strong>Admin Panel</strong>
-                                <span>{{ user.username }}</span>
-                            </div>
-                        </li>
-                        <li class="mg-dropdown-divider"></li>
-                        <li><a class="mg-dropdown-item" href="{% url 'not_shipped_dash' %}"><span class="mg-dropdown-icon">📋</span><div><strong>Unshipped Orders</strong></div></a></li>
-                        <li><a class="mg-dropdown-item" href="{% url 'shipped_dash' %}"><span class="mg-dropdown-icon">🚚</span><div><strong>Shipped Orders</strong></div></a></li>
-                        <li><a class="mg-dropdown-item" href="{% url 'successful_payments' %}"><span class="mg-dropdown-icon">💳</span><div><strong>Payfast Log</strong></div></a></li>
-                        <li class="mg-dropdown-divider"></li>
-                        <li><a class="mg-dropdown-item danger" href="{% url 'logout' %}"><span class="mg-dropdown-icon">🚪</span><div><strong>Sign Out</strong></div></a></li>
-                    </ul>
-                </div>
-                {% endif %}
-            {% else %}
-                <!-- Desktop only: inline Sign In + Join Us buttons -->
-                <div class="mg-auth-buttons">
-                    <a href="{% url 'login' %}" class="mg-auth-link">Sign In</a>
-                    <a href="{% url 'register' %}" class="mg-auth-btn">Join Us</a>
-                </div>
-            {% endif %}
-
-            <!-- HAMBURGER (mobile only) -->
-            <button class="mg-hamburger" id="mgHamburger" aria-label="Open menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </div>
-    </nav>
-</header>
-
-<!-- ============================================ -->
-<!-- MOBILE SLIDE-OUT MENU (off-canvas) -->
-<!-- ============================================ -->
-<div class="mg-mobile-overlay" id="mgMobileOverlay"></div>
-
-<aside class="mg-mobile-menu" id="mgMobileMenu">
-    <div class="mg-mobile-header">
-        <div class="mg-mobile-logo">
-            <img src="{% static 'landing/assets/logo3.png' %}" alt="Marvelously Green">
-        </div>
-        <button class="mg-mobile-close" id="mgMobileClose" aria-label="Close menu">✕</button>
-    </div>
-
-    {% if user.is_authenticated %}
-    <div class="mg-mobile-user">
-        <div class="mg-mobile-avatar {% if user.is_superuser %}admin{% endif %}">
-            {% if user.is_superuser %}⚡{% else %}{{ user.username|first|upper }}{% endif %}
-        </div>
-        <div class="mg-mobile-user-info">
-            <strong>{% if user.is_superuser %}Admin Panel{% else %}{{ user.username }}{% endif %}</strong>
-            <span>{{ user.email }}</span>
-        </div>
-    </div>
-    {% endif %}
-
-    <nav class="mg-mobile-nav">
-        <div class="mg-mobile-section">
-            <div class="mg-mobile-section-label">Browse</div>
-            <a href="{% url 'home' %}" class="mg-mobile-link"><span>🏠</span> Home</a>
-            <a href="{% url 'shop' %}" class="mg-mobile-link"><span>🛍️</span> Shop</a>
-            <a href="{% url 'home' %}#about" class="mg-mobile-link"><span>🌿</span> About Us</a>
-            <a href="{% url 'home' %}#reviews" class="mg-mobile-link"><span>⭐</span> Reviews</a>
-            <a href="{% url 'home' %}#contact" class="mg-mobile-link"><span>📞</span> Contact</a>
-        </div>
-
-        <div class="mg-mobile-section">
-            <div class="mg-mobile-section-label">My Account</div>
-            <a href="{% url 'cart_summary' %}" class="mg-mobile-link">
-                <span>🛒</span> My Cart
-                <span class="mg-mobile-badge">{{ cart|length|default:0 }}</span>
-            </a>
-            {% if user.is_authenticated %}
-                {% if not user.is_superuser %}
-                <a href="{% url 'order_history' %}" class="mg-mobile-link"><span>📦</span> My Orders</a>
-                <a href="{% url 'update_user' %}" class="mg-mobile-link"><span>🔑</span> Login Details</a>
-                <a href="{% url 'update_info' %}" class="mg-mobile-link"><span>👤</span> Profile Details</a>
-                {% else %}
-                <a href="{% url 'not_shipped_dash' %}" class="mg-mobile-link"><span>📋</span> Unshipped Orders</a>
-                <a href="{% url 'shipped_dash' %}" class="mg-mobile-link"><span>🚚</span> Shipped Orders</a>
-                <a href="{% url 'successful_payments' %}" class="mg-mobile-link"><span>💳</span> Payfast Log</a>
-                {% endif %}
-                <a href="{% url 'track_order' %}" class="mg-mobile-link"><span>🔍</span> Track Order</a>
-                <a href="{% url 'logout' %}" class="mg-mobile-link danger"><span>🚪</span> Sign Out</a>
-            {% else %}
-                <a href="{% url 'track_order' %}" class="mg-mobile-link"><span>🔍</span> Track Order</a>
-                <a href="{% url 'login' %}" class="mg-mobile-link"><span>🔐</span> Sign In</a>
-                <a href="{% url 'register' %}" class="mg-mobile-cta">Join Us Today →</a>
-            {% endif %}
-        </div>
-    </nav>
-
-    <div class="mg-mobile-footer">
-        <p>🌿 Marvelously Green</p>
-        <p class="mg-mobile-tagline">Natural Beauty, Naturally You</p>
-    </div>
-</aside>
-
-   
-    <body>
-  
-    	{% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                  {{message}}
-                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        {% block content %}
-
-
-        {% endblock %}
-
-		
-    <div class="notification" id="notification">
-        <div class="notification-content">
-            <div class="notification-icon">✓</div>
-            <div>
-                <strong>Added to cart!</strong>
-                <p style="margin: 0; font-size: 0.9rem; color: #666;">Product successfully added</p>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    
-
-        window.addEventListener('scroll', () => {
-            const header = document.getElementById('header');
-            if (window.scrollY > 100) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-        });
-
-        function addToCart(productName, price) {
-            cartCount++;
-            document.getElementById('cartCount').textContent = cartCount;
-            
-            const notification = document.getElementById('notification');
-            notification.querySelector('strong').textContent = `${productName} added!`;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-
-        function scrollToProducts() {
-            document.getElementById('shop').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function scrollToAbout() {
-            document.getElementById('reviews').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function subscribeNewsletter(e) {
-            e.preventDefault();
-            const email = e.target.querySelector('input').value;
-            alert(`Thank you for subscribing! 🎉\n\nA confirmation email will be sent to ${email}\n\nYou'll receive your 10% discount code shortly.`);
-            e.target.reset();
-        }
-
-        // Pause testimonial scroll on hover
-        const testimonialScroll = document.querySelector('.testimonials-scroll');
-        testimonialScroll.addEventListener('mouseenter', () => {
-            testimonialScroll.style.animationPlayState = 'paused';
-        });
-        testimonialScroll.addEventListener('mouseleave', () => {
-            testimonialScroll.style.animationPlayState = 'running';
-        });
-
-        // Intersection Observer for fade-in animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        // Observe elements for animations
-        document.querySelectorAll('.product-card, .feature-item').forEach(el => {
-            observer.observe(el);
-        });
-    </script>
-
-
-	<script>
-	    document.addEventListener("DOMContentLoaded", function () {
-	        document.querySelectorAll(".clickable-card").forEach(function (card) {
-	            card.addEventListener("click", function (e) {
-	                // Prevent click if it's the View Product button
-	                if (!e.target.closest('.view-product-btn')) {
-	                    window.location.href = card.getAttribute("data-url");
-	                }
-	            });
-	        });
-	    });
-
-        // ============================================
-        // Pure JS dropdown toggle — no jQuery or Bootstrap needed
-        // ============================================
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdowns = document.querySelectorAll('.mg-dropdown');
-            
-            dropdowns.forEach(dropdown => {
-                const toggle = dropdown.querySelector('.mg-dropdown-toggle');
-                if (!toggle) return;
-    
-                toggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    // Close other open dropdowns
-                    dropdowns.forEach(d => {
-                        if (d !== dropdown) d.classList.remove('open');
-                    });
-                    // Toggle this one
-                    dropdown.classList.toggle('open');
-                });
-            });
-    
-            // Click outside to close
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.mg-dropdown')) {
-                    dropdowns.forEach(d => d.classList.remove('open'));
-                }
-            });
-    
-            // Escape key closes dropdown
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    dropdowns.forEach(d => d.classList.remove('open'));
-                }
-            });
-        });
-	</script>
-
-
-<footer id="contact">
-        <div class="footer-content">
-            <div class="footer-brand">
-                <h3>🌿 Marvelously Green</h3>
-                <p>Premium organic hair care products designed to nourish your natural beauty. Made in South Africa with love.</p>
-                <div class="social-links">
-                    <a href="#" aria-label="Facebook">📘</a>
-                    <a href="#" aria-label="Instagram">📷</a>
-                    <a href="#" aria-label="Twitter">🐦</a>
-                    <a href="#" aria-label="TikTok">🎵</a>
-                </div>
-            </div>
-
-            <div class="footer-section">
-                <h4>Quick Links</h4>
-                <ul>
-                    <li><a href="#shop">Shop All</a></li>
-                    <li><a href="#about">About Us</a></li>
-                    <li><a href="#reviews">Reviews</a></li>
-                    <li><a href="#">Blog</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-section">
-                <h4>Support</h4>
-                <ul>
-                    <li><a href="#">FAQ</a></li>
-                    <li><a href="#">Shipping</a></li>
-                    <li><a href="#">Returns</a></li>
-                    <li><a href="#">Track Order</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-section">
-                <h4>Contact</h4>
-                <ul>
-                    <li>📧 admin@greenmarvel.co.za</li>
-                    <li>📞 081 547 3512</li>
-                    <li>🌐 www.greenmarvel.co.za</li>
-                    <li>📍 South Africa</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="footer-bottom">
-            <div class="footer-legal-links">
-                <a href="{% url 'terms_of_service' %}">Terms of Service</a>
-                <span class="footer-divider">·</span>
-                <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
-                <span class="footer-divider">·</span>
-                <a href="{% url 'cookie_policy' %}">Cookie Policy</a>
-            </div>
-            <p>&copy; 2026 Marvelously Green. All rights reserved.</p>
-        </div>
-    </footer>
-
-        <svg style="visibility: hidden; position: absolute;" width="0" height="0">
-    <defs>
-        <filter id="goo">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
-        </filter>
-    </defs>
-    </svg>
-<style>
-    .footer-legal-links {
+        .footer-legal-links {
         display: flex;
         justify-content: center;
         gap: 0.75rem;
@@ -1427,6 +1256,6 @@
     .footer-divider {
         color: rgba(197, 160, 89, 0.4);
     }
-</style>
+    </style>
 </body>
 </html>
