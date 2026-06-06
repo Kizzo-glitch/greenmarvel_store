@@ -5,7 +5,21 @@
 <!-- REPLACE YOUR ENTIRE <header> + <nav> WITH THIS -->
 <!-- ============================================ -->
 
-<div class="announcement">
+<div class="announcement youth-month">
+    <div class="announcement-content">
+        <span class="announcement-icon">🎁</span>
+        <span class="announcement-text">
+            <strong>YOUTH MONTH SPECIAL</strong>
+            <span class="announcement-divider">·</span>
+            Save up to <strong>R50</strong> when you bundle
+            <span class="announcement-divider">·</span>
+            <span class="announcement-cta">Shop the bundles →</span>
+        </span>
+    </div>
+</div>
+
+
+<!--<div class="announcement">
     {% if request.session.cart and global_amount_needed_for_free_shipping > 0 %}
         💚 You're R{{ global_amount_needed_for_free_shipping|floatformat:2 }} away from FREE shipping!
     {% elif request.session.cart and global_qualifies_for_free_shipping %}
@@ -13,7 +27,7 @@
     {% else %}
         FREE SHIPPING ON ALL ORDERS OVER R600 | 100% ORGANIC & CHEMICAL FREE
     {% endif %}
-</div>
+</div>-->
 
 <header id="header">
     <nav class="mg-nav">
@@ -171,3 +185,205 @@
         <p class="mg-mobile-tagline">Natural Beauty, Naturally You</p>
     </div>
 </aside>
+
+<div class="youth-month-banner-rich">
+    <div class="banner-pulse"></div>
+    <div class="banner-content">
+        <div class="banner-header">
+            <span class="banner-emoji">🇿🇦</span>
+            <span class="banner-title">YOUTH MONTH SPECIAL</span>
+            <span class="banner-emoji">🎁</span>
+        </div>
+        <div class="banner-offers">
+            <div class="banner-offer">
+                <strong>Vitality Spray + Growth Oil</strong>
+                <span class="save-amount">SAVE R40</span>
+            </div>
+            <div class="banner-offer">
+                <strong>Vitality Spray + Hair Food</strong>
+                <span class="save-amount">SAVE R30</span>
+            </div>
+            <div class="banner-offer">
+                <strong>Growth Oil + Hair Food</strong>
+                <span class="save-amount">SAVE R30</span>
+            </div>
+            <div class="banner-offer best">
+                <strong>All 3 Products</strong>
+                <span class="save-amount">SAVE R50 ⭐</span>
+            </div>
+        </div>
+        <p class="banner-fine-print">Discount automatically applied at checkout · Valid all of June</p>
+    </div>
+</div>
+
+
+<style>
+    /* Simple top bar variant */
+    .announcement.youth-month {
+        background: linear-gradient(135deg, #1b3022 0%, #2d5016 50%, #c5a059 100%);
+        color: #fcf8ef;
+        padding: 0.85rem 1rem;
+        font-weight: 600;
+        position: relative;
+        overflow: hidden;
+    }
+ 
+    .announcement.youth-month::before {
+        content: '';
+        position: absolute;
+        top: 0; bottom: 0;
+        left: -100%;
+        width: 50%;
+        background: linear-gradient(90deg, transparent, rgba(252, 248, 239, 0.15), transparent);
+        animation: shimmer 3s ease-in-out infinite;
+    }
+ 
+    @keyframes shimmer {
+        to { left: 200%; }
+    }
+ 
+    .announcement-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+    }
+ 
+    .announcement-icon {
+        font-size: 1.1rem;
+    }
+ 
+    .announcement-text strong {
+        color: #c5a059;
+        letter-spacing: 1px;
+        font-weight: 800;
+    }
+ 
+    .announcement-divider {
+        opacity: 0.5;
+        margin: 0 0.3rem;
+    }
+ 
+    .announcement-cta {
+        color: #c5a059;
+        text-decoration: underline;
+        font-weight: 700;
+    }
+ 
+    /* Rich banner variant (for landing/promo page) */
+    .youth-month-banner-rich {
+        background: linear-gradient(135deg, #1b3022 0%, #2d5016 50%, #c5a059 100%);
+        color: #fcf8ef;
+        padding: 2.5rem 1.5rem;
+        border-radius: 20px;
+        margin: 2rem auto;
+        max-width: 1100px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #c5a059;
+    }
+ 
+    .banner-pulse {
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 600px; height: 600px;
+        background: radial-gradient(circle, rgba(197, 160, 89, 0.2), transparent 70%);
+        transform: translate(-50%, -50%);
+        animation: pulseGlow 3s ease-in-out infinite;
+    }
+ 
+    @keyframes pulseGlow {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+        50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+    }
+ 
+    .banner-content {
+        position: relative;
+        z-index: 2;
+    }
+ 
+    .banner-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+ 
+    .banner-emoji {
+        font-size: 2rem;
+    }
+ 
+    .banner-title {
+        color: #c5a059;
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 3px;
+    }
+ 
+    .banner-offers {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        max-width: 800px;
+        margin: 0 auto 1.25rem;
+    }
+ 
+    .banner-offer {
+        background: rgba(252, 248, 239, 0.1);
+        border: 1px solid rgba(197, 160, 89, 0.4);
+        border-radius: 12px;
+        padding: 1rem;
+        backdrop-filter: blur(8px);
+    }
+ 
+    .banner-offer.best {
+        background: rgba(197, 160, 89, 0.2);
+        border-color: #c5a059;
+        transform: scale(1.05);
+        box-shadow: 0 8px 24px rgba(197, 160, 89, 0.3);
+    }
+ 
+    .banner-offer strong {
+        display: block;
+        color: #fcf8ef;
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+    }
+ 
+    .save-amount {
+        display: inline-block;
+        color: #c5a059;
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+    }
+ 
+    .banner-fine-print {
+        color: #fcf8ef;
+        opacity: 0.85;
+        font-size: 0.85rem;
+        font-style: italic;
+        margin: 0;
+    }
+ 
+    @media (max-width: 700px) {
+        .banner-offers {
+            grid-template-columns: 1fr;
+        }
+        .banner-offer.best {
+            transform: none;
+        }
+        .banner-title {
+            font-size: 1.15rem;
+            letter-spacing: 2px;
+        }
+    }
+</style>
+ 

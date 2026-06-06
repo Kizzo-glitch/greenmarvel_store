@@ -117,24 +117,18 @@ def about(request):
 
 
 def home(request):
-	products = Product.objects.exclude(name__icontains="combo")
+	products = Product.objects.filter(name__icontains="combo")
 
 	#products = Product.objects.all()
 	return render(request, 'home.html', {
 		'products':products, 
 		"now": timezone.now(),})
 
-def home2(request):
-	products = Product.objects.exclude(name__icontains="combo")
 
-	#products = Product.objects.all()
-	return render(request, 'home2.html', {
-		'products':products, 
-		"now": timezone.now(),})
 
 def shop_all(request):
     # Fetch all products, ordered by name or date added
-    all_products = Product.objects.all().order_by('name')
+    all_products = Product.objects.all().order_by("-is_sale")
     return render(request, 'shop.html', {'products': all_products})
 
 
@@ -227,7 +221,6 @@ class CookiePolicyView(TemplateView):
 # ================================================================
 # Alternative: simple function views (use these if you prefer)
 # ================================================================
-from django.shortcuts import render
 
 def terms_of_service(request):
     return render(request, 'legal/terms_of_service.html')

@@ -91,8 +91,13 @@
              data-is-sale="{{ product.is_sale }}"
              data-badge="{{ product.badge_text|lower }}">
             <div class="product-image-container">
-                <div class="product-badges">
+                <!--<div class="product-badges">
                     <span class="badge organic">{{ product.badge_text }}</span>
+                    {% if product.is_sale %}
+                        <span class="badge" style="background: #e74c3c; color: white;">SALE</span>
+                    {% endif %}
+                </div>-->
+                <div class="product-badges">
                     {% if product.is_sale %}
                         <span class="badge" style="background: #e74c3c; color: white;">SALE</span>
                     {% endif %}
@@ -119,12 +124,21 @@
                 <div class="product-footer">
                     <div class="price-container">
                         <span class="price-label">Price</span>
-                        {% if product.is_sale %}
+                        <div class="combo-price">
+                            {% if product.is_sale %}
+                                <span class="original-price">R{{ product.price|floatformat:0 }}</span>
+                                <span class="sale-price">R{{ product.sale_price|floatformat:0 }}</span>
+                                <span class="sale-badge">YOUTH MONTH</span>
+                            {% else %}
+                                <span>R{{ product.price|floatformat:0 }}</span>
+                            {% endif %}
+                        </div>
+                        <!--{% if product.is_sale %}
                             <span class="price" style="color: #e74c3c;">R{{ product.sale_price }}</span>
                             <span style="text-decoration: line-through; font-size: 0.8rem; color: #999;">R{{ product.price }}</span>
                         {% else %}
                             <span class="price">R{{ product.price }}</span>
-                        {% endif %}
+                        {% endif %}-->
                     </div>
                     &nbsp;
                     <button class="add-to-cart card-add-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}">Add to Cart</button>
@@ -599,6 +613,28 @@
         color: #1b3022;
         transform: translateY(-2px);
     }
+
+    .original-price {
+    text-decoration: line-through;
+    color: #999;
+    margin-right: 0.5rem;
+}
+.sale-price {
+    color: #2d5016;
+    font-weight: 800;
+    font-size: 1.3rem;
+}
+.sale-badge {
+    background: linear-gradient(135deg, #c5a059, #d4b374);
+    color: #1b3022;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-left: 0.5rem;
+}
+
 
     /* ============================================ */
     /* MODAL (same styles as home) */

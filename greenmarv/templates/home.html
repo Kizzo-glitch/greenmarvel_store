@@ -4,7 +4,200 @@
 {% block content %}
 {% csrf_token %}
 
-<section class="hero" id="home">
+<style>
+    /* Simple top bar variant */
+    .announcement.youth-month {
+        background: linear-gradient(135deg, #1b3022 0%, #2d5016 50%, #c5a059 100%);
+        color: #fcf8ef;
+        padding: 0.85rem 1rem;
+        font-weight: 600;
+        position: relative;
+        overflow: hidden;
+    }
+ 
+    .announcement.youth-month::before {
+        content: '';
+        position: absolute;
+        top: 0; bottom: 0;
+        left: -100%;
+        width: 50%;
+        background: linear-gradient(90deg, transparent, rgba(252, 248, 239, 0.15), transparent);
+        animation: shimmer 3s ease-in-out infinite;
+    }
+ 
+    @keyframes shimmer {
+        to { left: 200%; }
+    }
+ 
+    .announcement-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+    }
+ 
+    .announcement-icon {
+        font-size: 1.1rem;
+    }
+ 
+    .announcement-text strong {
+        color: #c5a059;
+        letter-spacing: 1px;
+        font-weight: 800;
+    }
+ 
+    .announcement-divider {
+        opacity: 0.5;
+        margin: 0 0.3rem;
+    }
+ 
+    .announcement-cta {
+        color: #c5a059;
+        text-decoration: underline;
+        font-weight: 700;
+    }
+ 
+    /* Rich banner variant (for landing/promo page) */
+    .youth-month-banner-rich {
+        background: linear-gradient(135deg, #1b3022 0%, #2d5016 50%, #c5a059 100%);
+        color: #fcf8ef;
+        padding: 2.5rem 1.5rem;
+        border-radius: 20px;
+        margin: 2rem auto;
+        max-width: 1100px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #c5a059;
+    }
+ 
+    .banner-pulse {
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 600px; height: 600px;
+        background: radial-gradient(circle, rgba(197, 160, 89, 0.2), transparent 70%);
+        transform: translate(-50%, -50%);
+        animation: pulseGlow 3s ease-in-out infinite;
+    }
+ 
+    @keyframes pulseGlow {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+        50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+    }
+ 
+    .banner-content {
+        position: relative;
+        z-index: 2;
+    }
+ 
+    .banner-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+ 
+    .banner-emoji {
+        font-size: 2rem;
+    }
+ 
+    .banner-title {
+        color: #c5a059;
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 3px;
+    }
+ 
+    .banner-offers {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        max-width: 800px;
+        margin: 0 auto 1.25rem;
+    }
+ 
+    .banner-offer {
+        background: rgba(252, 248, 239, 0.1);
+        border: 1px solid rgba(197, 160, 89, 0.4);
+        border-radius: 12px;
+        padding: 1rem;
+        backdrop-filter: blur(8px);
+    }
+ 
+    .banner-offer.best {
+        background: rgba(197, 160, 89, 0.2);
+        border-color: #c5a059;
+        transform: scale(1.05);
+        box-shadow: 0 8px 24px rgba(197, 160, 89, 0.3);
+    }
+ 
+    .banner-offer strong {
+        display: block;
+        color: #fcf8ef;
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+    }
+ 
+    .save-amount {
+        display: inline-block;
+        color: #c5a059;
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+    }
+ 
+    .banner-fine-print {
+        color: #fcf8ef;
+        opacity: 0.85;
+        font-size: 0.85rem;
+        font-style: italic;
+        margin: 0;
+    }
+ 
+    @media (max-width: 700px) {
+        .banner-offers {
+            grid-template-columns: 1fr;
+        }
+        .banner-offer.best {
+            transform: none;
+        }
+        .banner-title {
+            font-size: 1.15rem;
+            letter-spacing: 2px;
+        }
+    }
+
+    .original-price {
+    text-decoration: line-through;
+    color: #999;
+    margin-right: 0.5rem;
+}
+.sale-price {
+    color: #2d5016;
+    font-weight: 800;
+    font-size: 1.3rem;
+}
+.sale-badge {
+    background: linear-gradient(135deg, #c5a059, #d4b374);
+    color: #1b3022;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-left: 0.5rem;
+}
+</style>
+
+
+
+<!--<section class="hero" id="home">
     <div class="hero-container">
         <div class="hero-content">
             <div class="hero-badge" style="background: rgba(27, 48, 34, 0.4); border: 1px solid #c5a059; color: #fcf8ef; padding: 0.6rem 1.2rem; border-radius: 30px; display: inline-block; margin-bottom: 1.5rem; font-size: 0.8rem; letter-spacing: 1px;">
@@ -31,7 +224,7 @@
             </div>
         </div>
     </div>
-</section>
+</section>-->
 
 <svg style="visibility: hidden; position: absolute;" width="0" height="0">
     <defs>
@@ -41,6 +234,7 @@
         </filter>
     </defs>
 </svg>
+
 
 <section class="features-strip">
     <div class="features-container">
@@ -62,8 +256,13 @@
         {% for product in products %}
         <div class="product-card">
             <div class="product-image-container">
-                <div class="product-badges">
+                <!--<div class="product-badges">
                     <span class="badge organic">{{ product.badge_text }}</span>
+                    {% if product.is_sale %}
+                        <span class="badge" style="background: #e74c3c; color: white;">SALE</span>
+                    {% endif %}
+                </div>-->
+                <div class="product-badges">
                     {% if product.is_sale %}
                         <span class="badge" style="background: #e74c3c; color: white;">SALE</span>
                     {% endif %}
@@ -88,12 +287,21 @@
                 <div class="product-footer">
                     <div class="price-container">
                         <span class="price-label">Price</span>
-                        {% if product.is_sale %}
+                        <div class="combo-price">
+                            {% if product.is_sale %}
+                                <span class="original-price">R{{ product.price|floatformat:0 }}</span>
+                                <span class="sale-price">R{{ product.sale_price|floatformat:0 }}</span>
+                                <span class="sale-badge">YOUTH MONTH</span>
+                            {% else %}
+                                <span>R{{ product.price|floatformat:0 }}</span>
+                            {% endif %}
+                        </div>
+                        <!--{% if product.is_sale %}
                             <span class="price" style="color: #e74c3c;">R{{ product.sale_price }}</span>
                             <span style="text-decoration: line-through; font-size: 0.8rem; color: #999;">R{{ product.price }}</span>
                         {% else %}
                             <span class="price">R{{ product.price }}</span>
-                        {% endif %}
+                        {% endif %}-->
                     </div>
                     &nbsp;
                     <button class="add-to-cart card-add-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}">Add to Cart</button>
