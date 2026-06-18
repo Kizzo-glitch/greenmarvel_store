@@ -1,5 +1,6 @@
 from django import forms
-from .models import ShippingAddress, Order
+from .models import ShippingAddress, SA_PROVINCE_CHOICES
+
 
 class ShippingForm(forms.ModelForm):
 	shipping_full_name = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Full Name'}), required=True)
@@ -8,7 +9,16 @@ class ShippingForm(forms.ModelForm):
 	shipping_address1 = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Street Name'}), required=True)
 	shipping_apartment = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Apartment'}), required=False)
 	shipping_city = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'City'}), required=True)
-	shipping_province = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Province'}), required=True)
+	shipping_province = forms.ChoiceField(label="", choices=[('', '— Select Province —')] + SA_PROVINCE_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+        }),
+        required=True,
+        error_messages={
+            'required': 'Please select your province.',
+            'invalid_choice': 'Please select a valid South African province.',
+        },
+    )
 	shipping_zipcode = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Zipcode'}), required=True)
 	shipping_country = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Country'}), required=True)
 
@@ -31,6 +41,7 @@ class PaymentForm(forms.Form):
 	card_province = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Billing Province'}), required=True)
 	card_zipcode =  forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Billing Zipcode'}), required=True)
 	card_country =  forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Billing Country'}), required=True)
+
 
 
 #class PayfastPaymentForm(forms.Form):

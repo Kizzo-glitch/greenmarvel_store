@@ -4,10 +4,22 @@ from django.db.models.signals import post_save, pre_save
 from greenmarv.models import Product
 from django.dispatch import receiver 
 import datetime
+from decimal import Decimal
 
 
 
-# Create your models here.
+SA_PROVINCE_CHOICES = [
+    ('Gauteng',        'Gauteng'),
+    ('Western Cape',   'Western Cape'),
+    ('KwaZulu-Natal',  'KwaZulu-Natal'),
+    ('Eastern Cape',   'Eastern Cape'),
+    ('Free State',     'Free State'),
+    ('Limpopo',        'Limpopo'),
+    ('Mpumalanga',     'Mpumalanga'),
+    ('North West',     'North West'),
+    ('Northern Cape',  'Northern Cape'),
+]
+ 
 
 class ShippingAddress(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -17,7 +29,8 @@ class ShippingAddress(models.Model):
 	shipping_address1 = models.CharField(max_length=255, null=True, blank=True)
 	shipping_apartment = models.CharField(max_length=255, null=True, blank=True)
 	shipping_city = models.CharField(max_length=255, null=True, blank=True)
-	shipping_province = models.CharField(max_length=255, null=True, blank=True)
+	shipping_province = models.CharField(max_length=20, choices=SA_PROVINCE_CHOICES, null=True, blank=True,
+        help_text="South African province for delivery")
 	shipping_zipcode = models.CharField(max_length=255, null=True, blank=True)
 	shipping_country = models.CharField(max_length=255, null=True, blank=True)
 
@@ -64,6 +77,49 @@ class Order(models.Model):
 	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending_payment')
 	phone = models.CharField(max_length=20, blank=True)  
 	date_paid = models.DateTimeField(null=True, blank=True)  
+
+	# ============================================
+	# Shipping service fields -- For ADMIN VIEW ONLY (not shown to customer)
+	# ============================================
+	shipping_service_code = models.CharField(
+		max_length=20,
+		blank=True,
+		default='',
+		choices=[
+			('economy',  'Economy Delivery (5-7 days)'),
+			('standard', 'Standard Delivery (3-5 days)'),
+			('express',  'Express Delivery (2-3 days)'),
+		],
+		help_text="Shipping tier the customer selected at checkout"
+	)
+	
+	shipping_service_name = models.CharField(max_length=100, blank=True, default='',
+		help_text="Human-readable shipping service name"
+	)
+	
+	shipping_cost = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'),
+		help_text="Amount charged to customer for shipping"
+	)
+	
+	shipping_actual_cost = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'),
+		help_text="What we actually pay the courier (internal — never shown to customer)"
+	)
+	
+	courier_booked = models.CharField(max_length=50, blank=True, default='',
+		help_text="Which courier you actually booked via Bob Go (e.g., 'Courier Guy', 'MTE'). Update after booking."
+	)
+	
+	tracking_number = models.CharField(max_length=100, blank=True, default='',
+		help_text="Tracking number from the courier after booking via Bob Go"
+	)
+
+	# ============================================
+	# OPTIONAL helper property
+	# ============================================
+	@property
+	def shipping_margin(self):
+		"""Profit on shipping (what we charged - what we paid courier)."""
+		return self.shipping_cost - self.shipping_actual_cost
 	
 	
 	def __str__(self):

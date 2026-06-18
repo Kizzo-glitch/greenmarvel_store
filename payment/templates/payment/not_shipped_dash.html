@@ -69,7 +69,12 @@
                         <th>Customer</th>
                         <th>Date Ordered</th>
                         <th>Items</th>
-                        <th style="width: 110px;">Amount</th>
+                        
+                        <th>Shipping</th>
+                        <th>Courier</th>
+                        <th>Shipping Margin</th>
+
+                        <th style="width: 110px;">Total Amount</th>
                         <th style="width: 280px;">Actions</th>
                     </tr>
                 </thead>
@@ -100,6 +105,50 @@
                                 {% endwith %}
                             </span>
                         </td>
+
+                        <td>
+                            {% if item.shipping_service_code == 'economy' %}
+                                <span class="badge-shipping badge-economy">
+                                    📮 ECONOMY
+                                </span>
+                            {% elif item.shipping_service_code == 'standard' %}
+                                <span class="badge-shipping badge-standard">
+                                    📦 STANDARD
+                                </span>
+                            {% elif item.shipping_service_code == 'express' %}
+                                <span class="badge-shipping badge-express">
+                                    ⚡ EXPRESS
+                                </span>
+                            {% else %}
+                                <span class="badge-shipping badge-unknown">—</span>
+                            {% endif %}
+                            <div class="shipping-cost-line">R{{ item.shipping_cost|floatformat:2 }}</div>
+                        </td>
+                        
+                        <td>
+                            {% if item.courier_booked %}
+                                <strong>{{ item.courier_booked }}</strong>
+                                {% if item.tracking_number %}
+                                    <div class="tracking-line">
+                                        <small>#{{ item.tracking_number }}</small>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <span class="not-booked">⏳ Not booked yet</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="margin-cell">
+                            {% if item.shipping_margin > 0 %}
+                                <span class="margin-positive">+R{{ item.shipping_margin|floatformat:2 }}</span>
+                            {% elif item.shipping_margin < 0 %}
+                                <span class="margin-negative">−R{{ item.shipping_margin|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="margin-neutral">R0.00</span>
+                            {% endif %}
+                        </td>
+
+
                         <td>
                             <span class="amount-cell">R{{ item.amount_paid }}</span>
                         </td>
@@ -170,68 +219,5 @@
 </script>
 
 
-        <!-- Header-->
-        <!--<header class="bg-dark py-5">
-            <div class="container px-4 px-lg-5 my-5">
-                <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">Not Shipped</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">Products</p>
-                </div>
-            </div>
-        </header>
-
-        <br/><br/>
-        <div class="container">
-            <div class="row">
-                <center>
-                    <div class="col-8">
-                        <br/><br/>
-                        <h3>Un-Shipped Items</h3>
-                        <table class="table table-striped table-hover table-bordered">
-                          <thead class="table-dark">
-                            <tr>
-                              <th scope="col">Order</th>
-                              <th scope="col">Price</th>
-                              <th scope="col">Customer Name</th>
-                              <th scope="col">Customer Email</th>
-                              <th scope="col">Date Ordered</th>
-                              <th scope="col">Shipped</th>
-                              <th scope="col">Change Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {% for item in orders %}
-                            <tr>
-                              <td><a href="{% url 'orders' item.id %}">{{ item.id }}</a></td>
-                              <td>R{{ item.amount_paid }}</td>
-                              <td>{{ item.full_name }}</td>
-                              <td>{{ item.email }}</td> 
-                              <td>{{ item.full_name }}</td>
-                              <td>{{ item.date_ordered }}</td>
-                              <td>
-                               <form method="POST">
-                                  {% csrf_token %}
-                                  <input type="hidden" name="shipping_status" value="true">
-                                  <input type="hidden" name="num" value={{item.id}}>
-                                  <button type="Submit" class="btn btn-success btn-sm">Mark Shipped</button>
-                                </form>
-                                </td>
-                            </tr>
-                            {% endfor %}                        
-                            
-                          </tbody>
-                        </table>
-
-                        <br/><br/>
-                        <br/><br/>
-                    </div>
-                </center>
-            </div>
-        </div>
-    
-
-    <br/><br/>
-    <br/><br>
-    <br/><br>-->
 
  {% endblock %}

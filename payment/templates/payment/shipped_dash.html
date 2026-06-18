@@ -58,7 +58,7 @@
                 </div>
             </div>
         </div>
-
+        
         {% if orders %}
         <!-- Orders Table -->
         <div class="admin-table-wrapper">
@@ -69,7 +69,12 @@
                         <th>Customer</th>
                         <th>Date Shipped</th>
                         <th>Items</th>
-                        <th style="width: 110px;">Amount</th>
+
+                        <th>Shipping</th>
+                        <th>Courier</th>
+                        <th>Margin</th>
+
+                        <th style="width: 110px;">Total Amount</th>
                         <th style="width: 280px;">Actions</th>
                     </tr>
                 </thead>
@@ -100,6 +105,53 @@
                                 {% endwith %}
                             </span>
                         </td>
+
+
+
+                        <td>
+                            {% if item.shipping_service_code == 'economy' %}
+                                <span class="badge-shipping badge-economy">
+                                    📮 ECONOMY
+                                </span>
+                            {% elif item.shipping_service_code == 'standard' %}
+                                <span class="badge-shipping badge-standard">
+                                    📦 STANDARD
+                                </span>
+                            {% elif item.shipping_service_code == 'express' %}
+                                <span class="badge-shipping badge-express">
+                                    ⚡ EXPRESS
+                                </span>
+                            {% else %}
+                                <span class="badge-shipping badge-unknown">—</span>
+                            {% endif %}
+                            <div class="shipping-cost-line">R{{ item.shipping_cost|floatformat:2 }}</div>
+                        </td>
+                        
+                        <td>
+                            {% if item.courier_booked %}
+                                <strong>{{ item.courier_booked }}</strong>
+                                {% if item.tracking_number %}
+                                    <div class="tracking-line">
+                                        <small>#{{ item.tracking_number }}</small>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <span class="not-booked">⏳ Not booked yet</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="margin-cell">
+                            {% if item.shipping_margin > 0 %}
+                                <span class="margin-positive">+R{{ item.shipping_margin|floatformat:2 }}</span>
+                            {% elif item.shipping_margin < 0 %}
+                                <span class="margin-negative">−R{{ item.shipping_margin|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="margin-neutral">R0.00</span>
+                            {% endif %}
+                        </td>
+
+
+
                         <td>
                             <span class="amount-cell">R{{ item.amount_paid }}</span>
                         </td>
