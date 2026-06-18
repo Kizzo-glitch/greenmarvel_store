@@ -40,13 +40,333 @@
     <body>
   
     	{% if messages %}
+        <div class="mg-toast-container" id="mgToastContainer" role="region" aria-label="Notifications">
             {% for message in messages %}
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                  {{message}}
-                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <div class="mg-toast mg-toast-{{ message.tags|default:'info' }}"
+                    role="alert"
+                    aria-live="polite"
+                    data-auto-dismiss="5000">
+                    
+                    <div class="mg-toast-icon">
+                        {% if 'success' in message.tags %}✓
+                        {% elif 'error' in message.tags %}⚠
+                        {% elif 'warning' in message.tags %}!
+                        {% else %}ℹ
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mg-toast-content">
+                        {% if 'success' in message.tags %}
+                            <div class="mg-toast-title">Success</div>
+                        {% elif 'error' in message.tags %}
+                            <div class="mg-toast-title">Oops!</div>
+                        {% elif 'warning' in message.tags %}
+                            <div class="mg-toast-title">Heads up</div>
+                        {% else %}
+                            <div class="mg-toast-title">Info</div>
+                        {% endif %}
+                        <div class="mg-toast-message">{{ message }}</div>
+                    </div>
+                    
+                    <button type="button"
+                            class="mg-toast-close"
+                            aria-label="Dismiss notification"
+                            onclick="mgDismissToast(this.parentElement)">
+                        ×
+                    </button>
+                    
+                    <div class="mg-toast-progress"></div>
                 </div>
             {% endfor %}
-        {% endif %}
+        </div>
+
+        <style>
+    /* ============================================ */
+    /* MARVELOUSLY GREEN — TOAST NOTIFICATIONS       */
+    /* ============================================ */
+    .mg-toast-container {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        max-width: 420px;
+        width: calc(100% - 3rem);
+        pointer-events: none;  /* container is just for positioning; toasts handle clicks */
+    }
+ 
+    .mg-toast {
+        position: relative;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 0.85rem;
+        align-items: flex-start;
+        padding: 1rem 1.1rem;
+        background: white;
+        border-radius: 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        border-left: 4px solid;
+        animation: mgToastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        pointer-events: auto;  /* re-enable clicks on actual toast */
+    }
+ 
+    .mg-toast.mg-toast-dismissing {
+        animation: mgToastSlideOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+ 
+    @keyframes mgToastSlideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100%) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+ 
+    @keyframes mgToastSlideOut {
+        to {
+            opacity: 0;
+            transform: translateX(120%);
+        }
+    }
+ 
+    /* ============================================ */
+    /* COLOR VARIANTS                                 */
+    /* ============================================ */
+    .mg-toast-success {
+        border-left-color: #4CAF50;
+        background: linear-gradient(135deg, #f8fdf8, #ffffff);
+    }
+    .mg-toast-success .mg-toast-icon {
+        background: linear-gradient(135deg, #4CAF50, #2d5016);
+        color: #fcf8ef;
+    }
+    .mg-toast-success .mg-toast-title { color: #2d5016; }
+    .mg-toast-success .mg-toast-progress { background: #4CAF50; }
+ 
+    .mg-toast-error {
+        border-left-color: #e74c3c;
+        background: linear-gradient(135deg, #fef8f7, #ffffff);
+    }
+    .mg-toast-error .mg-toast-icon {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+    }
+    .mg-toast-error .mg-toast-title { color: #c0392b; }
+    .mg-toast-error .mg-toast-progress { background: #e74c3c; }
+ 
+    .mg-toast-warning {
+        border-left-color: #c5a059;
+        background: linear-gradient(135deg, #fffdf5, #ffffff);
+    }
+    .mg-toast-warning .mg-toast-icon {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+    }
+    .mg-toast-warning .mg-toast-title { color: #8a6d2e; }
+    .mg-toast-warning .mg-toast-progress { background: #c5a059; }
+ 
+    .mg-toast-info {
+        border-left-color: #1b3022;
+        background: linear-gradient(135deg, #f8fdf8, #ffffff);
+    }
+    .mg-toast-info .mg-toast-icon {
+        background: linear-gradient(135deg, #1b3022, #2d5016);
+        color: #c5a059;
+    }
+    .mg-toast-info .mg-toast-title { color: #1b3022; }
+    .mg-toast-info .mg-toast-progress { background: #2d5016; }
+ 
+    /* Fallback if no tag class — treat as info */
+    .mg-toast:not(.mg-toast-success):not(.mg-toast-error):not(.mg-toast-warning):not(.mg-toast-info) {
+        border-left-color: #1b3022;
+    }
+ 
+    /* ============================================ */
+    /* INNER ELEMENTS                                 */
+    /* ============================================ */
+    .mg-toast-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+ 
+    .mg-toast-content {
+        min-width: 0;  /* allows text truncation if needed */
+    }
+ 
+    .mg-toast-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.15rem;
+    }
+ 
+    .mg-toast-message {
+        color: #333;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        word-wrap: break-word;
+    }
+ 
+    .mg-toast-close {
+        background: transparent;
+        border: none;
+        color: #999;
+        font-size: 1.5rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+ 
+    .mg-toast-close:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: #333;
+    }
+ 
+    .mg-toast-close:focus {
+        outline: 2px solid #c5a059;
+        outline-offset: 2px;
+    }
+ 
+    /* Progress bar showing time until auto-dismiss */
+    .mg-toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        width: 100%;
+        opacity: 0.4;
+        transform-origin: left;
+        animation: mgToastProgress 5s linear forwards;
+    }
+ 
+    @keyframes mgToastProgress {
+        from { transform: scaleX(1); }
+        to { transform: scaleX(0); }
+    }
+ 
+    /* Pause progress when user hovers — give them time to read */
+    .mg-toast:hover .mg-toast-progress {
+        animation-play-state: paused;
+    }
+ 
+    /* ============================================ */
+    /* RESPONSIVE                                     */
+    /* ============================================ */
+    @media (max-width: 600px) {
+        .mg-toast-container {
+            top: 0.75rem;
+            right: 0.75rem;
+            left: 0.75rem;
+            width: auto;
+            max-width: none;
+        }
+ 
+        .mg-toast {
+            padding: 0.85rem 1rem;
+            gap: 0.7rem;
+        }
+ 
+        .mg-toast-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 0.9rem;
+        }
+ 
+        .mg-toast-title {
+            font-size: 0.8rem;
+        }
+ 
+        .mg-toast-message {
+            font-size: 0.88rem;
+        }
+    }
+ 
+    /* Respect users who prefer reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        .mg-toast,
+        .mg-toast-progress {
+            animation: none !important;
+        }
+    }
+</style>
+ 
+<script>
+    /**
+     * Dismiss a toast with slide-out animation.
+     * Called by the × button onclick AND by the auto-dismiss timer.
+     */
+    function mgDismissToast(toast) {
+        if (!toast || toast.classList.contains('mg-toast-dismissing')) return;
+        
+        toast.classList.add('mg-toast-dismissing');
+        
+        // Remove from DOM after animation completes
+        setTimeout(function() {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 300);
+    }
+ 
+    /**
+     * Auto-dismiss all toasts after their delay.
+     * Pauses when user hovers (so they have time to read).
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        const toasts = document.querySelectorAll('.mg-toast');
+        
+        toasts.forEach(function(toast) {
+            const delay = parseInt(toast.dataset.autoDismiss, 10) || 5000;
+            let timeoutId = setTimeout(function() {
+                mgDismissToast(toast);
+            }, delay);
+            
+            // Pause auto-dismiss on hover, resume on mouse leave
+            toast.addEventListener('mouseenter', function() {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            });
+            
+            toast.addEventListener('mouseleave', function() {
+                if (!timeoutId) {
+                    timeoutId = setTimeout(function() {
+                        mgDismissToast(toast);
+                    }, 2000);  // shorter delay after hover ends
+                }
+            });
+            
+            // Keyboard support: Escape key dismisses focused toast
+            toast.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    mgDismissToast(toast);
+                }
+            });
+        });
+    });
+</script>
+{% endif %}
 
     <main>
         {% block content %} {% endblock %}

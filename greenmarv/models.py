@@ -16,7 +16,7 @@ class Profile(models.Model):
 	city = models.CharField(max_length=200, blank=True)
 	province = models.CharField(max_length=200, blank=True)
 	zipcode = models.CharField(max_length=200, blank=True)
-	country = models.CharField(max_length=200, blank=True)
+	country = models.CharField(max_length=200, blank=True, default='South Africa')
 	old_cart = models.CharField(max_length=200, blank=True, null=True)
 
 	def __str__(self):

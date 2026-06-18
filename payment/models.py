@@ -32,7 +32,7 @@ class ShippingAddress(models.Model):
 	shipping_province = models.CharField(max_length=20, choices=SA_PROVINCE_CHOICES, null=True, blank=True,
         help_text="South African province for delivery")
 	shipping_zipcode = models.CharField(max_length=255, null=True, blank=True)
-	shipping_country = models.CharField(max_length=255, null=True, blank=True)
+	shipping_country = models.CharField(max_length=255, null=True, blank=True, default='South Africa')
 
 
 	# Don't pluralize address
