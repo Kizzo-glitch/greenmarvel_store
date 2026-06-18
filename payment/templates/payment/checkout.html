@@ -64,7 +64,8 @@
                         </div>
                     </div>
 
-                    <form method="POST" action="{% url 'billing_info' %}" id="shippingForm" class="shipping-form">
+                    <!--<form method="POST" action="{% url 'billing_info' %}" id="shippingForm" class="shipping-form">-->
+                    <form method="POST" action="{% url 'checkout' %}" id="shippingForm" class="shipping-form">
                         {% csrf_token %}
                         
                         <div class="form-fields-grid">

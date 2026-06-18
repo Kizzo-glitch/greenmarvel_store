@@ -1,0 +1,631 @@
+{% extends "base1.html" %}
+{% load static %}
+{% load dict_filters %}
+
+{% block content %}
+<div class="checkout-container">
+
+    <div class="checkout-steps">
+        <div class="step completed">1. Cart</div>
+        <div class="step active">2. Shipping</div>
+        <div class="step">3. Payment</div>
+        <div class="step">4. Done</div>
+    </div>
+
+    <div class="checkout-grid">
+
+        <div class="checkout-main">
+
+            <!-- Step 1: Address -->
+            <section class="checkout-section">
+                <h2 class="section-heading">
+                    <span class="step-number">1</span>
+                    Delivery Address
+                </h2>
+
+                <form method="post" id="address-form" class="address-form">
+                    {% csrf_token %}
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="full_name">Full Name</label>
+                            <input type="text" id="full_name" name="full_name"
+                                   value="{{ saved_address.full_name|default:'' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone"
+                                   value="{{ saved_address.phone|default:'' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email"
+                               value="{{ saved_address.email|default:'' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="shipping_address">Street Address</label>
+                        <input type="text" id="shipping_address" name="shipping_address"
+                               placeholder="House number and street"
+                               value="{{ saved_address.street_address|default:'' }}" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="suburb">Suburb</label>
+                            <input type="text" id="suburb" name="suburb"
+                                   value="{{ saved_address.local_area|default:'' }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="city">City</label>
+                            <input type="text" id="city" name="city"
+                                   value="{{ saved_address.city|default:'' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="province">Province</label>
+                            <select id="province" name="province" required>
+                                <option value="">Select province</option>
+                                <option value="Gauteng" {% if saved_address.province == "Gauteng" %}selected{% endif %}>Gauteng</option>
+                                <option value="Western Cape" {% if saved_address.province == "Western Cape" %}selected{% endif %}>Western Cape</option>
+                                <option value="KwaZulu-Natal" {% if saved_address.province == "KwaZulu-Natal" %}selected{% endif %}>KwaZulu-Natal</option>
+                                <option value="Free State" {% if saved_address.province == "Free State" %}selected{% endif %}>Free State</option>
+                                <option value="Eastern Cape" {% if saved_address.province == "Eastern Cape" %}selected{% endif %}>Eastern Cape</option>
+                                <option value="Mpumalanga" {% if saved_address.province == "Mpumalanga" %}selected{% endif %}>Mpumalanga</option>
+                                <option value="Limpopo" {% if saved_address.province == "Limpopo" %}selected{% endif %}>Limpopo</option>
+                                <option value="North West" {% if saved_address.province == "North West" %}selected{% endif %}>North West</option>
+                                <option value="Northern Cape" {% if saved_address.province == "Northern Cape" %}selected{% endif %}>Northern Cape</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="postal_code">Postal Code</label>
+                            <input type="text" id="postal_code" name="postal_code"
+                                   pattern="[0-9]{4}" maxlength="4"
+                                   value="{{ saved_address.code|default:'' }}" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" name="fetch_rates" value="1" class="btn-fetch-rates">
+                        See Shipping Options
+                        <span class="btn-icon">→</span>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Step 2: Shipping Options -->
+            {% if shipping_options %}
+            <section class="checkout-section">
+                <h2 class="section-heading">
+                    <span class="step-number">2</span>
+                    Choose Your Shipping
+                </h2>
+                <p class="section-subheading">
+                    {% if qualifies_for_free_shipping %}
+                        🎉 You've qualified for FREE Economy shipping!
+                    {% else %}
+                        Economy is FREE on orders over R{{ free_shipping_threshold|floatformat:0 }}. Add R{{ amount_to_free|floatformat:0 }} more to qualify.
+                    {% endif %}
+                </p>
+
+                <form method="post" id="shipping-form" class="shipping-form">
+                    {% csrf_token %}
+
+                    <input type="hidden" name="full_name" value="{{ saved_address.full_name|default:'' }}">
+                    <input type="hidden" name="email" value="{{ saved_address.email|default:'' }}">
+                    <input type="hidden" name="phone" value="{{ saved_address.phone|default:'' }}">
+
+                    <div class="shipping-options">
+                        {% for option in shipping_options %}
+                        <label class="shipping-card {% if option.is_recommended %}recommended{% endif %}">
+                            <input type="radio" name="selected_service_code"
+                                   value="{{ option.service_code }}"
+                                   data-price="{{ option.price }}"
+                                   data-service="{{ option.service_name }}"
+                                   {% if option.is_recommended %}checked{% endif %}
+                                   required>
+
+                            <div class="shipping-card-inner">
+                                <div class="shipping-card-icon">
+                                    <span class="icon-emoji">{{ option.icon }}</span>
+                                </div>
+
+                                <div class="shipping-card-info">
+                                    <div class="shipping-title-row">
+                                        <strong class="shipping-name">{{ option.service_name }}</strong>
+                                        {% if option.is_free %}
+                                            <span class="badge-free">FREE</span>
+                                        {% elif option.is_cheapest %}
+                                            <span class="badge-cheapest">CHEAPEST</span>
+                                        {% endif %}
+                                        {% if option.is_fastest and not option.is_free %}
+                                            <span class="badge-fastest">FASTEST</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="shipping-desc">{{ option.description }}</div>
+                                    <div class="shipping-subtext">{{ option.subtext }}</div>
+                                </div>
+
+                                <div class="shipping-card-price">
+                                    {% if option.is_free %}
+                                        <div class="price-was">R{{ option.price|floatformat:2 }}</div>
+                                        <div class="price-free">FREE</div>
+                                    {% else %}
+                                        <div class="price-value">R{{ option.price|floatformat:2 }}</div>
+                                        <div class="price-label">incl. VAT</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <input type="hidden" name="selected_price" id="selected_price"
+                           value="{{ shipping_options.0.price }}">
+                    <input type="hidden" name="selected_service_name" id="selected_service_name"
+                           value="{{ shipping_options.0.service_name }}">
+
+                    <button type="submit" class="btn-proceed-payment">
+                        Continue to Payment
+                        <span class="btn-icon">→</span>
+                    </button>
+                </form>
+            </section>
+            {% endif %}
+
+        </div>
+
+        
+        <!-- Summary sidebar -->
+        <aside class="checkout-summary">
+            <h3>Order Summary</h3>
+
+            {% for product in cart_products %}
+                <div class="summary-item">
+                    <span>{{ product.name }} × {{ quantities|getitem:product.id }}</span>
+                    <span>R{{ product.current_price|floatformat:2 }}</span>
+                </div>
+            {% endfor %}
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span>R{{ total_after_discount|floatformat:2 }}</span>
+            </div>
+
+            <div class="summary-row" id="shipping-row">
+                <span>Shipping</span>
+                <span id="shipping-cost">
+                    {% if shipping_options %}
+                        {% if shipping_options.0.is_free %}
+                            FREE
+                        {% else %}
+                            R{{ shipping_options.0.price|floatformat:2 }}
+                        {% endif %}
+                    {% else %}
+                        — pending —
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="summary-total">
+                <span>TOTAL</span>
+                <span id="total-cost">
+                    {% if shipping_options %}
+                        {% if shipping_options.0.is_free %}
+                            R{{ total_after_discount|floatformat:2 }}
+                        {% else %}
+                            R{{ total_after_discount|add:shipping_options.0.price|floatformat:2 }}
+                        {% endif %}
+                    {% else %}
+                        R{{ total_after_discount|floatformat:2 }}+
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="summary-trust">
+                <div class="trust-item">🔒 Secure payment via Payfast</div>
+                <div class="trust-item">📦 Three shipping options</div>
+                <div class="trust-item">↩️ 7-day return policy</div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<style>
+    /* ============================================ */
+    /* CHECKOUT CONTAINER                            */
+    /* ============================================ */
+    .checkout-container {
+        max-width: 1280px;
+        margin: 2rem auto;
+        padding: 0 5%;
+    }
+    .checkout-steps {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    .step {
+        flex: 1;
+        min-width: 120px;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        background: #f5f5f5;
+        color: #999;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: center;
+    }
+    .step.active { background: #2d5016; color: #fcf8ef; }
+    .step.completed { background: #e8f5e9; color: #2d5016; }
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 2rem;
+        align-items: start;
+    }
+    @media (max-width: 900px) {
+        .checkout-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ============================================ */
+    /* SECTIONS                                       */
+    /* ============================================ */
+    .checkout-section {
+        background: white;
+        padding: 1.75rem;
+        border-radius: 14px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.25rem;
+        color: #1b3022;
+        margin: 0 0 0.5rem 0;
+    }
+    .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        font-size: 0.95rem;
+        font-weight: 800;
+    }
+    .section-subheading {
+        color: #666;
+        font-size: 0.9rem;
+        margin: 0 0 1.5rem 0;
+    }
+
+    /* ============================================ */
+    /* FORM ELEMENTS                                  */
+    /* ============================================ */
+    .address-form { margin-top: 1.5rem; }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #2d5016;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.4rem;
+    }
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 0.75rem 0.95rem;
+        font-size: 0.95rem;
+        border: 1.5px solid #e8f5e9;
+        border-radius: 10px;
+        background: #fafafa;
+        font-family: inherit;
+        transition: border-color 0.2s, background 0.2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #4CAF50;
+        background: white;
+    }
+    .btn-fetch-rates {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.95rem 2rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        font-weight: 700;
+        font-size: 0.95rem;
+        border: none;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 0.5rem;
+    }
+    .btn-fetch-rates:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(45, 80, 22, 0.25);
+    }
+    .btn-icon { font-weight: 800; }
+
+    /* ============================================ */
+    /* SHIPPING OPTIONS — THREE TIERS                 */
+    /* ============================================ */
+    .shipping-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    .shipping-card {
+        display: block;
+        cursor: pointer;
+        border: 2px solid #e8f5e9;
+        border-radius: 14px;
+        padding: 0;
+        transition: all 0.25s ease;
+        background: white;
+        position: relative;
+    }
+    .shipping-card:hover {
+        border-color: #c5a059;
+        transform: translateX(4px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+    .shipping-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+    .shipping-card:has(input[type="radio"]:checked) {
+        border-color: #2d5016;
+        background: linear-gradient(135deg, #f8fdf8, #ffffff);
+        box-shadow: 0 6px 20px rgba(45, 80, 22, 0.12);
+    }
+    .shipping-card:has(input[type="radio"]:checked)::before {
+        content: '✓';
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #2d5016;
+        color: #fcf8ef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        z-index: 2;
+    }
+    .shipping-card-inner {
+        display: grid;
+        grid-template-columns: 70px 1fr auto;
+        gap: 1rem;
+        padding: 1.25rem;
+        align-items: center;
+    }
+    .shipping-card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .icon-emoji { font-size: 1.8rem; }
+    .shipping-title-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.3rem;
+        flex-wrap: wrap;
+    }
+    .shipping-name {
+        font-size: 1.05rem;
+        color: #1b3022;
+    }
+    .badge-cheapest {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 0.2rem 0.55rem;
+        border-radius: 12px;
+        letter-spacing: 1px;
+    }
+    .badge-fastest {
+        background: linear-gradient(135deg, #4CAF50, #2d5016);
+        color: #fcf8ef;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 0.2rem 0.55rem;
+        border-radius: 12px;
+        letter-spacing: 1px;
+    }
+    .badge-free {
+        background: linear-gradient(135deg, #4CAF50, #2d5016);
+        color: #fcf8ef;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 0.2rem 0.55rem;
+        border-radius: 12px;
+        letter-spacing: 1px;
+    }
+    .shipping-desc {
+        font-size: 0.88rem;
+        color: #555;
+        font-weight: 500;
+        margin-bottom: 0.15rem;
+    }
+    .shipping-subtext {
+        font-size: 0.78rem;
+        color: #999;
+        font-style: italic;
+    }
+    .price-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #2d5016;
+        font-family: Georgia, serif;
+    }
+    .price-label {
+        font-size: 0.7rem;
+        color: #999;
+        text-align: right;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 0.1rem;
+    }
+    .price-was {
+        font-size: 0.85rem;
+        color: #999;
+        text-decoration: line-through;
+    }
+    .price-free {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #4CAF50;
+        font-family: Georgia, serif;
+    }
+    @media (max-width: 600px) {
+        .shipping-card-inner {
+            grid-template-columns: 50px 1fr;
+            grid-template-areas:
+                "icon info"
+                "price price";
+            gap: 0.6rem;
+        }
+        .shipping-card-icon { grid-area: icon; width: 44px; height: 44px; }
+        .icon-emoji { font-size: 1.4rem; }
+        .shipping-card-info { grid-area: info; }
+        .shipping-card-price {
+            grid-area: price;
+            text-align: right;
+            padding-top: 0.5rem;
+            border-top: 1px dashed #e8f5e9;
+        }
+        .price-label { text-align: right; }
+    }
+
+    .btn-proceed-payment {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 1.1rem;
+        background: linear-gradient(135deg, #1b3022, #2d5016);
+        color: #fcf8ef;
+        font-weight: 700;
+        font-size: 1.05rem;
+        border: none;
+        border-radius: 14px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-proceed-payment:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(27, 48, 34, 0.3);
+    }
+
+    /* ============================================ */
+    /* SUMMARY SIDEBAR                                */
+    /* ============================================ */
+    .checkout-summary {
+        background: white;
+        padding: 1.75rem;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        position: sticky;
+        top: 1rem;
+    }
+    .checkout-summary h3 {
+        margin: 0 0 1rem 0;
+        color: #1b3022;
+        font-size: 1.15rem;
+    }
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        font-size: 0.88rem;
+        color: #555;
+    }
+    .summary-divider {
+        height: 1px;
+        background: #e8f5e9;
+        margin: 0.75rem 0;
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.4rem 0;
+        font-size: 0.95rem;
+        color: #333;
+    }
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 0 0.4rem;
+        margin-top: 0.6rem;
+        border-top: 2px solid #c5a059;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #1b3022;
+    }
+    .summary-trust {
+        margin-top: 1.5rem;
+        padding-top: 1.25rem;
+        border-top: 1px dashed #e8f5e9;
+    }
+    .trust-item {
+        font-size: 0.78rem;
+        color: #666;
+        padding: 0.3rem 0;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const radios = document.querySelectorAll('input[name="selected_service_code"]');
+        const subtotal = parseFloat("{{ total_after_discount|floatformat:2 }}");
+
+        radios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                const price = parseFloat(this.dataset.price);
+                const service = this.dataset.service;
+
+                document.getElementById('selected_price').value = price.toFixed(2);
+                document.getElementById('selected_service_name').value = service;
+
+                const shippingDisplay = price === 0 ? 'FREE' : 'R' + price.toFixed(2);
+                document.getElementById('shipping-cost').textContent = shippingDisplay;
+                document.getElementById('total-cost').textContent = 'R' + (subtotal + price).toFixed(2);
+            });
+        });
+    });
+</script>
+
+{% endblock %}

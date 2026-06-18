@@ -1,0 +1,105 @@
+{% extends 'base1.html' %}
+{% load static %}
+
+{% block content %}
+<section class="handoff-section">
+    <div class="handoff-container">
+        <div class="handoff-card">
+            <div class="handoff-icon">🔒</div>
+            <h1>Redirecting to Payfast</h1>
+            <p>Please wait — we're taking you to our secure payment partner.</p>
+            <div class="spinner"></div>
+            <p class="handoff-fallback">
+                If you're not redirected within 5 seconds, click the button below.
+            </p>
+
+            <!-- The Payfast form — auto-submits via JS below -->
+            <form method="post" action="{{ payfast_url }}" id="payfastForm">
+                {% for key, value in payfast_data.items %}
+                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                {% endfor %}
+                <button type="submit" class="handoff-btn">
+                    Continue to Payfast →
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<style>
+    .handoff-section {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 5%;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+    }
+    .handoff-container { max-width: 500px; width: 100%; }
+    .handoff-card {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        text-align: center;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        border: 1px solid rgba(197, 160, 89, 0.2);
+    }
+    .handoff-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+    .handoff-card h1 {
+        color: #2d5016;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+    .handoff-card p {
+        color: #555;
+        margin-bottom: 1.5rem;
+    }
+    .handoff-fallback {
+        font-size: 0.85rem;
+        color: #999;
+        margin-top: 1.5rem;
+    }
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #e8f5e9;
+        border-top-color: #c5a059;
+        border-radius: 50%;
+        margin: 1.5rem auto;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    .handoff-btn {
+        padding: 1rem 2.5rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        border: 1px solid #c5a059;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .handoff-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(197, 160, 89, 0.35);
+    }
+</style>
+
+<script>
+    // Auto-submit to Payfast after a 1-second pause (lets user see the page briefly)
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const form = document.getElementById('payfastForm');
+            if (form) form.submit();
+        }, 1000);
+    });
+</script>
+{% endblock %}

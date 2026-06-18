@@ -188,18 +188,25 @@ EMAIL_HOST_PASSWORD = str(os.getenv("EMAIL_HOST_PASSWORD"))
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
-
+# Courier Guy settings
 COURIER_GUY_USERNAME = str(os.getenv("COURIER_GUY_USERNAME")) 
 COURIER_GUY_API_KEY = str(os.getenv("COURIER_GUY_API_KEY"))
 
+# Bob Go settings
+BOBGO_API_KEY = str(os.getenv("BOBGO_API_KEY"))
+BOBGO_API_URL =  'https://api.bobgo.co.za/v2'
+BOBGO_TEST_MODE = False  # True for sandbox
+
 ADMIN_SMS_PHONE = str(os.getenv("ADMIN_SMS_PHONE"))
 ADMIN_SMS_PHONES = str(os.getenv("ADMIN_SMS_PHONES", ''))
+
 
  # SMSPortal
 SMS_API_URL = "https://rest.smsportal.com/bulkmessages"
 SMS_API_SECRET = os.getenv('SMS_API_SECRET')
 SMS_CLIENT_ID = os.getenv('SMS_CLIENT_ID')
 
+SITE_URL = 'https://greenmarvel.co.za'
 
 LOGGING = {
     'version': 1,

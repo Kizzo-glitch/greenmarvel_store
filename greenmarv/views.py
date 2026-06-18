@@ -231,47 +231,10 @@ def privacy_policy(request):
 def cookie_policy(request):
     return render(request, 'legal/cookie_policy.html')
 
+def cookie_policy(request):
+    return render(request, 'legal/cookie_policy.html')
 
-# ================================================================
-# URLS — Add to your urls.py
-# ================================================================
-"""
-from django.urls import path
-from . import views
+def shipping_policy(request):
+	return render(request, 'legal/shipping_policy.html')
 
-urlpatterns = [
-    # ... existing patterns ...
-    
-    # Legal pages
-    path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
-    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
-    path('cookie-policy/', views.cookie_policy, name='cookie_policy'),
-    
-    # Or using class-based views:
-    # path('terms-of-service/', views.TermsOfServiceView.as_view(), name='terms_of_service'),
-    # path('privacy-policy/', views.PrivacyPolicyView.as_view(), name='privacy_policy'),
-    # path('cookie-policy/', views.CookiePolicyView.as_view(), name='cookie_policy'),
-]
-"""
-
-
-def register_user2(request):
-	form = SignUpForm()
-	if request.method == 'POST':
-		form = SignUpForm(request.POST)
-		if form.is_valid():
-			form.save()
-			username = form.cleaned_data['username']
-			password = form.cleaned_data['password1']
-
-			user = authenticate(username=username, password=password)
-			login(request, user)
-			messages.success(request, ('You have created your Username Successfully - Please complete the form below'))
-			return redirect('update_info')
-
-		else:
-			messages.success(request, ('Whhops, there was a problem registering'))
-			return redirect('register')
-	else:
-		return render(request, 'register.html', {'form':form})
 	

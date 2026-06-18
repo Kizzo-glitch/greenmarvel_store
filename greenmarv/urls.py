@@ -19,4 +19,5 @@ urlpatterns = [
     path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('cookie-policy/', views.cookie_policy, name='cookie_policy'),
+    path('shipping-policy/', views.shipping_policy, name='shipping_policy'),
 ]

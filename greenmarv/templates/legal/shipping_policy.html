@@ -1,0 +1,237 @@
+{% extends "base1.html" %}
+{% load static %}
+
+{% block title %}Shipping Policy · Marvelously Green{% endblock %}
+
+{% block content %}
+<div class="legal-container">
+    <div class="legal-header">
+        <h1>Shipping Policy</h1>
+        <p class="legal-updated">Last updated: June 2026</p>
+    </div>
+
+    <section class="legal-section">
+        <h2>1. Where We Ship</h2>
+        <p>We ship to all nine provinces of South Africa via trusted courier partners. Cross-border deliveries (SADC region) are currently not available — please check back as we expand.</p>
+    </section>
+
+    <section class="legal-section">
+        <h2>2. Shipping Options</h2>
+        <p>At checkout, you'll be presented with two delivery options:</p>
+
+        <div class="shipping-tiers">
+            <div class="shipping-tier">
+                <div class="tier-icon">📦</div>
+                <h3>Standard Delivery</h3>
+                <p class="tier-time">3–5 working days</p>
+                <p class="tier-detail">Door-to-door delivery via our trusted courier network. Fully tracked with SMS updates at every stage.</p>
+                <p class="tier-price">From <strong>R59</strong></p>
+            </div>
+
+            <div class="shipping-tier featured">
+                <div class="tier-badge">FREE OVER R600</div>
+                <div class="tier-icon">⚡</div>
+                <h3>Express Delivery</h3>
+                <p class="tier-time">1–2 working days</p>
+                <p class="tier-detail">Priority delivery for when you need it fast. Available to all major South African metros.</p>
+                <p class="tier-price">From <strong>R89</strong></p>
+            </div>
+        </div>
+
+        <p class="tier-note">Final shipping prices are calculated at checkout based on your delivery province and order weight.</p>
+    </section>
+
+    <section class="legal-section">
+        <h2>3. Free Shipping</h2>
+        <p><strong>Standard Delivery is FREE on all orders over R600.</strong> The free shipping threshold is calculated on your order subtotal after any applied discount codes.</p>
+        <p>Express Delivery is not included in our free shipping offer but can be added at a discounted rate.</p>
+    </section>
+
+    <section class="legal-section">
+        <h2>4. Processing Time</h2>
+        <p>Orders placed before 12:00 (noon) on a working day are dispatched the same day. Orders placed after 12:00 or on weekends and public holidays are dispatched the next working day.</p>
+        <p>You'll receive an SMS and email with your tracking number as soon as your order is dispatched.</p>
+    </section>
+
+    <section class="legal-section">
+        <h2>5. Estimated Delivery Times</h2>
+        <p>Delivery times are estimates and begin from dispatch, not the order date. Working days exclude weekends and public holidays.</p>
+
+        <table class="delivery-table">
+            <thead>
+                <tr>
+                    <th>Destination</th>
+                    <th>Standard</th>
+                    <th>Express</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Gauteng (local)</td>
+                    <td>2–3 working days</td>
+                    <td>1 working day</td>
+                </tr>
+                <tr>
+                    <td>Western Cape, KwaZulu-Natal, Free State</td>
+                    <td>3–4 working days</td>
+                    <td>1–2 working days</td>
+                </tr>
+                <tr>
+                    <td>Eastern Cape, Mpumalanga, North West, Limpopo</td>
+                    <td>4–5 working days</td>
+                    <td>2–3 working days</td>
+                </tr>
+                <tr>
+                    <td>Northern Cape & outlying areas</td>
+                    <td>5–7 working days</td>
+                    <td>3–4 working days</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="legal-section">
+        <h2>6. Tracking Your Order</h2>
+        <p>Every order is dispatched with full tracking. You can track your order at any time by:</p>
+        <ul>
+            <li>Using the tracking link in your dispatch SMS or email</li>
+            <li>Visiting <a href="{% url 'track_order' %}">our Track Order page</a> with your order number</li>
+            <li>Logging into your account at <a href="{% url 'order_history' %}">Order History</a></li>
+        </ul>
+    </section>
+
+    <section class="legal-section">
+        <h2>7. Failed Deliveries</h2>
+        <p>If a courier is unable to deliver after two attempts, the parcel is returned to the courier's nearest depot, where it will be held for up to 7 working days. You will be contacted via SMS to arrange collection or rescheduling.</p>
+        <p>If the parcel is not collected within 7 days, it will be returned to us. A re-dispatch fee equal to the original shipping cost will apply.</p>
+    </section>
+
+    <section class="legal-section">
+        <h2>8. Lost or Damaged Parcels</h2>
+        <p>While rare, lost or damaged parcels are handled in accordance with the Consumer Protection Act. If your parcel is lost in transit or arrives damaged, please contact us within 48 hours of expected delivery at <a href="mailto:info@greenmarvel.co.za">info@greenmarvel.co.za</a> with your order number and photos (if damaged).</p>
+        <p>We will work with our courier partners to locate the parcel or arrange a replacement at no additional cost to you.</p>
+    </section>
+
+    <section class="legal-section">
+        <h2>9. Address Accuracy</h2>
+        <p>Please ensure your delivery address is complete and accurate at checkout. Incorrect addresses may result in:</p>
+        <ul>
+            <li>Delayed delivery while the courier confirms details</li>
+            <li>Re-dispatch fees if a re-delivery is required</li>
+            <li>Return of the parcel to our warehouse</li>
+        </ul>
+        <p>You may update your address after ordering only if the parcel has not yet been dispatched. Email us as soon as possible to request changes.</p>
+    </section>
+
+    <section class="legal-section">
+        <h2>10. Contact Us</h2>
+        <p>For any shipping-related queries, please contact our customer service team:</p>
+        <ul>
+            <li>Email: <a href="mailto:info@greenmarvel.co.za">info@greenmarvel.co.za</a></li>
+            <li>Phone: 081 752 3336</li>
+            <li>WhatsApp: 081 547 3512</li>
+            <li>Office hours: Monday to Friday, 08:00 – 17:00 SAST</li>
+        </ul>
+    </section>
+</div>
+
+<style>
+    /* Shipping tier cards */
+    .shipping-tiers {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    @media (max-width: 700px) {
+        .shipping-tiers { grid-template-columns: 1fr; }
+    }
+    .shipping-tier {
+        background: linear-gradient(135deg, #f8fdf8, #ffffff);
+        border: 1.5px solid #e8f5e9;
+        border-radius: 16px;
+        padding: 1.75rem;
+        text-align: center;
+        position: relative;
+    }
+    .shipping-tier.featured {
+        border-color: #c5a059;
+        background: linear-gradient(135deg, #fffef8, #fdf9eb);
+    }
+    .tier-badge {
+        position: absolute;
+        top: -10px;
+        right: 1.5rem;
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 0.35rem 0.75rem;
+        border-radius: 12px;
+        letter-spacing: 1px;
+    }
+    .tier-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+    }
+    .shipping-tier h3 {
+        color: #1b3022;
+        margin: 0 0 0.4rem 0;
+        font-size: 1.25rem;
+    }
+    .tier-time {
+        color: #2d5016;
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin: 0 0 0.75rem 0;
+    }
+    .tier-detail {
+        color: #666;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        margin: 0 0 1rem 0;
+    }
+    .tier-price {
+        color: #1b3022;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+    .tier-price strong {
+        color: #c5a059;
+        font-size: 1.4rem;
+        font-family: Georgia, serif;
+    }
+    .tier-note {
+        font-size: 0.85rem;
+        color: #888;
+        font-style: italic;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    /* Delivery table */
+    .delivery-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        font-size: 0.92rem;
+    }
+    .delivery-table thead th {
+        background: #2d5016;
+        color: #fcf8ef;
+        padding: 0.85rem 1rem;
+        text-align: left;
+        font-weight: 700;
+    }
+    .delivery-table thead th:first-child { border-radius: 10px 0 0 0; }
+    .delivery-table thead th:last-child { border-radius: 0 10px 0 0; }
+    .delivery-table tbody td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e8f5e9;
+        color: #444;
+    }
+    .delivery-table tbody tr:hover {
+        background: #f8fdf8;
+    }
+</style>
+{% endblock %}
