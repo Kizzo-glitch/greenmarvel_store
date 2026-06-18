@@ -47,7 +47,7 @@ PROVINCE_ZONES = {
 
 SHIPPING_RATES = {
     'local': {
-        'economy':  {'cost': Decimal('56'),  'display': Decimal('69')},
+        'economy':  {'cost': Decimal('56'),  'display': Decimal('65')},
         'standard': {'cost': Decimal('80'),  'display': Decimal('99')},
         'express':  {'cost': Decimal('95'),  'display': Decimal('119')},
     },
@@ -85,7 +85,7 @@ SERVICE_META = {
     'economy': {
         'name':        'Economy Delivery',
         'icon':        '📮',
-        'description': '5–7 working days · Tracked',
+        'description': '4–7 working days · Tracked',
         'subtext':     'Best value · most popular',
         'eligible_for_free': True,
     },
@@ -93,7 +93,7 @@ SERVICE_META = {
         'name':        'Standard Delivery',
         'icon':        '📦',
         'description': '3–5 working days · Tracked',
-        'subtext':     'Reliable next-day-or-two',
+        'subtext':     'Reliable next 3-to-5 days',
         'eligible_for_free': False,
     },
     'express': {
