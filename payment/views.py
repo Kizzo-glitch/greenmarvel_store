@@ -1135,6 +1135,7 @@ def orders_admin(request, pk):
 		"shipping_cost": shipping_cost,
 	})
 
+
 # ================================================================
 # ADMIN VIEWS — filter to only show PAID orders
 # ================================================================
@@ -1264,7 +1265,7 @@ def successful_payments(request):
 
 
 #Process Order and Initiate Payfast payment
-def process_order2(request):
+def process_order3(request):
 	if request.POST:
 		# Get the cart
 		cart = Cart(request)
@@ -1483,9 +1484,58 @@ def order_history(request):
 
 
 
-
-
 def track_order(request):
+    # Read from GET (prefilled link) or POST (form submission)
+    order_id = (request.GET.get('order_id') or request.POST.get('order_id') or '').strip()
+    email = (request.GET.get('email') or request.POST.get('email') or '').strip().lower()
+    
+    order = None
+    error = None
+    
+    # ============================================
+    # Only attempt lookup if we have BOTH inputs
+    # ============================================
+    if order_id and email:
+        try:
+            # Coerce order_id to int (URL params are strings)
+            order_id_int = int(order_id)
+        except (ValueError, TypeError):
+            error = "Order number must be a number."
+        else:
+            try:
+                # Match on both order_id AND email — prevents random lookups
+                # by people who don't own the order
+                order = Order.objects.get(
+                    id=order_id_int,
+                    email__iexact=email,
+                )
+            except Order.DoesNotExist:
+                error = (
+                    "We couldn't find an order matching that order number "
+                    "and email. Please check your details and try again."
+                )
+    
+    # ============================================
+    # If user provided ONLY one of the two fields
+    # ============================================
+    elif order_id and not email:
+        error = "Please enter the email address used at checkout."
+    elif email and not order_id:
+        error = "Please enter your order number."
+    # else: both empty → no error (initial form view)
+    
+    # ============================================
+    # ALWAYS return a response (this is what fixes the bug)
+    # ============================================
+    return render(request, 'payment/track_order.html', {
+        'order': order,
+        'order_id_input': order_id,
+        'email_input': email,
+        'error': error,
+    })
+
+
+def track_order2(request):
 	order = None
 	items = []
 	timeline = []

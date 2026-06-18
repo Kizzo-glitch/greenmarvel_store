@@ -77,12 +77,14 @@
             </form>
         </div>
 
+        
         <!-- Track Order Link -->
         <div class="track-link-banner">
             <span>💡 Placed an order as a guest?</span>
             <a href="{% url 'track_order' %}?order_id={{ order.id }}&email={{ order.email|urlencode }}">
                 Track it with your order number →</a>
         </div>
+
 
         <!-- Orders List -->
         {% if orders %}

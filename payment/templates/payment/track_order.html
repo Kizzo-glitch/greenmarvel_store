@@ -2,310 +2,240 @@
 {% load static %}
 
 {% block content %}
-
-<!-- Hero -->
-<section class="track-hero">
-    <div class="track-hero-leaves">
-        <span class="floating-leaf leaf-1">🍃</span>
-        <span class="floating-leaf leaf-2">🌿</span>
-    </div>
-    <div class="track-hero-container">
-        <div class="track-hero-badge">🚚 ORDER TRACKING</div>
-        <h1 class="track-hero-title">Track Your <span>Order</span></h1>
-        <p class="track-hero-subtitle">Enter your order number and email to see real-time status</p>
-    </div>
-</section>
-
 <section class="track-section">
     <div class="track-container">
+
+        <!-- HEADER -->
+        <div class="track-header">
+            <div class="track-icon">📦</div>
+            <h1>Track Your Order</h1>
+            <p>Enter your order number and email to see the status of your delivery.</p>
+        </div>
+
+        <!-- LOOKUP FORM -->
         {% if not order %}
-        <!-- LOOKUP FORM (shown when no order or error) -->
-        <div class="track-form-card">
-            <div class="form-card-header">
-                <div class="form-icon">🔍</div>
-                <h2>Find Your Order</h2>
-                <p>Enter the details below to track your order status and estimated delivery.</p>
-            </div>
-
-            {% if tracking_error %}
-            <div class="tracking-error">
-                <span class="error-icon">⚠️</span>
-                <span>{{ tracking_error }}</span>
-            </div>
-            {% endif %}
-
-            <form method="POST" action="{% url 'track_order' %}" class="track-form">
-                {% csrf_token %}
-                <div class="track-field">
-                    <label>Order Number</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon">#</span>
-                        <input type="text" 
-                               name="order_id" 
-                               placeholder="e.g. 1234" 
-                               value="{{ order_id_input }}"
-                               required 
-                               autofocus>
-                    </div>
-                    <small class="field-hint">Your order number was included in your confirmation email</small>
+        <div class="track-card">
+            <form method="get" class="track-form">
+                <div class="form-group">
+                    <label for="order_id">Order Number</label>
+                    <input type="text"
+                           id="order_id"
+                           name="order_id"
+                           value="{{ order_id_input|default:'' }}"
+                           placeholder="e.g. 1234"
+                           required
+                           pattern="[0-9]+"
+                           autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           value="{{ email_input|default:'' }}"
+                           placeholder="The email you used at checkout"
+                           required>
                 </div>
 
-                <div class="track-field">
-                    <label>Email Address</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon">📧</span>
-                        <input type="email" 
-                               name="email" 
-                               placeholder="you@example.com" 
-                               value="{{ email_input }}"
-                               required>
-                    </div>
-                    <small class="field-hint">The email address you used at checkout</small>
+                {% if error %}
+                <div class="track-error">
+                    <span class="track-error-icon">⚠</span>
+                    {{ error }}
                 </div>
+                {% endif %}
 
-                <button type="submit" class="btn-track-submit">
-                    Track My Order →
+                <button type="submit" class="track-submit-btn">
+                    Track Order →
                 </button>
             </form>
 
-            <div class="form-help">
-                <div class="help-item">
-                    <span class="help-icon">💬</span>
-                    <div>
-                        <strong>Can't find your order number?</strong>
-                        <p>Check your order confirmation email from Marvelously Green, or <a href="mailto:admin@greenmarvel.co.za">contact us</a>.</p>
-                    </div>
-                </div>
-                {% if user.is_authenticated %}
-                <div class="help-item">
-                    <span class="help-icon">👤</span>
-                    <div>
-                        <strong>You're logged in!</strong>
-                        <p><a href="{% url 'order_history' %}">View all your orders</a> without needing to enter details.</p>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% else %}
-        <!-- ORDER FOUND — TIMELINE VIEW -->
-        <div class="tracking-header">
-            <div class="tracking-header-left">
-                <div class="order-number-big">
-                    <span class="label">ORDER</span>
-                    <span class="number">#{{ order.id }}</span>
-                </div>
-                <div class="order-placed">
-                    Placed {{ order.date_ordered|date:"d M Y" }} · R{{ order.amount_paid }}
-                </div>
-            </div>
-            <div class="tracking-header-right">
-                {% if order.status == 'paid' and order.shipped %}
-                    <div class="status-pill-big shipped">
-                        <span class="pill-dot"></span> 
-                        <span>Shipped</span>
-                    </div>
-                {% elif order.status == 'paid' %}
-                    <div class="status-pill-big processing">
-                        <span class="pill-dot"></span> 
-                        <span>Processing</span>
-                    </div>
-                {% elif order.status == 'cancelled' %}
-                    <div class="status-pill-big cancelled">
-                        <span class="pill-dot"></span> 
-                        <span>Cancelled</span>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- TIMELINE -->
-        <div class="timeline-card">
-            <h3>Order Progress</h3>
-            <div class="timeline">
-                {% for step in timeline %}
-                <div class="timeline-step 
-                            {% if step.completed %}completed{% endif %} 
-                            {% if step.active %}active{% endif %}
-                            {% if step.cancelled %}cancelled-step{% endif %}">
-                    <div class="timeline-marker">
-                        {% if step.completed and not step.cancelled %}
-                            <span class="marker-check">✓</span>
-                        {% elif step.cancelled %}
-                            <span class="marker-x">✕</span>
-                        {% else %}
-                            <span class="marker-icon">{{ step.icon }}</span>
-                        {% endif %}
-                    </div>
-                    <div class="timeline-content">
-                        <h4>{{ step.title }}</h4>
-                        <p>{{ step.description }}</p>
-                        {% if step.date %}
-                            <span class="timeline-date">{{ step.date|date:"d M Y, H:i" }}</span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-
-            {% if order.shipped %}
-            <div class="delivery-estimate">
-                <div class="delivery-icon">📅</div>
-                <div class="delivery-text">
-                    <strong>Estimated Delivery</strong>
-                    <p>Your order should arrive within 2-5 business days from shipment</p>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- ORDER ITEMS -->
-        <div class="items-card">
-            <h3>Order Items ({{ items|length }})</h3>
-            <div class="items-grid">
-                {% for item in items %}
-                <div class="track-item">
-                    <div class="track-item-image">
-                        {% if item.product.image %}
-                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
-                        {% else %}
-                            <div class="item-placeholder">🌿</div>
-                        {% endif %}
-                    </div>
-                    <div class="track-item-info">
-                        <h4>{{ item.product.name }}</h4>
-                        {% if item.product.subtitle %}
-                            <p class="track-item-subtitle">{{ item.product.subtitle }}</p>
-                        {% endif %}
-                        <div class="track-item-meta">
-                            <span>Qty: {{ item.quantity }}</span>
-                            <span class="track-item-price">R{{ item.price }}</span>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- ACTIONS -->
-        <div class="track-actions">
-            <a href="{% url 'track_order' %}" class="btn-outline">
-                ← Track Another Order
-            </a>
-            {% if user.is_authenticated %}
-            <a href="{% url 'order_detail' order.id %}" class="btn-solid">
-                Full Order Details →
-            </a>
-            {% else %}
-            <a href="{% url 'shop' %}" class="btn-solid">
-                Continue Shopping
-            </a>
-            {% endif %}
-        </div>
-
-        <!-- Need Help -->
-        <div class="need-help">
-            <span>💬</span>
-            <div>
-                <strong>Questions about your order?</strong>
-                <span>Contact us at <a href="mailto:admin@greenmarvel.co.za">admin@greenmarvel.co.za</a> or call <a href="tel:0815473512">081 547 3512</a></span>
+            <div class="track-help">
+                <p>Your order number was emailed to you after checkout. Can't find it?</p>
+                <a href="mailto:info@greenmarvel.co.za">Email us for help</a>
             </div>
         </div>
         {% endif %}
+
+        <!-- ORDER DETAILS (if found) -->
+        {% if order %}
+        <div class="track-card order-details-card">
+            <div class="order-header">
+                <div>
+                    <h2>Order #{{ order.id }}</h2>
+                    <p class="order-date">Placed on {{ order.date_ordered|date:"d M Y" }}</p>
+                </div>
+                <div class="order-status-pill status-{{ order.status }}">
+                    {% if order.status == 'paid' %}
+                        ✓ PAID
+                    {% elif order.status == 'pending_payment' %}
+                        ⏳ AWAITING PAYMENT
+                    {% elif order.status == 'cancelled' %}
+                        ✕ CANCELLED
+                    {% else %}
+                        {{ order.status|upper }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- DELIVERY PROGRESS -->
+            <div class="delivery-progress">
+                <div class="progress-step {% if order.status == 'paid' or order.shipped %}completed{% endif %}">
+                    <div class="step-icon">✓</div>
+                    <div class="step-label">Order placed</div>
+                </div>
+                <div class="progress-line {% if order.shipped %}completed{% endif %}"></div>
+                <div class="progress-step {% if order.shipped %}completed{% endif %}">
+                    <div class="step-icon">📦</div>
+                    <div class="step-label">Dispatched</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <div class="step-icon">🚚</div>
+                    <div class="step-label">In transit</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <div class="step-icon">🎉</div>
+                    <div class="step-label">Delivered</div>
+                </div>
+            </div>
+
+            <!-- COURIER DETAILS -->
+            {% if order.shipped %}
+            <div class="courier-info">
+                <h3>📨 Shipping Details</h3>
+                <div class="courier-grid">
+                    {% if order.courier_booked %}
+                    <div class="courier-row">
+                        <span class="courier-label">Courier</span>
+                        <span class="courier-value"><strong>{{ order.courier_booked }}</strong></span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if order.tracking_number %}
+                    <div class="courier-row">
+                        <span class="courier-label">Tracking Number</span>
+                        <span class="courier-value tracking-num">{{ order.tracking_number }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if order.shipping_service_name %}
+                    <div class="courier-row">
+                        <span class="courier-label">Service</span>
+                        <span class="courier-value">{{ order.shipping_service_name }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if order.date_shipped %}
+                    <div class="courier-row">
+                        <span class="courier-label">Dispatched</span>
+                        <span class="courier-value">{{ order.date_shipped|date:"d M Y" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <p class="tracking-note">
+                    📱 Track your parcel directly with the courier using the tracking number above.
+                </p>
+            </div>
+            {% else %}
+            <div class="not-yet-shipped">
+                <span class="not-yet-icon">⏳</span>
+                <p>
+                    {% if order.status == 'paid' %}
+                        Your order is being prepared for dispatch. You'll receive an SMS and email with tracking details as soon as it ships.
+                    {% elif order.status == 'pending_payment' %}
+                        We're waiting for payment confirmation. Once confirmed, your order will be prepared for dispatch.
+                    {% else %}
+                        Your order is being processed.
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- ORDER SUMMARY -->
+            <div class="order-summary-section">
+                <h3>📋 Order Summary</h3>
+                <div class="summary-rows">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>R{{ order.amount_paid|floatformat:2 }}</span>
+                    </div>
+                    {% if order.shipping_cost %}
+                    <div class="summary-row">
+                        <span>Shipping ({{ order.shipping_service_name|default:"Standard" }})</span>
+                        <span>R{{ order.shipping_cost|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="summary-row total">
+                        <span>Total Paid</span>
+                        <span>R{{ order.amount_paid|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SHIPPING ADDRESS -->
+            <div class="shipping-address-section">
+                <h3>📍 Delivery Address</h3>
+                <p class="address-block">
+                    <strong>{{ order.full_name }}</strong><br>
+                    {{ order.shipping_address|linebreaksbr }}<br>
+                    <span class="address-contact">{{ order.phone }} · {{ order.email }}</span>
+                </p>
+            </div>
+
+            <div class="track-actions">
+                <a href="{% url 'track_order' %}" class="btn-secondary">← Track another order</a>
+                <a href="mailto:info@greenmarvel.co.za?subject=Order%20%23{{ order.id }}%20question" class="btn-primary">
+                    Need help? Contact us
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
     </div>
 </section>
 
-{% include 'payment/order_shared_styles.html' %}
-
 <style>
-    .track-hero {
-        background: linear-gradient(135deg, #1b3022 0%, #2d5016 50%, #c5a059 100%);
-        padding: 4rem 5% 3rem;
-        text-align: center;
-        color: #fcf8ef;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .track-hero-leaves {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        pointer-events: none;
-    }
-
-    .track-hero-leaves .floating-leaf {
-        position: absolute;
-        font-size: 2rem;
-        opacity: 0.3;
-    }
-
-    .track-hero-leaves .leaf-1 { top: 25%; left: 15%; }
-    .track-hero-leaves .leaf-2 { top: 60%; right: 15%; }
-
-    .track-hero-container {
-        max-width: 900px;
-        margin: 0 auto;
-        position: relative;
-        z-index: 2;
-    }
-
-    .track-hero-badge {
-        background: rgba(27, 48, 34, 0.4);
-        border: 1px solid #c5a059;
-        color: #fcf8ef;
-        padding: 0.5rem 1.2rem;
-        border-radius: 30px;
-        display: inline-block;
-        margin-bottom: 1.25rem;
-        font-size: 0.75rem;
-        letter-spacing: 2px;
-        font-weight: 600;
-    }
-
-    .track-hero-title {
-        font-size: 3rem;
-        font-weight: 800;
-        color: #fcf8ef;
-        margin-bottom: 0.5rem;
-        letter-spacing: -1px;
-    }
-
-    .track-hero-title span {
-        color: #c5a059;
-        font-style: italic;
-    }
-
-    .track-hero-subtitle {
-        color: #fcf8ef;
-        opacity: 0.9;
-        font-size: 1.05rem;
-    }
-
     .track-section {
         padding: 3rem 5% 5rem;
         background: #fafbf9;
-        min-height: 50vh;
+        min-height: 70vh;
+    }
+    .track-container { max-width: 800px; margin: 0 auto; }
+
+    /* HEADER */
+    .track-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+    .track-icon {
+        font-size: 3.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .track-header h1 {
+        color: #1b3022;
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+    .track-header p {
+        color: #666;
+        font-size: 1rem;
     }
 
-    .track-container {
-        max-width: 900px;
-        margin: 0 auto;
-    }
-
-    /* ============================================ */
-    /* LOOKUP FORM */
-    /* ============================================ */
-    .track-form-card {
+    /* CARDS */
+    .track-card {
         background: white;
         border-radius: 20px;
-        padding: 3rem 2.5rem;
-        border: 1px solid rgba(197, 160, 89, 0.2);
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(197, 160, 89, 0.15);
         position: relative;
         overflow: hidden;
     }
-
-    .track-form-card::before {
+    .track-card::before {
         content: '';
         position: absolute;
         top: 0; left: 0; right: 0;
@@ -313,107 +243,42 @@
         background: linear-gradient(90deg, #2d5016, #c5a059, #2d5016);
     }
 
-    .form-card-header {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-
-    .form-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-    }
-
-    .form-card-header h2 {
-        color: #2d5016;
-        font-size: 1.75rem;
-        font-weight: 800;
-        margin-bottom: 0.5rem;
-    }
-
-    .form-card-header p {
-        color: #666;
-        max-width: 500px;
-        margin: 0 auto;
-    }
-
-    .tracking-error {
-        background: rgba(231, 76, 60, 0.08);
-        border: 1px solid rgba(231, 76, 60, 0.3);
-        border-left: 4px solid #e74c3c;
-        color: #c0392b;
-        padding: 1rem 1.25rem;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-size: 0.95rem;
-    }
-
-    .error-icon { font-size: 1.3rem; }
-
+    /* FORM */
     .track-form {
         display: flex;
         flex-direction: column;
         gap: 1.25rem;
+        margin-bottom: 1.5rem;
     }
-
-    .track-field {
+    .form-group {
         display: flex;
         flex-direction: column;
         gap: 0.4rem;
     }
-
-    .track-field label {
+    .form-group label {
         color: #2d5016;
-        font-size: 0.85rem;
+        font-size: 0.78rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
+        letter-spacing: 1px;
     }
-
-    .input-wrapper {
-        position: relative;
-    }
-
-    .input-icon {
-        position: absolute;
-        left: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 1.1rem;
-        opacity: 0.6;
-        z-index: 2;
-        pointer-events: none;
-        color: #c5a059;
-        font-weight: 700;
-    }
-
-    .track-field input {
+    .form-group input {
         width: 100%;
-        padding: 0.95rem 1rem 0.95rem 2.8rem;
+        padding: 0.9rem 1rem;
         border: 2px solid #e8f5e9;
         border-radius: 12px;
-        font-size: 1rem;
-        color: #333;
+        font-size: 0.95rem;
+        font-family: inherit;
         background: white;
         transition: all 0.3s;
     }
-
-    .track-field input:focus {
+    .form-group input:focus {
         border-color: #c5a059;
         outline: none;
-        box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.12);
+        box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.1);
     }
-
-    .field-hint {
-        color: #888;
-        font-size: 0.8rem;
-        margin-top: 0.15rem;
-    }
-
-    .btn-track-submit {
-        padding: 1.1rem 2rem;
+    .track-submit-btn {
+        padding: 1rem 2rem;
         background: linear-gradient(135deg, #2d5016, #4CAF50);
         color: #fcf8ef;
         border: 1px solid #c5a059;
@@ -421,468 +286,287 @@
         font-size: 1rem;
         font-weight: 700;
         cursor: pointer;
-        letter-spacing: 0.5px;
         transition: all 0.3s;
-        margin-top: 0.5rem;
     }
-
-    .btn-track-submit:hover {
+    .track-submit-btn:hover {
         background: linear-gradient(135deg, #c5a059, #d4b374);
         color: #1b3022;
         transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(197, 160, 89, 0.35);
+        box-shadow: 0 10px 25px rgba(197, 160, 89, 0.3);
     }
-
-    .form-help {
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 1px solid #f0f0f0;
+    .track-error {
+        padding: 0.85rem 1rem;
+        background: #fef5f3;
+        border: 1px solid #f5b7b1;
+        border-radius: 10px;
+        color: #c0392b;
+        font-size: 0.9rem;
         display: flex;
-        flex-direction: column;
-        gap: 1rem;
+        align-items: center;
+        gap: 0.5rem;
     }
-
-    .help-item {
-        display: flex;
-        gap: 0.9rem;
-        padding: 1rem 1.25rem;
-        background: #f8fdf8;
-        border-radius: 12px;
-        border-left: 3px solid #c5a059;
-    }
-
-    .help-icon {
-        font-size: 1.4rem;
-        flex-shrink: 0;
-    }
-
-    .help-item strong {
-        color: #2d5016;
-        display: block;
-        margin-bottom: 0.25rem;
-        font-size: 0.95rem;
-    }
-
-    .help-item p {
+    .track-error-icon { font-size: 1.1rem; }
+    .track-help {
+        padding-top: 1.5rem;
+        border-top: 1px dashed rgba(197, 160, 89, 0.3);
+        text-align: center;
         color: #666;
         font-size: 0.88rem;
-        line-height: 1.5;
     }
-
-    .help-item a {
+    .track-help a {
         color: #c5a059;
+        text-decoration: none;
         font-weight: 600;
     }
+    .track-help a:hover { text-decoration: underline; }
 
-    /* ============================================ */
-    /* TRACKING VIEW */
-    /* ============================================ */
-    .tracking-header {
-        background: white;
-        border-radius: 20px;
-        padding: 2rem;
-        margin-bottom: 1.5rem;
-        border: 1px solid rgba(197, 160, 89, 0.2);
+    /* ORDER DETAILS */
+    .order-details-card { padding: 0; }
+    .order-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
         gap: 1rem;
+        padding: 2rem 2.5rem 1.5rem;
+        border-bottom: 2px solid #f0f0f0;
         flex-wrap: wrap;
     }
-
-    .tracking-header-left {
-        flex: 1;
+    .order-header h2 {
+        color: #2d5016;
+        font-size: 1.75rem;
+        margin: 0 0 0.25rem 0;
     }
-
-    .order-number-big {
-        display: flex;
-        align-items: baseline;
-        gap: 1rem;
-        margin-bottom: 0.5rem;
+    .order-date {
+        color: #666;
+        font-size: 0.88rem;
     }
-
-    .order-number-big .label {
+    .order-status-pill {
+        padding: 0.45rem 1rem;
+        border-radius: 25px;
         font-size: 0.75rem;
-        color: #999;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        font-weight: 700;
-    }
-
-    .order-number-big .number {
-        font-size: 2rem;
-        color: #c5a059;
         font-weight: 800;
-        font-style: italic;
-        letter-spacing: -0.5px;
+        letter-spacing: 1px;
+        white-space: nowrap;
     }
-
-    .order-placed {
-        color: #666;
-        font-size: 0.95rem;
-    }
-
-    .status-pill-big {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.6rem;
-        padding: 0.7rem 1.4rem;
-        border-radius: 30px;
-        font-size: 0.9rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .pill-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-    }
-
-    .status-pill-big.shipped {
-        background: linear-gradient(135deg, #2d5016, #4CAF50);
-        color: #c5a059;
-    }
-    .status-pill-big.shipped .pill-dot { background: #c5a059; }
-
-    .status-pill-big.processing {
-        background: #fff9e6;
-        color: #8a6d2e;
-        border: 1px solid #c5a059;
-    }
-    .status-pill-big.processing .pill-dot {
-        background: #c5a059;
-        animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    .status-pill-big.cancelled {
-        background: #fdf0ef;
-        color: #c0392b;
-        border: 1px solid #e74c3c;
-    }
-    .status-pill-big.cancelled .pill-dot { background: #e74c3c; }
-
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.3; }
-    }
-
-    /* Timeline */
-    .timeline-card {
-        background: white;
-        border-radius: 20px;
-        padding: 2.5rem;
-        margin-bottom: 1.5rem;
-        border: 1px solid rgba(197, 160, 89, 0.2);
-    }
-
-    .timeline-card h3 {
-        color: #2d5016;
-        font-size: 1.3rem;
-        margin-bottom: 2rem;
-        font-weight: 700;
-    }
-
-    .timeline {
-        position: relative;
-        padding-left: 3.5rem;
-    }
-
-    .timeline::before {
-        content: '';
-        position: absolute;
-        left: 24px;
-        top: 10px;
-        bottom: 10px;
-        width: 2px;
-        background: #e8f5e9;
-    }
-
-    .timeline-step {
-        position: relative;
-        padding-bottom: 2rem;
-    }
-
-    .timeline-step:last-child { padding-bottom: 0; }
-
-    .timeline-marker {
-        position: absolute;
-        left: -3.5rem;
-        top: 0;
-        width: 50px;
-        height: 50px;
-        background: white;
-        border: 2px solid #e8f5e9;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        z-index: 2;
-        transition: all 0.3s;
-    }
-
-    .timeline-step.completed .timeline-marker {
-        background: linear-gradient(135deg, #2d5016, #4CAF50);
-        border-color: #c5a059;
-        color: #c5a059;
-    }
-
-    .timeline-step.active .timeline-marker {
-        border-color: #c5a059;
-        background: #fff9e6;
-        box-shadow: 0 0 0 6px rgba(197, 160, 89, 0.2);
-        animation: pulseRing 2s ease-in-out infinite;
-    }
-
-    .timeline-step.cancelled-step .timeline-marker {
-        background: #fdf0ef;
-        border-color: #e74c3c;
-        color: #c0392b;
-    }
-
-    @keyframes pulseRing {
-        0%, 100% { box-shadow: 0 0 0 6px rgba(197, 160, 89, 0.2); }
-        50% { box-shadow: 0 0 0 12px rgba(197, 160, 89, 0.1); }
-    }
-
-    .marker-check {
-        font-weight: 700;
-        font-size: 1.3rem;
-    }
-
-    .marker-x {
-        font-weight: 700;
-        font-size: 1.3rem;
-    }
-
-    .timeline-content h4 {
-        color: #2d5016;
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-    }
-
-    .timeline-step.active .timeline-content h4 {
-        color: #c5a059;
-    }
-
-    .timeline-step:not(.completed):not(.active) .timeline-content h4 {
-        color: #999;
-    }
-
-    .timeline-content p {
-        color: #666;
-        font-size: 0.9rem;
-        margin-bottom: 0.35rem;
-    }
-
-    .timeline-date {
-        color: #888;
-        font-size: 0.8rem;
-        font-weight: 600;
-        background: #f8fdf8;
-        padding: 0.25rem 0.7rem;
-        border-radius: 15px;
-        display: inline-block;
-    }
-
-    .delivery-estimate {
-        margin-top: 2rem;
-        padding: 1.25rem;
-        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
-        border: 1px dashed #c5a059;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .delivery-icon {
-        font-size: 2rem;
-        flex-shrink: 0;
-    }
-
-    .delivery-text strong {
-        color: #2d5016;
-        display: block;
-        margin-bottom: 0.2rem;
-    }
-
-    .delivery-text p {
-        color: #666;
-        font-size: 0.9rem;
-    }
-
-    /* Items */
-    .items-card {
-        background: white;
-        border-radius: 20px;
-        padding: 2rem;
-        margin-bottom: 1.5rem;
-        border: 1px solid rgba(197, 160, 89, 0.2);
-    }
-
-    .items-card h3 {
-        color: #2d5016;
-        font-size: 1.3rem;
-        margin-bottom: 1.5rem;
-        font-weight: 700;
-    }
-
-    .items-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .track-item {
-        display: flex;
-        gap: 1rem;
-        padding: 1rem;
-        background: #f8fdf8;
-        border-radius: 12px;
-        align-items: center;
-    }
-
-    .track-item-image {
-        width: 70px;
-        height: 70px;
-        background: white;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border: 1px solid rgba(197, 160, 89, 0.15);
-        flex-shrink: 0;
-    }
-
-    .track-item-image img {
-        max-width: 85%;
-        max-height: 85%;
-        object-fit: contain;
-    }
-
-    .item-placeholder { font-size: 1.5rem; }
-
-    .track-item-info { flex: 1; }
-
-    .track-item-info h4 {
-        color: #c5a059;
-        font-size: 1rem;
-        font-style: italic;
-        font-weight: 700;
-        margin-bottom: 0.2rem;
-    }
-
-    .track-item-subtitle {
-        color: #666;
-        font-size: 0.8rem;
-        margin-bottom: 0.35rem;
-    }
-
-    .track-item-meta {
-        display: flex;
-        gap: 1rem;
-        color: #666;
-        font-size: 0.9rem;
-        align-items: center;
-    }
-
-    .track-item-price {
-        color: #2d5016;
-        font-weight: 700;
-        margin-left: auto;
-    }
-
-    /* Actions */
-    .track-actions {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
-    }
-
-    .btn-outline, .btn-solid {
-        padding: 0.9rem 2rem;
-        border-radius: 30px;
-        text-decoration: none;
-        font-weight: 700;
-        transition: all 0.3s;
-        text-align: center;
-        flex: 1;
-        min-width: 200px;
-    }
-
-    .btn-outline {
-        background: white;
-        color: #2d5016;
-        border: 2px solid #e8f5e9;
-    }
-
-    .btn-outline:hover {
-        border-color: #c5a059;
-        background: #f8fdf8;
-    }
-
-    .btn-solid {
-        background: linear-gradient(135deg, #2d5016, #4CAF50);
+    .status-paid {
+        background: linear-gradient(135deg, #4CAF50, #2d5016);
         color: #fcf8ef;
-        border: 1px solid #c5a059;
     }
-
-    .btn-solid:hover {
+    .status-pending_payment {
         background: linear-gradient(135deg, #c5a059, #d4b374);
         color: #1b3022;
-        transform: translateY(-2px);
+    }
+    .status-cancelled {
+        background: #e74c3c;
+        color: white;
     }
 
-    /* Need help */
-    .need-help {
-        background: linear-gradient(135deg, #1b3022, #2d5016);
-        color: #fcf8ef;
-        padding: 1.25rem 1.5rem;
-        border-radius: 15px;
+    /* PROGRESS BAR */
+    .delivery-progress {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        padding: 2rem 2.5rem;
+        gap: 0;
     }
-
-    .need-help > span {
-        font-size: 1.75rem;
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
     }
-
-    .need-help strong {
-        color: #c5a059;
-        display: block;
-        margin-bottom: 0.2rem;
+    .step-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #f5f5f5;
+        border: 2px solid #e8f5e9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: #999;
     }
-
-    .need-help > div > span {
+    .progress-step.completed .step-icon {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
         color: #fcf8ef;
-        opacity: 0.9;
-        font-size: 0.9rem;
+        border-color: #c5a059;
     }
-
-    .need-help a {
-        color: #c5a059;
-        text-decoration: underline;
+    .step-label {
+        font-size: 0.75rem;
+        color: #999;
         font-weight: 600;
+        text-align: center;
+    }
+    .progress-step.completed .step-label {
+        color: #2d5016;
+    }
+    .progress-line {
+        flex: 1;
+        height: 2px;
+        background: #e8f5e9;
+        margin: 0 -2px 22px;
+    }
+    .progress-line.completed { background: #2d5016; }
+
+    /* COURIER INFO */
+    .courier-info {
+        padding: 1.75rem 2.5rem;
+        background: linear-gradient(135deg, #f8fdf8, #ffffff);
+        border-top: 1px solid #e8f5e9;
+    }
+    .courier-info h3,
+    .order-summary-section h3,
+    .shipping-address-section h3 {
+        color: #2d5016;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+    .courier-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+    .courier-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed rgba(197, 160, 89, 0.2);
+    }
+    .courier-label {
+        color: #666;
+        font-size: 0.88rem;
+    }
+    .courier-value {
+        color: #1b3022;
+        font-size: 0.9rem;
+        text-align: right;
+    }
+    .tracking-num {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        background: rgba(197, 160, 89, 0.12);
+        padding: 0.2rem 0.6rem;
+        border-radius: 6px;
+    }
+    .tracking-note {
+        margin-top: 1rem;
+        padding: 0.85rem 1rem;
+        background: rgba(197, 160, 89, 0.1);
+        border-left: 3px solid #c5a059;
+        border-radius: 8px;
+        color: #8a6d2e;
+        font-size: 0.85rem;
     }
 
-    @media (max-width: 768px) {
-        .track-hero-title { font-size: 2.25rem; }
-        .track-form-card { padding: 2rem 1.5rem; }
-        .tracking-header { flex-direction: column; align-items: flex-start; }
-        .order-number-big .number { font-size: 1.5rem; }
-        .timeline { padding-left: 3rem; }
-        .timeline-marker { left: -3rem; width: 42px; height: 42px; }
-        .timeline::before { left: 20px; }
+    /* NOT SHIPPED YET */
+    .not-yet-shipped {
+        padding: 1.75rem 2.5rem;
+        background: linear-gradient(135deg, #fffdf5, #ffffff);
+        border-top: 1px solid #e8f5e9;
+        text-align: center;
+    }
+    .not-yet-icon { font-size: 2.5rem; }
+    .not-yet-shipped p {
+        margin-top: 0.5rem;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    /* ORDER SUMMARY */
+    .order-summary-section,
+    .shipping-address-section {
+        padding: 1.75rem 2.5rem;
+        border-top: 1px solid #f0f0f0;
+    }
+    .summary-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        color: #555;
+    }
+    .summary-row.total {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #1b3022;
+        border-top: 2px solid #c5a059;
+        padding-top: 0.8rem;
+        margin-top: 0.4rem;
+    }
+
+    /* SHIPPING ADDRESS */
+    .address-block {
+        padding: 1rem 1.25rem;
+        background: #f8fdf8;
+        border-radius: 10px;
+        border-left: 3px solid #c5a059;
+        line-height: 1.6;
+        color: #333;
+    }
+    .address-contact {
+        color: #666;
+        font-size: 0.88rem;
+    }
+
+    /* ACTIONS */
+    .track-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.75rem 2.5rem;
+        border-top: 1px solid #f0f0f0;
+        flex-wrap: wrap;
+    }
+    .btn-secondary,
+    .btn-primary {
+        padding: 0.85rem 1.5rem;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        text-align: center;
+    }
+    .btn-secondary {
+        color: #2d5016;
+        background: transparent;
+        border: 1px solid #2d5016;
+    }
+    .btn-secondary:hover {
+        background: #e8f5e9;
+    }
+    .btn-primary {
+        color: #fcf8ef;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        border: 1px solid #c5a059;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(45, 80, 22, 0.25);
+    }
+
+    @media (max-width: 600px) {
+        .track-card { padding: 1.75rem 1.25rem; }
+        .order-header,
+        .delivery-progress,
+        .courier-info,
+        .not-yet-shipped,
+        .order-summary-section,
+        .shipping-address-section,
+        .track-actions {
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+        }
+        .delivery-progress { gap: 0.25rem; }
+        .step-icon { width: 36px; height: 36px; font-size: 0.85rem; }
+        .step-label { font-size: 0.65rem; }
+        .order-status-pill { font-size: 0.65rem; padding: 0.35rem 0.75rem; }
         .track-actions { flex-direction: column; }
-        .need-help { flex-direction: column; text-align: center; }
     }
 </style>
-
 {% endblock %}

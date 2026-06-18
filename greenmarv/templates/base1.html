@@ -18,8 +18,16 @@
 		  gtag('config', 'G-FNT0H9V61Y');
 		</script>
     
-    <!-- TikTok Pixel Code Start -->
-		<script>
+        <!-- TikTok Pixel Code Start -->
+        <script>
+            !function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(e,t){e[t]=function(){e.push([t].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(e){for(var t=ttq._i[e]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(t,ttq.methods[n]);return t};ttq.load=function(e,n){var o="https://tiktok.com";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=o,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n;var i=d.createElement("script");i.type="text/javascript",i.async=!0,i.src=o;var a=d.getElementsByTagName("script");a.parentNode.insertBefore(i,a)};
+            
+            ttq.load('D45OVARC77U1GG09SDT0'); // ← Paste your TikTok Pixel ID here
+            ttq.page();
+            }(window, document, 'ttq');
+        </script>
+        {% block extra_head %}{% endblock %}
+		<!--<script>
 			!function (w, d, t) {
 			  w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
 			var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
@@ -27,7 +35,7 @@
 			  ttq.load('D45OVARC77U1GG09SDT0');
 			  ttq.page();
 			}(window, document, 'ttq');
-		</script>
+		</script>-->
 		<!-- TikTok Pixel Code End -->
     
     
@@ -411,7 +419,7 @@
                 <h4>Support</h4>
                 <ul>
                     <li><a href="{% url 'terms_of_service' %}">FAQ</a></li>
-                    <li><a href="{% url 'terms_of_service' %}">Shipping</a></li>
+                    <li><a href="{% url 'shipping_policy' %}">Shipping</a></li>
                     <li><a href="{% url 'terms_of_service' %}">Returns</a></li>
                     <li><a href="{% url 'login' %}">Track Order</a></li>
                 </ul>
