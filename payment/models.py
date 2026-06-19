@@ -83,8 +83,16 @@ class Order(models.Model):
 	shipped = models.BooleanField(default=False)
 
 	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending_payment')
-	pickup_point_code = models.CharField(max_length=50, blank=True, null=True)
-	phone = models.CharField(max_length=20, blank=True)  
+	
+	phone = models.CharField(max_length=20, blank=True) 
+	pickup_point_code = models.CharField(max_length=20, blank=True, default='',
+		choices=[
+			('', 'N/A (courier delivery)'),
+			('office', 'Marvelously Green Office'),
+			('rrk_pharmacy', 'RRK Pharmacy'),
+		],
+		help_text="Pickup point if customer chose Collection"
+	) 
 	  
 	# ============================================
 	# Date timestamps for each stage
