@@ -22,7 +22,7 @@ load_dotenv()
 SECRET_KEY = str(os.getenv('SECRET_KEY'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 #DEBUG_PROPAGATE_EXCEPTIONS = True
 
@@ -207,6 +207,8 @@ SMS_API_SECRET = os.getenv('SMS_API_SECRET')
 SMS_CLIENT_ID = os.getenv('SMS_CLIENT_ID')
 
 SITE_URL = 'https://greenmarvel.co.za'
+LOGIN_URL = 'login'
+
 
 LOGGING = {
     'version': 1,

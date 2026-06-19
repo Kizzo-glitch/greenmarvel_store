@@ -13,7 +13,7 @@
             <span class="announcement-divider">·</span>
             Save up to <strong>R50</strong> when you bundle
             <span class="announcement-divider">·</span>
-            <span class="announcement-cta">Shop the bundles →</span>
+            <a href="{% url 'faqs' %}" class="announcement-cta">Click "FAQs" for answers to all your questions→</a>
         </span>
     </div>
 </div>
@@ -29,6 +29,7 @@
     {% endif %}
 </div>-->
 
+
 <header id="header">
     <nav class="mg-nav">
         <!-- LOGO -->
@@ -43,6 +44,7 @@
             <li><a href="{% url 'about' %}#about">About</a></li>
             <li><a href="{% url 'home' %}#reviews">Reviews</a></li>
             <li><a href="{% url 'home' %}#contact">Contact</a></li>
+            <li><a href="{% url 'faqs' %}"> FAQS</a></li>
         </ul>
 
         <!-- RIGHT ACTIONS -->
@@ -152,6 +154,7 @@
             <a href="{% url 'home' %}#about" class="mg-mobile-link"><span>🌿</span> About Us</a>
             <a href="{% url 'home' %}#reviews" class="mg-mobile-link"><span>⭐</span> Reviews</a>
             <a href="{% url 'home' %}#contact" class="mg-mobile-link"><span>📞</span> Contact</a>
+            <a href="{% url 'faqs' %}" class="mg-mobile-link"><span>📞</span> FAQS</a>
         </div>
 
         <div class="mg-mobile-section">

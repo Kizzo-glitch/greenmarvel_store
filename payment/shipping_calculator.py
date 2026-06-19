@@ -47,6 +47,7 @@ PROVINCE_ZONES = {
 
 SHIPPING_RATES = {
     'local': {
+        'collection': {'cost': Decimal('0'), 'display': Decimal('0')},
         'economy':  {'cost': Decimal('56'),  'display': Decimal('65')},
         'standard': {'cost': Decimal('80'),  'display': Decimal('99')},
         'express':  {'cost': Decimal('95'),  'display': Decimal('119')},
@@ -82,6 +83,14 @@ FREE_SHIPPING_THRESHOLD = Decimal('600.00')
 # SERVICE METADATA (for display)
 # ============================================================
 SERVICE_META = {
+    'collection': {
+        'name':        'Collect in Pretoria',
+        'icon':        '🏢',
+        'description': 'Free pickup · usually ready next day',
+        'subtext':     'Choose office or RRK Pharmacy at next step',
+        'eligible_for_free': True,  # always free
+    },
+
     'economy': {
         'name':        'Economy Delivery',
         'icon':        '📮',

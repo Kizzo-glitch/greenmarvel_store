@@ -60,7 +60,7 @@
                 {% endfor %}
             {% endif %}
 
-            <form method="POST" action="{% url 'login' %}" class="auth-form" id="loginForm">
+            <form method="POST" action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" class="auth-form" id="loginForm">
                 {% csrf_token %}
                 
                 <div class="auth-field">

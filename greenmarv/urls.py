@@ -1,5 +1,7 @@
 from django.urls import path
+from django.views.generic import TemplateView
 from . import views
+
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -20,4 +22,6 @@ urlpatterns = [
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('cookie-policy/', views.cookie_policy, name='cookie_policy'),
     path('shipping-policy/', views.shipping_policy, name='shipping_policy'),
+
+    path('faqs/', TemplateView.as_view(template_name='legal/faqs.html'), name='faqs')
 ]

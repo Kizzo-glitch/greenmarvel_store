@@ -30,117 +30,117 @@ Flow:
 # REGISTER USER
 # ============================================================
 def register_user(request):
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password1']
-            
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            
-            # ============================================
-            # NEW: Create ShippingAddress prefilled with
-            # registration data so update_info has it ready
-            # ============================================
-            _ensure_shipping_address(user)
-            
-            messages.success(
-                request,
-                'Account created successfully — please complete your delivery details below.'
-            )
-            return redirect('update_info')
-        else:
-            messages.error(
-                request,
-                'Oops, there was a problem registering. Please correct the errors below.'
-            )
-            return render(request, 'register.html', {'form': form})
-    else:
-        form = SignUpForm()
-        return render(request, 'register.html', {'form': form})
+	if request.method == 'POST':
+		form = SignUpForm(request.POST)
+		
+		if form.is_valid():
+			form.save()
+			username = form.cleaned_data['username']
+			password = form.cleaned_data['password1']
+			
+			user = authenticate(username=username, password=password)
+			login(request, user)
+			
+			# ============================================
+			# NEW: Create ShippingAddress prefilled with
+			# registration data so update_info has it ready
+			# ============================================
+			_ensure_shipping_address(user)
+			
+			messages.success(
+				request,
+				'Account created successfully — please complete your delivery details below.'
+			)
+			return redirect('update_info')
+		else:
+			messages.error(
+				request,
+				'Oops, there was a problem registering. Please correct the errors below.'
+			)
+			return render(request, 'register.html', {'form': form})
+	else:
+		form = SignUpForm()
+		return render(request, 'register.html', {'form': form})
 
 
 # ============================================================
 # UPDATE INFO
 # ============================================================
 def update_info(request):
-    # Auth guard
-    if not request.user.is_authenticated:
-        messages.error(request, "You must be logged in to access that page.")
-        return redirect('home')
-    
-    # Use get_or_create instead of .get() — won't crash if missing
-    current_user, _ = Profile.objects.get_or_create(user=request.user)
-    
-    # Ensure ShippingAddress exists and is prefilled with name/email
-    # This handles two cases:
-    #   (a) Existing users who registered before this code change
-    #   (b) New users (already handled at registration but defensive)
-    shipping_user = _ensure_shipping_address(request.user)
-    
-    form = UserInfoForm(request.POST or None, instance=current_user)
-    shipping_form = ShippingForm(request.POST or None, instance=shipping_user)
-    
-    if request.method == 'POST':
-        # FIXED: was 'or' — should be 'and' (both must be valid)
-        if form.is_valid() and shipping_form.is_valid():
-            form.save()
-            shipping_form.save()
-            messages.success(request, "Your info has been updated!")
-            return redirect('shop')
-        else:
-            messages.error(request, "Please correct the errors below.")
-    
-    return render(request, "update_info.html", {
-        'form': form,
-        'shipping_form': shipping_form,
-    })
+	# Auth guard
+	if not request.user.is_authenticated:
+		messages.error(request, "You must be logged in to access that page.")
+		return redirect('home')
+	
+	# Use get_or_create instead of .get() — won't crash if missing
+	current_user, _ = Profile.objects.get_or_create(user=request.user)
+	
+	# Ensure ShippingAddress exists and is prefilled with name/email
+	# This handles two cases:
+	#   (a) Existing users who registered before this code change
+	#   (b) New users (already handled at registration but defensive)
+	shipping_user = _ensure_shipping_address(request.user)
+	
+	form = UserInfoForm(request.POST or None, instance=current_user)
+	shipping_form = ShippingForm(request.POST or None, instance=shipping_user)
+	
+	if request.method == 'POST':
+		# FIXED: was 'or' — should be 'and' (both must be valid)
+		if form.is_valid() and shipping_form.is_valid():
+			form.save()
+			shipping_form.save()
+			messages.success(request, "Your info has been updated!")
+			return redirect('shop')
+		else:
+			messages.error(request, "Please correct the errors below.")
+	
+	return render(request, "update_info.html", {
+		'form': form,
+		'shipping_form': shipping_form,
+	})
 
 
 # ============================================================
 # HELPER — Used by both views
 # ============================================================
 def _ensure_shipping_address(user):
-    """
-    Get or create the user's ShippingAddress, prefilling shipping_full_name
-    and shipping_email from the User model if they're empty.
-    
-    Idempotent: safe to call on every visit. Only writes to DB when there's
-    actually data to backfill.
-    
-    Returns the (refreshed) ShippingAddress instance.
-    """
-    # Compose the full name from User.first_name + User.last_name
-    full_name = f"{user.first_name} {user.last_name}".strip()
-    
-    shipping_user, created = ShippingAddress.objects.get_or_create(
-        user=user,
-        defaults={
-            'shipping_full_name': full_name,
-            'shipping_email': user.email or '',
-        }
-    )
-    
-    # If the ShippingAddress already existed but name/email are blank,
-    # backfill from User (handles existing users from before this change)
-    if not created:
-        fields_to_update = []
-        
-        if not shipping_user.shipping_full_name and full_name:
-            shipping_user.shipping_full_name = full_name
-            fields_to_update.append('shipping_full_name')
-        
-        if not shipping_user.shipping_email and user.email:
-            shipping_user.shipping_email = user.email
-            fields_to_update.append('shipping_email')
-        
-        if fields_to_update:
-            shipping_user.save(update_fields=fields_to_update)
-    
-    return shipping_user
+	"""
+	Get or create the user's ShippingAddress, prefilling shipping_full_name
+	and shipping_email from the User model if they're empty.
+	
+	Idempotent: safe to call on every visit. Only writes to DB when there's
+	actually data to backfill.
+	
+	Returns the (refreshed) ShippingAddress instance.
+	"""
+	# Compose the full name from User.first_name + User.last_name
+	full_name = f"{user.first_name} {user.last_name}".strip()
+	
+	shipping_user, created = ShippingAddress.objects.get_or_create(
+		user=user,
+		defaults={
+			'shipping_full_name': full_name,
+			'shipping_email': user.email or '',
+		}
+	)
+	
+	# If the ShippingAddress already existed but name/email are blank,
+	# backfill from User (handles existing users from before this change)
+	if not created:
+		fields_to_update = []
+		
+		if not shipping_user.shipping_full_name and full_name:
+			shipping_user.shipping_full_name = full_name
+			fields_to_update.append('shipping_full_name')
+		
+		if not shipping_user.shipping_email and user.email:
+			shipping_user.shipping_email = user.email
+			fields_to_update.append('shipping_email')
+		
+		if fields_to_update:
+			shipping_user.save(update_fields=fields_to_update)
+	
+	return shipping_user
 
 
 
@@ -152,13 +152,8 @@ def login_user(request):
 		if user is not None:
 			login(request, user)
 
-			# Do some shopping cart stuff
-			#current_user = Profile.objects.get(user__id=request.user.id)
-
-
 			# Ensure the Profile exists for the user
 			profile, created = Profile.objects.get_or_create(user=user)
-
 
 			# Get their saved cart from database
 			saved_cart = profile.old_cart
@@ -172,8 +167,12 @@ def login_user(request):
 				# Loop thru the cart and add the items from the database
 				for key,value in converted_cart.items():
 					cart.db_add(product=key, quantity=value)
-
-			#messages.success(request, ('You have been logged in'))
+			
+			next_url = request.GET.get('next') or request.POST.get('next')
+			if next_url:
+				return redirect(next_url)
+			
+			messages.success(request, ('You have been logged in'))
 			return redirect('home')
 		else:
 			messages.success(request, ('There was an Error, please try again'))
@@ -281,9 +280,9 @@ def product(request,pk):
 	return render(request, 'product.html', {'product':product})
 
 def shop_all(request):
-    # Fetch all products, ordered by name or date added
-    all_products = Product.objects.all().order_by("-is_sale")
-    return render(request, 'shop.html', {'products': all_products})
+	# Fetch all products, ordered by name or date added
+	all_products = Product.objects.all().order_by("-is_sale")
+	return render(request, 'shop.html', {'products': all_products})
 
 def about(request):
 	#products = Product.objects.all()
@@ -314,16 +313,16 @@ def logout_user(request):
 # Legal Pages
 # ================================================================
 def terms_of_service(request):
-    return render(request, 'legal/terms_of_service.html')
+	return render(request, 'legal/terms_of_service.html')
 
 def privacy_policy(request):
-    return render(request, 'legal/privacy_policy.html')
+	return render(request, 'legal/privacy_policy.html')
 
 def cookie_policy(request):
-    return render(request, 'legal/cookie_policy.html')
+	return render(request, 'legal/cookie_policy.html')
 
 def cookie_policy(request):
-    return render(request, 'legal/cookie_policy.html')
+	return render(request, 'legal/cookie_policy.html')
 
 def shipping_policy(request):
 	return render(request, 'legal/shipping_policy.html')

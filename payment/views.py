@@ -1435,8 +1435,6 @@ def process_order3(request):
 			return redirect(payment_url)
 			
 
-
-
 def notify_influencer(influencer, total_before_discount, discount_percentage, total_after_discount, discount_code, commission_rate, commission):
 	subject = "Your Discount Code Was Used!"
 	message = (
@@ -1461,15 +1459,7 @@ def notify_influencer(influencer, total_before_discount, discount_percentage, to
 
 
 
-
-
-
-
-
-
-
-
-
+@login_required
 def order_history(request):
 	if request.user.is_authenticated:
 		orders = Order.objects.filter(user=request.user).order_by('-date_ordered')
@@ -1481,7 +1471,6 @@ def order_history(request):
 		orders = Order.objects.filter(session_key=session_key).order_by('-date_ordered')
 
 	return render(request, 'payment/order_history.html', {'orders': orders})
-
 
 
 def track_order(request):
