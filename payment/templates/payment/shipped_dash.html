@@ -157,25 +157,25 @@
                         </td>
 
                         <td class="row-actions">
-                            {% if order.status == 'delivered' or order.status == 'collected' %}
+                            {% if item.status == 'delivered' or item.status == 'collected' %}
                                 {# Terminal state — show status only, no action needed #}
                                 <span class="status-final">
-                                    {% if order.status == 'delivered' %}🎉 Delivered{% else %}✅ Collected{% endif %}
+                                    {% if item.status == 'delivered' %}🎉 Delivered{% else %}✅ Collected{% endif %}
                                 </span>
                             {% else %}
                                 {# Active state — show Advance button #}
                                 <form method="post" style="display:inline;">
                                     {% csrf_token %}
-                                    <input type="hidden" name="num" value="{{ order.id }}">
+                                    <input type="hidden" name="num" value="{{ item.id }}">
                                     <input type="hidden" name="action" value="advance">
                                     <button type="submit" class="btn-advance-mini">
-                                        {% if order.status == 'dispatched' %}
-                                            {% if order.shipping_service_code == 'collection' %}
+                                        {% if item.status == 'dispatched' %}
+                                            {% if item.shipping_service_code == 'collection' %}
                                                 ✅ Mark as Collected
                                             {% else %}
                                                 🚚 Mark as In Transit
                                             {% endif %}
-                                        {% elif order.status == 'in_transit' %}
+                                        {% elif item.status == 'in_transit' %}
                                             🎉 Mark as Delivered
                                         {% endif %}
                                     </button>
@@ -185,7 +185,7 @@
                             {# Always allow revert (in case of mistake) #}
                             <form method="post" style="display:inline;" onsubmit="return confirm('Revert this order to the previous status?');">
                                 {% csrf_token %}
-                                <input type="hidden" name="num" value="{{ order.id }}">
+                                <input type="hidden" name="num" value="{{ item.id }}">
                                 <input type="hidden" name="action" value="revert">
                                 <button type="submit" class="btn-revert-mini" title="Move back one stage">
                                     ↶
