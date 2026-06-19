@@ -190,6 +190,7 @@ class OrderAdmin(admin.ModelAdmin):
             return mark_safe('<span style="color:#999;">R0.00</span>')
     shipping_margin_display.short_description = 'Ship. Margin'
     
+    
     # ============================================
     # BULK ACTIONS — add "mark as ready for pickup"
     # ============================================
