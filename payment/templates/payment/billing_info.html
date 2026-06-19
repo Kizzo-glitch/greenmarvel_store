@@ -177,6 +177,62 @@
                             </label>
                             {% endfor %}
                         </div>
+
+                        <!-- Pickup Point Selection — only visible when Collection is selected -->
+                        <div class="pickup-section" id="pickupSection" style="display: none;">
+                            <div class="pickup-divider"></div>
+                            
+                            <div class="pickup-header">
+                                <span class="pickup-header-icon">📍</span>
+                                <h3>Choose Your Pickup Point</h3>
+                                <p>Both locations are in Arcadia, Pretoria — pick the one that's most convenient for you.</p>
+                            </div>
+                        
+                            <div class="pickup-points">
+                                {% for point in pickup_points %}
+                                <label class="pickup-card {% if point.code == selected_pickup_code %}selected{% endif %}">
+                                    <input type="radio"
+                                        name="pickup_point"
+                                        value="{{ point.code }}"
+                                        {% if point.code == selected_pickup_code %}checked{% elif forloop.first and not selected_pickup_code %}checked{% endif %}>
+                                    
+                                    <div class="pickup-radio"></div>
+                                    
+                                    <div class="pickup-card-content">
+                                        <div class="pickup-card-header">
+                                            <span class="pickup-icon">{{ point.icon }}</span>
+                                            <h4>{{ point.name }}</h4>
+                                        </div>
+                                        
+                                        <div class="pickup-address-block">
+                                            <div class="pickup-label">Address</div>
+                                            <div class="pickup-value">{{ point.address }}</div>
+                                        </div>
+                                        
+                                        <div class="pickup-info-row">
+                                            <div class="pickup-info-item">
+                                                <div class="pickup-label">Hours</div>
+                                                <div class="pickup-value">{{ point.hours }}</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="pickup-note">
+                                            💡 {{ point.note }}
+                                        </div>
+                                    </div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="pickup-info-banner">
+                                <span class="pickup-banner-icon">📱</span>
+                                <div>
+                                    <strong>What happens next?</strong>
+                                    <p>You'll receive an SMS when your order is ready for collection (usually within 24 hours of payment, or same-day for orders before 12:00). Bring your order number and ID.</p>
+                                </div>
+                            </div>
+                        </div>
+
                         {% else %}
                         <div class="no-rates">
                             <div class="no-rates-icon">📭</div>
@@ -1189,6 +1245,176 @@
     }
 
     /* ============================================ */
+    /* PICKUP POINT SECTION                          */
+    /* ============================================ */
+    .pickup-section {
+        margin-top: 0;
+        animation: fadeIn 0.4s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    
+    .pickup-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #c5a059, transparent);
+        margin: 1.5rem 0;
+    }
+ 
+    .pickup-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    .pickup-header-icon {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    .pickup-header h3 {
+        color: #1b3022;
+        font-size: 1.15rem;
+        margin: 0 0 0.3rem 0;
+    }
+    .pickup-header p {
+        color: #666;
+        font-size: 0.88rem;
+        margin: 0;
+    }
+ 
+    .pickup-points {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    @media (max-width: 700px) {
+        .pickup-points { grid-template-columns: 1fr; }
+    }
+ 
+    .pickup-card {
+        display: block;
+        position: relative;
+        padding: 1.25rem 1.25rem 1.25rem 3.25rem;
+        background: white;
+        border: 2px solid #e8f5e9;
+        border-radius: 14px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .pickup-card:hover {
+        border-color: #c5a059;
+        background: #fafbf9;
+        transform: translateY(-2px);
+    }
+    .pickup-card.selected {
+        border-color: #2d5016;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        box-shadow: 0 6px 20px rgba(45, 80, 22, 0.12);
+    }
+    .pickup-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+    .pickup-radio {
+        position: absolute;
+        left: 1.25rem;
+        top: 1.5rem;
+        width: 22px;
+        height: 22px;
+        border: 2px solid #c5a059;
+        border-radius: 50%;
+        background: white;
+    }
+    .pickup-card input[type="radio"]:checked + .pickup-radio {
+        border-color: #2d5016;
+    }
+    .pickup-card input[type="radio"]:checked + .pickup-radio::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 10px;
+        height: 10px;
+        background: #2d5016;
+        border-radius: 50%;
+    }
+ 
+    .pickup-card-content { width: 100%; }
+    
+    .pickup-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 0.85rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px dashed rgba(197, 160, 89, 0.3);
+    }
+    .pickup-icon { font-size: 1.5rem; }
+    .pickup-card-header h4 {
+        color: #1b3022;
+        font-size: 1rem;
+        margin: 0;
+    }
+ 
+    .pickup-address-block,
+    .pickup-info-row {
+        margin-bottom: 0.75rem;
+    }
+    .pickup-label {
+        color: #2d5016;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.25rem;
+    }
+    .pickup-value {
+        color: #333;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+    .pickup-note {
+        margin-top: 0.85rem;
+        padding: 0.6rem 0.85rem;
+        background: rgba(197, 160, 89, 0.1);
+        border-left: 3px solid #c5a059;
+        border-radius: 6px;
+        color: #8a6d2e;
+        font-size: 0.78rem;
+        line-height: 1.4;
+    }
+ 
+    .pickup-info-banner {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1rem 1.25rem;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        border: 1px solid rgba(197, 160, 89, 0.3);
+        border-radius: 12px;
+    }
+    .pickup-banner-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    .pickup-info-banner strong {
+        color: #2d5016;
+        font-size: 0.92rem;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+    .pickup-info-banner p {
+        color: #555;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* ============================================ */
     /* RESPONSIVE                                     */
     /* ============================================ */
     @media (max-width: 1024px) {
@@ -1306,6 +1532,54 @@
             });
         }
     });
+
+    (function() {
+        'use strict';
+        
+        const pickupSection = document.getElementById('pickupSection');
+        if (!pickupSection) return;  // not on the right page
+        
+        const courierRadios = document.querySelectorAll('input[name="courier_rate"]');
+        const pickupRadios = document.querySelectorAll('input[name="pickup_point"]');
+        
+        function togglePickupSection() {
+            const selectedRadio = document.querySelector('input[name="courier_rate"]:checked');
+            if (!selectedRadio) return;
+            
+            const isCollection = selectedRadio.value === 'collection';
+            
+            if (isCollection) {
+                pickupSection.style.display = 'block';
+                // Ensure a pickup point is selected (default to first if none)
+                const anyPickupChecked = document.querySelector('input[name="pickup_point"]:checked');
+                if (!anyPickupChecked && pickupRadios.length > 0) {
+                    pickupRadios[0].checked = true;
+                    pickupRadios[0].closest('.pickup-card').classList.add('selected');
+                }
+            } else {
+                pickupSection.style.display = 'none';
+                // Don't uncheck pickup points — keep them for next time user selects collection
+            }
+        }
+        
+        // Toggle when courier rate changes
+        courierRadios.forEach(radio => {
+            radio.addEventListener('change', togglePickupSection);
+        });
+        
+        // Visual feedback for pickup point selection
+        pickupRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.pickup-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                this.closest('.pickup-card').classList.add('selected');
+            });
+        });
+        
+        // Initialize on page load
+        togglePickupSection();
+    })();
 </script>
 
 {% endblock %}

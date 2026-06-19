@@ -10,6 +10,7 @@
             <a href="{% url 'not_shipped_dash' %}">← Unshipped</a>
             <span>·</span>
             <a href="{% url 'shipped_dash' %}">Shipped</a>
+            <a href="{% url 'in_progress_dash' %}">In Progress</a>
         </div>
         <div class="admin-hero-badge">⚡ ADMIN · ORDER MANAGEMENT</div>
         <h1 class="admin-hero-title">Order <span>#{{ order.id }}</span></h1>
@@ -68,12 +69,120 @@
     </div>
 </section>
 
-<section class="admin-section">
+<section class="status-control-card">
+    <h3>
+        <span class="status-control-icon">🔄</span>
+        Order Status Management
+    </h3>
+    
+    <!-- Current status badge -->
+    <div class="current-status-row">
+        <span class="current-status-label">Current Status:</span>
+        <span class="status-badge status-{{ order.status }}">
+            {{ order.get_status_display|upper }}
+        </span>
+    </div>
+    
+    <!-- Status timeline -->
+    <div class="status-timeline-admin">
+        <div class="timeline-row {% if order.date_ordered %}completed{% endif %}">
+            <span class="timeline-icon">📝</span>
+            <span class="timeline-label">Order Placed</span>
+            <span class="timeline-date">
+                {% if order.date_ordered %}{{ order.date_ordered|date:"d M Y, H:i" }}{% else %}—{% endif %}
+            </span>
+        </div>
+        <div class="timeline-row {% if order.date_paid %}completed{% endif %}">
+            <span class="timeline-icon">💰</span>
+            <span class="timeline-label">Paid</span>
+            <span class="timeline-date">
+                {% if order.date_paid %}{{ order.date_paid|date:"d M Y, H:i" }}{% else %}—{% endif %}
+            </span>
+        </div>
+        <div class="timeline-row {% if order.date_dispatched %}completed{% endif %}">
+            <span class="timeline-icon">📦</span>
+            <span class="timeline-label">
+                {% if order.shipping_service_code == 'collection' %}Ready for Pickup{% else %}Dispatched{% endif %}
+            </span>
+            <span class="timeline-date">
+                {% if order.date_dispatched %}{{ order.date_dispatched|date:"d M Y, H:i" }}{% else %}—{% endif %}
+            </span>
+        </div>
+        {% if order.shipping_service_code != 'collection' %}
+        <div class="timeline-row {% if order.date_in_transit %}completed{% endif %}">
+            <span class="timeline-icon">🚚</span>
+            <span class="timeline-label">In Transit</span>
+            <span class="timeline-date">
+                {% if order.date_in_transit %}{{ order.date_in_transit|date:"d M Y, H:i" }}{% else %}—{% endif %}
+            </span>
+        </div>
+        <div class="timeline-row {% if order.date_delivered %}completed{% endif %}">
+            <span class="timeline-icon">🎉</span>
+            <span class="timeline-label">Delivered</span>
+            <span class="timeline-date">
+                {% if order.date_delivered %}{{ order.date_delivered|date:"d M Y, H:i" }}{% else %}—{% endif %}
+            </span>
+        </div>
+        {% else %}
+        <div class="timeline-row {% if order.date_collected %}completed{% endif %}">
+            <span class="timeline-icon">✅</span>
+            <span class="timeline-label">Collected by Customer</span>
+            <span class="timeline-date">
+                {% if order.date_collected %}{{ order.date_collected|date:"d M Y, H:i" }}{% else %}—{% endif %}
+            </span>
+        </div>
+        {% endif %}
+    </div>
+ 
+    <!-- Quick-advance button (most common action) -->
+    {% if next_suggestion %}
+    <form method="post" class="quick-advance-form">
+        {% csrf_token %}
+        <input type="hidden" name="new_status" value="{{ next_suggestion }}">
+        <button type="submit" class="btn-advance">
+            <span class="btn-advance-arrow">→</span>
+            <span class="btn-advance-label">
+                Advance to: <strong>
+                    {% if next_suggestion == 'paid' %}Paid
+                    {% elif next_suggestion == 'dispatched' %}{% if order.shipping_service_code == 'collection' %}Mark Ready for Pickup{% else %}Mark as Dispatched{% endif %}
+                    {% elif next_suggestion == 'in_transit' %}Mark as In Transit
+                    {% elif next_suggestion == 'delivered' %}Mark as Delivered
+                    {% elif next_suggestion == 'collected' %}Mark as Collected
+                    {% else %}{{ next_suggestion|title }}
+                    {% endif %}
+                </strong>
+            </span>
+        </button>
+    </form>
+    {% endif %}
+ 
+    <!-- Manual override dropdown (for edge cases) -->
+    <details class="status-override">
+        <summary>⚙️ Set custom status (manual override)</summary>
+        <form method="post" class="override-form">
+            {% csrf_token %}
+            <label for="new_status_select">Change status to:</label>
+            <select name="new_status" id="new_status_select" required>
+                <option value="">— Select status —</option>
+                {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if code == order.status %}disabled{% endif %}>
+                        {{ label }}{% if code == order.status %} (current){% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-override">Update</button>
+        </form>
+        <p class="override-warning">
+            ⚠️ Manual overrides skip the normal progression. Use only when correcting mistakes.
+        </p>
+    </details>
+</section>
+<!--<section class="admin-section">
     <div class="admin-container">
         <div class="admin-layout">
-            <!-- LEFT: Items + Customer -->
+           
             <div class="admin-main-column">
-                <!-- Customer Info -->
+                
                 <div class="admin-card">
                     <div class="admin-card-header">
                         <h3>👤 Customer</h3>
@@ -108,7 +217,7 @@
                             </span>
                         </div>
                     </div>
-                </div>
+                </div>-->
 
                 <!-- Shipping Address -->
                 <div class="admin-card">
@@ -769,6 +878,225 @@
         justify-content: center;
         flex-shrink: 0;
     }
+
+
+    /* ============================================ */
+    /* STATUS CONTROL CARD                            */
+    /* ============================================ */
+    .status-control-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.75rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(197, 160, 89, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    .status-control-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #2d5016, #c5a059, #2d5016);
+    }
+    .status-control-card h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        color: #1b3022;
+        font-size: 1.2rem;
+        margin: 0 0 1.25rem 0;
+    }
+    .status-control-icon {
+        display: inline-flex;
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        border-radius: 10px;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+ 
+    /* Current status badge */
+    .current-status-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1.1rem;
+        background: #f8fdf8;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #c5a059;
+    }
+    .current-status-label {
+        font-size: 0.85rem;
+        color: #2d5016;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .status-badge {
+        padding: 0.4rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        color: white;
+    }
+    .status-pending_payment { background: #999; }
+    .status-paid            { background: linear-gradient(135deg, #c5a059, #d4b374); color: #1b3022; }
+    .status-dispatched      { background: linear-gradient(135deg, #4CAF50, #2d5016); }
+    .status-in_transit      { background: linear-gradient(135deg, #2d5016, #1b3022); }
+    .status-delivered       { background: linear-gradient(135deg, #1b3022, #0d1a11); }
+    .status-collected       { background: linear-gradient(135deg, #1b3022, #0d1a11); }
+    .status-cancelled       { background: #e74c3c; }
+    .status-failed          { background: #c0392b; }
+ 
+    /* Timeline */
+    .status-timeline-admin {
+        background: #fafbf9;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        border: 1px dashed rgba(197, 160, 89, 0.3);
+    }
+    .timeline-row {
+        display: grid;
+        grid-template-columns: 36px 1fr auto;
+        gap: 0.85rem;
+        align-items: center;
+        padding: 0.55rem 0;
+        opacity: 0.45;
+    }
+    .timeline-row.completed { opacity: 1; }
+    .timeline-row + .timeline-row { border-top: 1px dashed rgba(197, 160, 89, 0.15); }
+    .timeline-icon {
+        font-size: 1.2rem;
+        text-align: center;
+    }
+    .timeline-label {
+        color: #1b3022;
+        font-weight: 600;
+        font-size: 0.92rem;
+    }
+    .timeline-row.completed .timeline-label { color: #2d5016; }
+    .timeline-date {
+        font-size: 0.82rem;
+        color: #888;
+        font-family: 'Courier New', monospace;
+    }
+    .timeline-row.completed .timeline-date { color: #2d5016; font-weight: 700; }
+ 
+    /* Quick advance button */
+    .quick-advance-form { margin-bottom: 1rem; }
+    .btn-advance {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.85rem;
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        border: 1px solid #c5a059;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+    .btn-advance:hover {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(197, 160, 89, 0.35);
+    }
+    .btn-advance-arrow {
+        font-size: 1.4rem;
+        font-weight: 800;
+    }
+ 
+    /* Manual override (collapsible) */
+    .status-override {
+        margin-top: 0.5rem;
+        padding: 0.85rem 1.1rem;
+        background: #f8fdf8;
+        border-radius: 10px;
+        border: 1px solid rgba(197, 160, 89, 0.2);
+    }
+    .status-override summary {
+        cursor: pointer;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #666;
+        user-select: none;
+        list-style: none;
+    }
+    .status-override summary::marker { display: none; }
+    .status-override[open] summary {
+        margin-bottom: 0.85rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px dashed rgba(197, 160, 89, 0.3);
+    }
+    .override-form {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 0.6rem;
+        align-items: center;
+    }
+    .override-form label {
+        font-size: 0.85rem;
+        color: #2d5016;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .override-form select {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1.5px solid #e8f5e9;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        background: white;
+    }
+    .btn-override {
+        padding: 0.6rem 1.25rem;
+        background: #1b3022;
+        color: #fcf8ef;
+        border: 1px solid #c5a059;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.88rem;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    .btn-override:hover {
+        background: #2d5016;
+    }
+    .override-warning {
+        font-size: 0.78rem;
+        color: #c0392b;
+        margin-top: 0.75rem;
+        font-style: italic;
+    }
+ 
+    @media (max-width: 600px) {
+        .timeline-row {
+            grid-template-columns: 28px 1fr;
+            grid-template-areas:
+                "icon label"
+                "icon date";
+            gap: 0.3rem 0.75rem;
+        }
+        .timeline-icon { grid-area: icon; font-size: 1rem; }
+        .timeline-label { grid-area: label; }
+        .timeline-date { grid-area: date; font-size: 0.75rem; }
+        .override-form { grid-template-columns: 1fr; }
+    }
+
 
     /* RESPONSIVE */
     @media (max-width: 1024px) {

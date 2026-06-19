@@ -79,7 +79,50 @@
             </div>
 
             <!-- DELIVERY PROGRESS -->
-            <div class="delivery-progress">
+             <div class="delivery-progress">
+    {% with progress_step=order.get_progress_step %}
+    {% with progress_labels=order.get_progress_labels %}
+    
+    {# Step 1: always present #}
+    <div class="progress-step {% if progress_step >= 1 %}completed{% endif %} {% if progress_step == 1 %}active{% endif %}">
+        <div class="step-icon">
+            {% if progress_step > 1 %}✓{% else %}1{% endif %}
+        </div>
+        <div class="step-label">{{ progress_labels.0.0 }}</div>
+    </div>
+    <div class="progress-line {% if progress_step >= 2 %}completed{% endif %}"></div>
+    
+    {# Step 2 #}
+    <div class="progress-step {% if progress_step >= 2 %}completed{% endif %} {% if progress_step == 2 %}active{% endif %}">
+        <div class="step-icon">
+            {% if progress_step > 2 %}✓{% elif progress_step == 2 %}📦{% else %}2{% endif %}
+        </div>
+        <div class="step-label">{{ progress_labels.1.0 }}</div>
+    </div>
+    <div class="progress-line {% if progress_step >= 3 %}completed{% endif %}"></div>
+    
+    {# Step 3 #}
+    <div class="progress-step {% if progress_step >= 3 %}completed{% endif %} {% if progress_step == 3 %}active{% endif %}">
+        <div class="step-icon">
+            {% if progress_step > 3 %}✓{% elif progress_step == 3 %}🚚{% else %}3{% endif %}
+        </div>
+        <div class="step-label">{{ progress_labels.2.0 }}</div>
+    </div>
+    <div class="progress-line {% if progress_step >= 4 %}completed{% endif %}"></div>
+    
+    {# Step 4 #}
+    <div class="progress-step {% if progress_step >= 4 %}completed{% endif %}">
+        <div class="step-icon">
+            {% if progress_step >= 4 %}🎉{% else %}4{% endif %}
+        </div>
+        <div class="step-label">{{ progress_labels.3.0 }}</div>
+    </div>
+    
+    {% endwith %}
+    {% endwith %}
+</div>
+
+            <!--<div class="delivery-progress">
                 <div class="progress-step {% if order.status == 'paid' or order.shipped %}completed{% endif %}">
                     <div class="step-icon">✓</div>
                     <div class="step-label">Order placed</div>
@@ -99,10 +142,128 @@
                     <div class="step-icon">🎉</div>
                     <div class="step-label">Delivered</div>
                 </div>
-            </div>
+            </div>-->
 
             <!-- COURIER DETAILS -->
-            {% if order.shipped %}
+             {% if order.status != 'pending_payment' %}
+<div class="courier-info">
+    <h3>📨 Shipping Details</h3>
+    
+    {# Collection orders: show pickup point + ready status #}
+    {% if order.shipping_service_code == 'collection' %}
+    <div class="courier-grid">
+        <div class="courier-row">
+            <span class="courier-label">Pickup Location</span>
+            <span class="courier-value">
+                {% if order.pickup_point_code == 'office' %}
+                    <strong>Marvelously Green Office</strong><br>
+                    <small>620 Park Street, Arcadia, Pretoria</small>
+                {% elif order.pickup_point_code == 'rrk_pharmacy' %}
+                    <strong>RRK Pharmacy</strong><br>
+                    <small>Shop 0006, Apollo Centre, 210 Du Toit St, Arcadia</small>
+                {% else %}
+                    <em>Pickup point not yet assigned</em>
+                {% endif %}
+            </span>
+        </div>
+        
+        {% if order.date_dispatched %}
+        <div class="courier-row">
+            <span class="courier-label">Ready for Collection</span>
+            <span class="courier-value">{{ order.date_dispatched|date:"d M Y, H:i" }}</span>
+        </div>
+        {% endif %}
+        
+        {% if order.date_collected %}
+        <div class="courier-row">
+            <span class="courier-label">Collected</span>
+            <span class="courier-value">{{ order.date_collected|date:"d M Y, H:i" }}</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if order.status == 'dispatched' or order.status == 'in_transit' %}
+    <p class="tracking-note">
+        🎉 Your order is ready! Please bring your order number (<strong>#{{ order.id }}</strong>) and ID when you come to collect.
+    </p>
+    {% elif order.status == 'collected' %}
+    <p class="tracking-note collected-note">
+        ✅ Order successfully collected. Thank you for choosing Marvelously Green!
+    </p>
+    {% endif %}
+    
+    {# Courier orders: show courier + tracking number + dates #}
+    {% else %}
+    <div class="courier-grid">
+        {% if order.courier_booked %}
+        <div class="courier-row">
+            <span class="courier-label">Courier</span>
+            <span class="courier-value"><strong>{{ order.courier_booked }}</strong></span>
+        </div>
+        {% endif %}
+        
+        {% if order.tracking_number %}
+        <div class="courier-row">
+            <span class="courier-label">Tracking Number</span>
+            <span class="courier-value tracking-num">{{ order.tracking_number }}</span>
+        </div>
+        {% endif %}
+        
+        {% if order.shipping_service_name %}
+        <div class="courier-row">
+            <span class="courier-label">Service</span>
+            <span class="courier-value">{{ order.shipping_service_name }}</span>
+        </div>
+        {% endif %}
+        
+        {% if order.date_dispatched %}
+        <div class="courier-row">
+            <span class="courier-label">Dispatched</span>
+            <span class="courier-value">{{ order.date_dispatched|date:"d M Y, H:i" }}</span>
+        </div>
+        {% endif %}
+        
+        {% if order.date_in_transit %}
+        <div class="courier-row">
+            <span class="courier-label">In Transit Since</span>
+            <span class="courier-value">{{ order.date_in_transit|date:"d M Y, H:i" }}</span>
+        </div>
+        {% endif %}
+        
+        {% if order.date_delivered %}
+        <div class="courier-row">
+            <span class="courier-label">Delivered</span>
+            <span class="courier-value">{{ order.date_delivered|date:"d M Y, H:i" }}</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if order.status == 'dispatched' %}
+    <p class="tracking-note">
+        📦 Your order has been handed to the courier. Tracking details will be active shortly.
+    </p>
+    {% elif order.status == 'in_transit' %}
+    <p class="tracking-note">
+        🚚 Your parcel is on its way! Track it directly with {{ order.courier_booked|default:"the courier" }} using the tracking number above.
+    </p>
+    {% elif order.status == 'delivered' %}
+    <p class="tracking-note delivered-note">
+        🎉 Delivered! We hope you love your products. If anything's not right, please get in touch.
+    </p>
+    {% endif %}
+    {% endif %}
+</div>
+ 
+{% else %}
+{# Pending payment — show waiting message #}
+<div class="not-yet-shipped">
+    <span class="not-yet-icon">⏳</span>
+    <p>
+        We're waiting for payment confirmation. Once confirmed, your order will be prepared for dispatch.
+    </p>
+</div>
+{% endif %}
+            <!--{% if order.shipped %}
             <div class="courier-info">
                 <h3>📨 Shipping Details</h3>
                 <div class="courier-grid">
@@ -152,7 +313,7 @@
                     {% endif %}
                 </p>
             </div>
-            {% endif %}
+            {% endif %}-->
 
             <!-- ORDER SUMMARY -->
             <div class="order-summary-section">
@@ -192,7 +353,7 @@
                 </a>
             </div>
         </div>
-        {% endif %}
+        {% endif %}-->
 
     </div>
 </section>
@@ -548,6 +709,27 @@
     .btn-primary:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(45, 80, 22, 0.25);
+    }
+
+    /* Active step (current stage) gets a pulsing gold ring */
+    .progress-step.active .step-icon {
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+        border-color: #c5a059;
+        animation: pulse-ring 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-ring {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(197, 160, 89, 0.5); }
+        50%      { box-shadow: 0 0 0 8px rgba(197, 160, 89, 0); }
+    }
+    
+    /* Delivered / collected notes — celebratory */
+    .delivered-note,
+    .collected-note {
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9) !important;
+        border-left-color: #4CAF50 !important;
+        color: #2d5016 !important;
     }
 
     @media (max-width: 600px) {

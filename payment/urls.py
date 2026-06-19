@@ -9,10 +9,11 @@ urlpatterns = [
     
     #For admin
     path('orders-admin/<int:pk>', views.orders_admin, name='orders_admin'),
-    path('orders/<int:pk>', views.orders, name='orders'),
+    #path('orders/<int:pk>', views.orders, name='orders'),
     path('not_shipped_dash/', views.not_shipped_dash, name="not_shipped_dash"),
     path('shipped_dash/', views.shipped_dash, name="shipped_dash"),
-    #path('successful_payments/', views.successful_payments, name='successful_payments'),
+    #path('in_progress_dash/', views.in_progress_dash, name='in_progress_dash'),
+   
     path('admin/payfast-log/', views.successful_payments, name='successful_payments'),
     #For customers
     path('payment_success/', views.payment_success, name='payment_success'),

@@ -11,32 +11,6 @@ admin.site.register(ShippingAddress)
 admin.site.register(PayfastPayment)
 admin.site.register(CourierGuy)
 
-"""
-# Register your models here.
-admin.site.register(ShippingAddress)
-admin.site.register(Order)
-admin.site.register(OrderItem)
-admin.site.register(PayfastPayment)
-admin.site.register(CourierGuy)
-
-# Create an OrderItem Inline
-class OrderItemInline(admin.StackedInline):
-	model = OrderItem
-	extra = 0
-
-# Extend our Order Model
-class OrderAdmin(admin.ModelAdmin):
-	model = Order
-	readonly_fields = ["date_ordered"]
-	fields = ["user", "full_name", "email", "shipping_address", "amount_paid", "date_ordered", "shipped", "date_shipped"]
-	inlines = [OrderItemInline]
-
-# Unregister Order Model
-admin.site.unregister(Order)
-
-# Re-Register our Order AND OrderAdmin
-admin.site.register(Order, OrderAdmin)
-"""
 
 
 
@@ -60,16 +34,19 @@ class OrderAdmin(admin.ModelAdmin):
         'full_name',
         'status_badge',
         'amount_paid_display',
-        'shipping_service_badge',  # ← NEW
-        'shipping_margin_display',  # ← NEW
-        'courier_booked',           # ← NEW (you fill this in after booking)
-        'tracking_number',          # ← NEW
+        'shipping_service_badge',     # NEW: shows tier
+        'pickup_point_display',        # NEW: shows pickup point if collection
+        'shipping_service_badge',  
+        'shipping_margin_display',  
+        'courier_booked',           
+        'tracking_number',         
         'date_ordered',
     )
     
     list_filter = (
         'status',
-        'shipping_service_code',  # ← NEW: filter by tier (Economy/Standard/Express)
+        'shipping_service_code',
+        'pickup_point_code',   
         'date_ordered',
         'shipped',
     )
@@ -96,23 +73,51 @@ class OrderAdmin(admin.ModelAdmin):
         ('Order Details', {
             'fields': ('amount_paid', 'status', 'date_ordered', 'date_paid'),
         }),
-        ('Shipping', {
+        ('Shipping / Collection', {
             'fields': (
                 'shipping_service_code',
                 'shipping_service_name',
                 'shipping_cost',
                 'shipping_actual_cost',
                 'shipping_margin_display',
+                'pickup_point_code',       # NEW
                 'courier_booked',
                 'tracking_number',
                 'shipped',
                 'date_shipped',
             ),
-            'description': 'Customer chose the service tier — you book the actual courier via Bob Go and fill in the courier name and tracking number here.',
+            'description': (
+                "For courier deliveries: book via Bob Go and fill in courier_booked + tracking_number. "
+                "For collection orders: pickup_point_code tells you where the customer wants to collect. "
+                "Mark as 'shipped' (with date_shipped) when the order is ready for collection — "
+                "this triggers the 'ready for pickup' SMS."
+            ),
         }),
     )
-    
     inlines = [OrderItemInline]
+
+    # ============================================
+    # CUSTOM COLUMN: Pickup point display
+    # ============================================
+    def pickup_point_display(self, obj):
+        if obj.shipping_service_code != 'collection':
+            return mark_safe('<span style="color:#ccc;">—</span>')
+        
+        pickup_labels = {
+            'office':       ('🏢', 'OFFICE',   '#2d5016'),
+            'rrk_pharmacy': ('💊', 'RRK PHARM', '#c5a059'),
+        }
+        
+        if obj.pickup_point_code in pickup_labels:
+            icon, label, color = pickup_labels[obj.pickup_point_code]
+            return format_html(
+                '<span style="background:{}; color:white; padding:2px 7px; border-radius:8px; font-size:0.7rem; font-weight:700;">{} {}</span>',
+                color, icon, label
+            )
+        
+        return mark_safe('<span style="color:#999;">?</span>')
+    pickup_point_display.short_description = 'Pickup'
+    pickup_point_display.admin_order_field = 'pickup_point_code'
     
     # ============================================
     # CUSTOM COLUMN RENDERS
@@ -140,24 +145,33 @@ class OrderAdmin(admin.ModelAdmin):
     amount_paid_display.short_description = 'Total'
     amount_paid_display.admin_order_field = 'amount_paid'
     
+    # ============================================
+    # UPDATED: shipping_service_badge to include Collection
+    # ============================================
     def shipping_service_badge(self, obj):
-        """Color-coded shipping tier badge."""
         if not obj.shipping_service_code:
             return mark_safe('<span style="color:#999;">—</span>')
         
         colors = {
-            'economy':  ('#c5a059', 'ECONOMY'),
-            'standard': ('#4CAF50', 'STANDARD'),
-            'express':  ('#2d5016', 'EXPRESS'),
+            'collection': ('#1b3022', 'COLLECT', '🏢'),
+            'economy':    ('#c5a059', 'ECONOMY', '📮'),
+            'standard':   ('#4CAF50', 'STANDARD', '📦'),
+            'express':    ('#2d5016', 'EXPRESS', '⚡'),
         }
-        color, label = colors.get(obj.shipping_service_code, ('#999', obj.shipping_service_code.upper()))
-        cost = f"R{obj.shipping_cost:.0f}" if obj.shipping_cost else ''
+        color, label, icon = colors.get(
+            obj.shipping_service_code,
+            ('#999', obj.shipping_service_code.upper(), '?')
+        )
+        
+        cost = f"R{obj.shipping_cost:.0f}" if obj.shipping_cost > 0 else 'FREE'
         return format_html(
-            '<span style="background:{}; color:white; padding:2px 7px; border-radius:8px; font-size:0.7rem; font-weight:700; letter-spacing:1px;">{}</span> <small>{}</small>',
-            color, label, cost
+            '<span style="background:{}; color:white; padding:2px 7px; border-radius:8px; font-size:0.7rem; font-weight:700;">{} {}</span> <small>{}</small>',
+            color, icon, label, cost
         )
     shipping_service_badge.short_description = 'Shipping'
     shipping_service_badge.admin_order_field = 'shipping_service_code'
+
+  
     
     def shipping_margin_display(self, obj):
         """Show the margin made on shipping for this order."""
@@ -177,13 +191,47 @@ class OrderAdmin(admin.ModelAdmin):
     shipping_margin_display.short_description = 'Ship. Margin'
     
     # ============================================
-    # BULK ACTIONS
+    # BULK ACTIONS — add "mark as ready for pickup"
     # ============================================
+    actions = ['mark_as_ready_for_pickup', 'mark_as_collected', 'mark_as_shipped']
     
-    actions = ['mark_as_shipped']
+    def mark_as_ready_for_pickup(self, request, queryset):
+        """For Collection orders: mark as shipped + send SMS to customer."""
+        collection_orders = queryset.filter(shipping_service_code='collection', status='paid')
+        non_collection = queryset.exclude(shipping_service_code='collection')
+        
+        count = collection_orders.update(
+            shipped=True,
+            date_shipped=timezone.now(),
+        )
+        
+        # TODO: integrate SMS sending here using your existing SMSPortal setup
+        # for order in collection_orders:
+        #     send_collection_ready_sms(order)
+        
+        msg = f"{count} collection order(s) marked as ready for pickup."
+        if non_collection.exists():
+            msg += f" {non_collection.count()} non-collection order(s) were skipped (use 'Mark as shipped' instead)."
+        
+        self.message_user(request, msg)
+    mark_as_ready_for_pickup.short_description = "🏢 Mark as ready for pickup (Collection orders)"
+
+
+    def mark_as_collected(self, request, queryset):
+        """For Collection orders: mark as fully collected/delivered.""" 
+        collection_orders = queryset.filter(shipping_service_code='collection')
+        count = collection_orders.update(
+            status='collected',  # add 'collected' to your STATUS choices
+        )
+        
+        self.message_user(request, f"{count} collection order(s) marked as collected.")
+    mark_as_collected.short_description = "✓ Mark as collected"
+    
     
     def mark_as_shipped(self, request, queryset):
-        """Bulk action to mark selected orders as shipped."""
-        count = queryset.update(shipped=True, date_shipped=timezone.now())
-        self.message_user(request, f"{count} order(s) marked as shipped.")
-    mark_as_shipped.short_description = "Mark selected orders as shipped"
+        """For courier orders only."""      
+        courier_orders = queryset.exclude(shipping_service_code='collection')
+        count = courier_orders.update(shipped=True, date_shipped=timezone.now())
+        
+        self.message_user(request, f"{count} courier order(s) marked as shipped.")
+    mark_as_shipped.short_description = "📦 Mark as shipped (Courier orders)"
