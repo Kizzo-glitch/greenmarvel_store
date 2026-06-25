@@ -177,7 +177,7 @@
         </p>
     </details>
 </section>
-<!--<section class="admin-section">
+<section class="admin-section">
     <div class="admin-container">
         <div class="admin-layout">
            
@@ -217,7 +217,7 @@
                             </span>
                         </div>
                     </div>
-                </div>-->
+                </div>
 
                 <!-- Shipping Address -->
                 <div class="admin-card">
@@ -312,7 +312,7 @@
                         </div>
                         <div class="summary-row">
                             <span>Shipping</span>
-                            <span class="value">R{{ shipping_cost|floatformat:2 }}</span>
+                            <span class="value">R{{ order.shipping_cost|floatformat:2 }}</span>
                         </div>
                     </div>
                     <div class="summary-divider"></div>
