@@ -1671,7 +1671,7 @@ def orders_admin(request, pk):
         elif _update_order_status(order, new_status):
             status_label = dict(Order.STATUS_CHOICES).get(new_status, new_status)
             messages.success(request, f"Order #{order.id} marked as {status_label}.")
-            return redirect('orders', pk=pk)
+            return redirect('orders_admin', pk=pk)
         else:
             messages.error(request, "Invalid status.")
     

@@ -5,7 +5,7 @@
 <!-- REPLACE YOUR ENTIRE <header> + <nav> WITH THIS -->
 <!-- ============================================ -->
 
-<div class="announcement youth-month">
+<!--<div class="announcement youth-month">
     <div class="announcement-content">
         <span class="announcement-icon">🎁</span>
         <span class="announcement-text">
@@ -16,10 +16,10 @@
             <a href="{% url 'faqs' %}" class="announcement-cta">Click "FAQs" for answers to all your questions→</a>
         </span>
     </div>
-</div>
+</div>-->
 
 
-<!--<div class="announcement">
+<div class="announcement">
     {% if request.session.cart and global_amount_needed_for_free_shipping > 0 %}
         💚 You're R{{ global_amount_needed_for_free_shipping|floatformat:2 }} away from FREE shipping!
     {% elif request.session.cart and global_qualifies_for_free_shipping %}
@@ -27,7 +27,7 @@
     {% else %}
         FREE SHIPPING ON ALL ORDERS OVER R600 | 100% ORGANIC & CHEMICAL FREE
     {% endif %}
-</div>-->
+</div>
 
 
 <header id="header">
