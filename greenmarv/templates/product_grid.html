@@ -1,0 +1,492 @@
+{# ============================================================ #}
+{# UPDATED PRODUCT GRID                                        #}
+{# Replace your existing products-grid block with this.        #}
+{#                                                              #}
+{# Changes:                                                     #}
+{# - Image is now wrapped in an <a> tag that links to product detail #}
+{# - Added a share button next to Quick Add on hover           #}
+{# - Quick Add button stops propagation so clicking it doesn't  #}
+{#   accidentally trigger the image link                        #}
+{# ============================================================ #}
+
+<!-- ============================================ -->
+<!-- Product Grid (for include) Template -->
+<!-- ============================================ -->
+
+<div class="products-grid">
+    {% for product in products %}
+    <div class="product-card">
+        <div class="product-image-container">
+            <div class="product-badges">
+                {% if product.is_sale %}
+                    <span class="badge" style="background: #e74c3c; color: white;">SALE</span>
+                {% endif %}
+            </div>
+            
+            {# NEW: Image is now a link to product detail #}
+            <a href="{% url 'product_detail' slug=product.slug %}" class="product-image-link" title="View {{ product.name }}">
+                <img src="{{ product.image.url }}" 
+                     alt="{{ product.name }}" 
+                     class="product-image-file" 
+                     style="width: 80%; height: 120%;"
+                     loading="lazy">
+            </a>
+            
+            <div class="quick-add">
+                <button class="quick-add-btn" 
+                        data-product-id="{{ product.id }}" 
+                        data-product-name="{{ product.name }}"
+                        onclick="event.stopPropagation();">
+                    Quick Add
+                </button>
+                
+                {# NEW: Share button next to Quick Add #}
+                <button class="share-icon-btn" 
+                        data-share-url="{{ request.scheme }}://{{ request.get_host }}{% url 'product_detail' slug=product.slug %}"
+                        data-share-name="{{ product.name|escapejs }}"
+                        onclick="event.stopPropagation(); shareProduct(this);"
+                        title="Share this product">
+                    🔗
+                </button>
+            </div>
+        </div>
+
+        <div class="product-info">
+            {# NEW: Product name is also a link #}
+            <a href="{% url 'product_detail' slug=product.slug %}" class="product-name-link">
+                <h3 style="color: #c5a059;"><i>{{ product.name }}</i></h3>
+            </a>
+            <p class="product-subtitle">{{ product.subtitle }}</p>
+            <p class="product-description">{{ product.description|truncatechars:100 }}</p>
+            
+            <div class="product-features">
+                {% if product.tag_1 %}<span class="feature-tag">{{ product.tag_1 }}</span>{% endif %}
+                {% if product.tag_2 %}<span class="feature-tag">{{ product.tag_2 }}</span>{% endif %}
+                {% if product.tag_3 %}<span class="feature-tag">{{ product.tag_3 }}</span>{% endif %}
+            </div>
+
+            <div class="product-footer">
+                <div class="price-container">
+                    <span class="price-label">Price</span>
+                    <div class="combo-price">
+                        {% if product.is_sale %}
+                            <span class="original-price">R{{ product.price|floatformat:0 }}</span>
+                            <span class="sale-price">R{{ product.sale_price|floatformat:0 }}</span>
+                            <span class="sale-badge">YOUTH MONTH</span>
+                        {% else %}
+                            <span>R{{ product.price|floatformat:0 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                &nbsp;
+                <button class="add-to-cart card-add-cart" 
+                        data-product-id="{{ product.id }}" 
+                        data-product-name="{{ product.name }}">
+                    Add to Cart
+                </button>
+            </div>
+            
+            {# UPDATED: View Details button now also links to the detail page #}
+            {# You can either keep the modal (JS-based) OR link to the new page. #}
+            {# Recommended: link to the new page (better UX, shareable URLs) #}
+            <button class="view-details-btn" 
+                        data-product-id="{{ product.id }}"
+                        data-product-name="{{ product.name }}"
+                        data-product-subtitle="{{ product.subtitle }}"
+                        data-product-description="{{ product.description|escape }}"
+                        data-product-image="{{ product.image.url }}"
+                        data-product-badge="{{ product.badge_text }}"
+                        data-product-price="{{ product.price }}"
+                        data-product-sale-price="{{ product.sale_price }}"
+                        data-product-is-sale="{{ product.is_sale }}"
+                        data-product-tag1="{{ product.tag_1 }}"
+                        data-product-tag2="{{ product.tag_2 }}"
+                        data-product-tag3="{{ product.tag_3 }}"
+                        data-product-ingredients="{{ product.ingredients|escape }}"
+                        data-product-benefits="{{ product.benefits|escape }}"
+                        data-product-use="{{ product.use|escape }}"
+                        onclick="openProductModal(this)">Quick View</button>
+            <!-- <a href="{% url 'product_detail' slug=product.slug %}" 
+               class="view-details-btn view-details-link">
+                View Details →
+            </a>-->
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- PRODUCT DETAIL MODAL -->
+<div class="modal-overlay" id="productModal" onclick="closeModalOnOverlay(event)">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeProductModal()">&times;</button>
+        <div class="modal-body">
+            <div class="modal-image-section">
+                <div class="modal-main-image">
+                    <span class="modal-image-badge" id="modalBadge">100% Organic</span>
+                    <img id="modalProductImage" src="" alt="Product Image">
+                </div>
+                <div class="modal-trust-badges">
+                    <div class="trust-badge"><span class="trust-icon">🌿</span><span>Organic</span></div>
+                    <div class="trust-badge"><span class="trust-icon">🧪</span><span>Science Backed</span></div>
+                    <div class="trust-badge"><span class="trust-icon">🔬</span><span>Lab Tested</span></div>
+                    <div class="trust-badge"><span class="trust-icon">🇿🇦</span><span>Made in SA</span></div>
+                </div>
+            </div>
+
+            <div class="modal-info-section">
+                <h2 class="modal-product-title" id="modalProductTitle">Product Name</h2>
+                <p class="modal-product-subtitle" id="modalProductSubtitle">Subtitle</p>
+                <div class="modal-rating">
+                    <span class="modal-stars">⭐⭐⭐⭐⭐</span>
+                    <span class="modal-reviews-count">(127 verified reviews)</span>
+                </div>
+                <p class="modal-product-description" id="modalProductDescription">Description...</p>
+                <div class="modal-features" id="modalFeatures"></div>
+                <div class="modal-price-section">
+                    <div class="modal-price-label">Price</div>
+                    <div id="modalPriceContainer"><span class="modal-price" id="modalPrice">R0.00</span></div>
+                </div>
+                <div class="modal-quantity-section">
+                    <label class="modal-quantity-label">Quantity</label>
+                    <div class="quantity-selector">
+                        <button class="quantity-btn" onclick="changeQuantity(-1)">−</button>
+                        <span class="quantity-value" id="quantityValue">1</span>
+                        <button class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                        <span style="color: #999; font-size: 0.9rem; margin-left: 1rem;">In Stock</span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="modal-add-cart-btn" class="modal-add-cart" onclick="modalAddToCart()">
+                        🛒 Add to Cart
+                    </button>
+                    <a href="{% url 'cart_summary' %}" class="modal-view-cart">
+                        View Cart
+                        <span class="cart-badge" id="cart_quantity">{{ cart|length|default:0 }}</span>
+                    </a>
+                </div>
+                <div class="modal-shipping-info">
+                    <div class="shipping-item"><span>🚚</span><span>Free shipping on orders over R600</span></div>
+                    <div class="shipping-item"><span>↩️</span><span>30-day easy returns</span></div>
+                </div>
+            </div>
+
+            <div class="modal-details-section">
+                <div class="modal-tabs">
+                    <button class="modal-tab active" onclick="switchTab('ingredients', this)">🌿 Ingredients</button>
+                    <button class="modal-tab" onclick="switchTab('benefits', this)">✨ Benefits</button>
+                    <button class="modal-tab" onclick="switchTab('how-to-use', this)">💧 How To Use</button>
+                </div>
+                <div class="modal-tab-content active" id="tab-ingredients">
+                    <div class="modal-detail-section"><h3>Natural Ingredients</h3><div id="modalIngredients"></div></div>
+                </div>
+                <div class="modal-tab-content" id="tab-benefits">
+                    <div class="modal-detail-section"><h3>Key Benefits</h3><div id="modalBenefits"></div></div>
+                </div>
+                <div class="modal-tab-content" id="tab-how-to-use">
+                    <div class="modal-detail-section"><h3>How To Use</h3><div id="modalUse"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    /* Make the image container's link fill it and be visually seamless */
+    .product-image-link {
+        display: block;
+        text-decoration: none;
+        cursor: pointer;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .product-image-link:hover img {
+        transform: scale(1.03);
+        transition: transform 0.4s ease;
+    }
+    
+    /* Product name link — remove default link styling */
+    .product-name-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        cursor: pointer;
+    }
+    .product-name-link:hover h3 {
+        text-decoration: underline;
+    }
+    
+    /* Quick add + share button container */
+    .quick-add {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Small share icon button */
+    .share-icon-btn {
+        width: 40px;
+        height: 40px;
+        background: white;
+        border: 1.5px solid #c5a059;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.25s;
+    }
+    .share-icon-btn:hover {
+        background: #c5a059;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(197, 160, 89, 0.35);
+    }
+    
+    /* View Details as link */
+    .view-details-link {
+        display: block;
+        text-align: center;
+        text-decoration: none;
+    }
+</style>
+
+
+<script>
+    let currentProductId = null;
+    let currentProductName = null;
+    let currentQuantity = 1;
+    // ============================================
+    // CART AJAX 
+    // ============================================
+    function getCSRFToken() {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]');
+        return token ? token.value : '';
+    }
+
+    function addProductToCart(productId, productName, quantity, buttonEl) {
+        const originalText = buttonEl ? buttonEl.innerHTML : '';
+        if (buttonEl) {
+            buttonEl.disabled = true;
+            buttonEl.innerHTML = '⏳ Adding...';
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "cart_add" %}',
+            data: {
+                product_id: productId,
+                product_qty: quantity,
+                csrfmiddlewaretoken: getCSRFToken(),
+                action: 'post'
+            },
+            success: function(json) {
+                updateCartCount(json.qty);
+                showNotification(productName, quantity);
+                if (buttonEl) {
+                    buttonEl.disabled = false;
+                    buttonEl.innerHTML = originalText;
+                }
+            },
+            error: function(xhr, errmsg, err) {
+                console.error('Cart error:', errmsg);
+                alert('Something went wrong. Please try again.');
+                if (buttonEl) {
+                    buttonEl.disabled = false;
+                    buttonEl.innerHTML = originalText;
+                }
+            }
+        });
+    }
+
+    function updateCartCount(count) {
+        document.querySelectorAll('#cartCount, #cart_quantity').forEach(el => {
+            el.textContent = count;
+        });
+        if (typeof cartCount !== 'undefined') cartCount = count;
+    }
+
+    function showNotification(productName, quantity) {
+        const notification = document.getElementById('notification');
+        if (!notification) return;
+        const strong = notification.querySelector('strong');
+        const para = notification.querySelector('p');
+        if (strong) strong.textContent = `${productName} added!`;
+        if (para) para.textContent = quantity > 1 ? `${quantity} items added` : 'Added to cart';
+        notification.classList.add('show');
+        setTimeout(() => notification.classList.remove('show'), 3000);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.card-add-cart').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                addProductToCart(this.dataset.productId, this.dataset.productName, 1, this);
+            });
+        });
+        document.querySelectorAll('.quick-add-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                addProductToCart(this.dataset.productId, this.dataset.productName, 1, this);
+            });
+        });
+    });
+    // Share product function — uses Web Share API on mobile, copies link on desktop
+    async function shareProduct(button) {
+        const url = button.dataset.shareUrl;
+        const name = button.dataset.shareName;
+        const shareText = `Check out ${name} from Marvelously Green`;
+        
+        // Try native share first (mobile)
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: name + ' — Marvelously Green',
+                    text: shareText,
+                    url: url,
+                });
+                return;
+            } catch (err) {
+                // User cancelled — fall through to copy
+                if (err.name === 'AbortError') return;
+            }
+        }
+        
+        // Fallback: copy to clipboard
+        try {
+            await navigator.clipboard.writeText(url);
+            showShareToast('✅ Link copied — paste anywhere to share');
+        } catch (err) {
+            showShareToast('⚠️ Copy failed — please copy the URL from your browser');
+        }
+    }
+    
+    function showShareToast(message) {
+        // Reuse the existing toast system if available, else create one
+        let toast = document.getElementById('shareToastGlobal');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'shareToastGlobal';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 2rem;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                background: linear-gradient(135deg, #2d5016, #4CAF50);
+                color: #fcf8ef;
+                padding: 0.9rem 1.75rem;
+                border-radius: 50px;
+                font-weight: 600;
+                font-size: 0.95rem;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                opacity: 0;
+                transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                z-index: 9999;
+                pointer-events: none;
+            `;
+            document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        // Trigger animation
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+        });
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(100px)';
+        }, 2500);
+    }
+
+    function openProductModal(button) {
+        const modal = document.getElementById('productModal');
+        const d = button.dataset;
+
+        currentProductId = d.productId;
+        currentProductName = d.productName;
+        currentQuantity = 1;
+        document.getElementById('quantityValue').textContent = '1';
+
+        document.getElementById('modalProductTitle').textContent = d.productName;
+        document.getElementById('modalProductSubtitle').textContent = d.productSubtitle || 'Premium Hair Care';
+        document.getElementById('modalProductDescription').textContent = d.productDescription || '';
+        document.getElementById('modalProductImage').src = d.productImage;
+        document.getElementById('modalProductImage').alt = d.productName;
+        document.getElementById('modalBadge').textContent = d.productBadge || '100% Organic';
+
+        const priceContainer = document.getElementById('modalPriceContainer');
+        if (d.productIsSale === 'True') {
+            priceContainer.innerHTML = `
+                <span class="modal-price sale">R${d.productSalePrice}</span>
+                <span class="modal-original-price">R${d.productPrice}</span>
+                <span class="modal-sale-badge">SALE</span>
+            `;
+        } else {
+            priceContainer.innerHTML = `<span class="modal-price">R${d.productPrice}</span>`;
+        }
+
+        const featuresContainer = document.getElementById('modalFeatures');
+        featuresContainer.innerHTML = '';
+        [d.productTag1, d.productTag2, d.productTag3].forEach(tag => {
+            if (tag && tag.trim()) {
+                const span = document.createElement('span');
+                span.className = 'modal-feature-tag';
+                span.textContent = tag;
+                featuresContainer.appendChild(span);
+            }
+        });
+
+        document.getElementById('modalIngredients').innerHTML = 
+            d.productIngredients && d.productIngredients.trim() ? d.productIngredients : '<div class="empty-content">Coming soon.</div>';
+        document.getElementById('modalBenefits').innerHTML = 
+            d.productBenefits && d.productBenefits.trim() ? d.productBenefits : '<div class="empty-content">Coming soon.</div>';
+        document.getElementById('modalUse').innerHTML = 
+            d.productUse && d.productUse.trim() ? d.productUse : '<div class="empty-content">Coming soon.</div>';
+
+        document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelector('.modal-tab').classList.add('active');
+        document.getElementById('tab-ingredients').classList.add('active');
+
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeProductModal() {
+        document.getElementById('productModal').classList.remove('show');
+        document.body.style.overflow = '';
+        currentProductId = null;
+    }
+
+    function closeModalOnOverlay(event) {
+        if (event.target.id === 'productModal') closeProductModal();
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeProductModal();
+            closeLightbox();
+        }
+    });
+
+    function switchTab(tabName, button) {
+        document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById('tab-' + tabName).classList.add('active');
+    }
+
+    function changeQuantity(delta) {
+        currentQuantity = Math.max(1, Math.min(99, currentQuantity + delta));
+        document.getElementById('quantityValue').textContent = currentQuantity;
+    }
+
+    function modalAddToCart() {
+        if (!currentProductId) return;
+        const btn = document.getElementById('modal-add-cart-btn');
+        addProductToCart(currentProductId, currentProductName, currentQuantity, btn);
+    }
+    
+</script>

@@ -3,6 +3,8 @@ from django.db import models
 import datetime
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
+from django.utils.text import slugify
+from django.urls import reverse
 
 
 
@@ -32,7 +34,6 @@ def create_profile(sender, instance, created, **kwargs):
 post_save.connect(create_profile, sender=User)
 
 
-
 # Categories of products
 class Category(models.Model):
 	name = models.CharField(max_length=50)
@@ -56,74 +57,66 @@ class Customer(models.Model):
 	def __str__(self):
 		return f'{self.first_name} {self.last_name}'
 
-class Product(models.Model):
-    name = models.CharField(max_length=50)
-    # Added a subtitle for the "Revive • Strengthen • Grow" text
-    subtitle = models.CharField(max_length=100, default='', blank=True)
-    
-    price = models.DecimalField(default=0, decimal_places=2, max_digits=7) # Increased max_digits for safety
-    category = models.ForeignKey('Category', on_delete=models.CASCADE, default=1) # Note: 'category' usually lowercase
-    
-    # Content sections
-    description = models.TextField(max_length=500, default='', blank=True, null=True)
-    ingredients = models.TextField(max_length=1000, default='', blank=True, null=True)
-    benefits = models.TextField(max_length=2000, default='', blank=True, null=True)
-    use = models.TextField(max_length=2000, default='', blank=True, null=True)
-    
-    # Visuals
-    image = models.ImageField(upload_to='uploads/product/')
-    
-    # New: Brand/UI specific fields
-    badge_text = models.CharField(max_length=100, default='100% Organic', help_text="e.g., 100% Organic or Best Seller")
-    tag_1 = models.CharField(max_length=50, blank=True, help_text="e.g., ⚡ Fast Acting")
-    tag_2 = models.CharField(max_length=50, blank=True, help_text="e.g., 💧 Daily Use")
-    tag_3 = models.CharField(max_length=50, blank=True, help_text="e.g., 🌿 100ml")
-    
-    # Specs & Sale
-    weight = models.DecimalField(default=0, max_digits=5, decimal_places=2)
-    is_sale = models.BooleanField(default=False)
-    sale_price = models.DecimalField(default=0, decimal_places=2, max_digits=7)
 
-    def __str__(self):
-        return self.name
-
-    @property
-    def current_price(self):
-        if self.is_sale:
-            return self.sale_price
-        return self.price
-
-"""
 class Product(models.Model):
 	name = models.CharField(max_length=50)
-	price = models.DecimalField(default=0, decimal_places=2, max_digits=5)
-	Category = models.ForeignKey(Category, on_delete=models.CASCADE, default=1)
-	description = models.CharField(max_length=500, default='', blank=True, null=True)
+	subtitle = models.CharField(max_length=100, default='', blank=True)
+	price = models.DecimalField(default=0, decimal_places=2, max_digits=7) 
+	category = models.ForeignKey('Category', on_delete=models.CASCADE, default=1) 
+	# Content sections
+	description = models.TextField(max_length=500, default='', blank=True, null=True)
 	ingredients = models.TextField(max_length=1000, default='', blank=True, null=True)
 	benefits = models.TextField(max_length=2000, default='', blank=True, null=True)
 	use = models.TextField(max_length=2000, default='', blank=True, null=True)
+	
+	# Visuals
 	image = models.ImageField(upload_to='uploads/product/')
-	weight = models.DecimalField(default=0, max_digits=5, decimal_places=2)  # Weight in grams
-	sale = models.BooleanField(default=False)
-	sale_price = models.DecimalField(default=0, decimal_places=2, max_digits=5)
+	
+	# Brand/UI specific fields
+	badge_text = models.CharField(max_length=100, default='100% Organic', help_text="e.g., 100% Organic or Best Seller")
+	tag_1 = models.CharField(max_length=50, blank=True, help_text="e.g., ⚡ Fast Acting")
+	tag_2 = models.CharField(max_length=50, blank=True, help_text="e.g., 💧 Daily Use")
+	tag_3 = models.CharField(max_length=50, blank=True, help_text="e.g., 🌿 100ml")
+	
+	# Specs & Sale
+	weight = models.DecimalField(default=0, max_digits=5, decimal_places=2)
+	is_sale = models.BooleanField(default=False)
+	sale_price = models.DecimalField(default=0, decimal_places=2, max_digits=7)
+	
+	slug = models.SlugField(
+		max_length=200,
+		unique=True,
+		blank=True,
+		default='',
+		help_text="URL-friendly version of name — auto-generated if left blank"
+	)
+	
+	def save(self, *args, **kwargs):
+		# Auto-generate slug from name if not manually set
+		if not self.slug:
+			base_slug = slugify(self.name)
+			slug = base_slug
+			counter = 1
+			# Handle duplicates by appending -2, -3, etc.
+			while Product.objects.filter(slug=slug).exclude(id=self.id).exists():
+				slug = f"{base_slug}-{counter}"
+				counter += 1
+			self.slug = slug
+		super().save(*args, **kwargs)
+	
+	def get_absolute_url(self):
+		"""Canonical URL for this product. Used in sitemaps and share links."""
+		return reverse('product_detail', kwargs={'slug': self.slug})
 
 	def __str__(self):
-		return f'{self.name}'
-"""
+		return self.name
 
-"""
-class Order(models.Model):
-	product = models.ForeignKey(Product, on_delete=models.CASCADE)
-	customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-	quantity = models.IntegerField(default=1)
-	address = models.CharField(max_length=500, default='', blank=True)
-	phone = models.CharField(max_length=20, default='', blank=True)
-	date = models.DateField(default=datetime.datetime.today)
-	status = models.BooleanField(default=False)
+	@property
+	def current_price(self):
+		if self.is_sale:
+			return self.sale_price
+		return self.price
 
-	def __str__(self):
-		return self.product
-"""
 
 
 class Influencer(models.Model):

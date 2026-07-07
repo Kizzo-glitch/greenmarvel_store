@@ -4,8 +4,9 @@
 {% block content %}
 {% csrf_token %}
 
+
 <!-- ============================================ -->
-<!-- SHOP HERO -->
+<!-- SHOP Template -->
 <!-- ============================================ -->
 <section class="shop-hero">
     <div class="shop-hero-leaves">
@@ -82,7 +83,8 @@
 <!-- PRODUCTS -->
 <!-- ============================================ -->
 <section class="products shop-products" id="shop">
-    <div class="products-grid" id="productsGrid">
+    {% include 'product_grid.html' %}
+    <!--<div class="products-grid" id="productsGrid">
         {% for product in products %}
         <div class="product-card" 
              data-product-id="{{ product.id }}"
@@ -91,19 +93,13 @@
              data-is-sale="{{ product.is_sale }}"
              data-badge="{{ product.badge_text|lower }}">
             <div class="product-image-container">
-                <!--<div class="product-badges">
-                    <span class="badge organic">{{ product.badge_text }}</span>
-                    {% if product.is_sale %}
-                        <span class="badge" style="background: #e74c3c; color: white;">SALE</span>
-                    {% endif %}
-                </div>-->
                 <div class="product-badges">
                     {% if product.is_sale %}
                         <span class="badge" style="background: #e74c3c; color: white;">SALE</span>
                     {% endif %}
                 </div>
                 
-                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image-file" style="width: 80%; height: auto;">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image-file" style="width: 80%; height: 110%;">
                 
                 <div class="quick-add">
                     <button class="quick-add-btn" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}">Quick Add</button>
@@ -133,12 +129,7 @@
                                 <span>R{{ product.price|floatformat:0 }}</span>
                             {% endif %}
                         </div>
-                        <!--{% if product.is_sale %}
-                            <span class="price" style="color: #e74c3c;">R{{ product.sale_price }}</span>
-                            <span style="text-decoration: line-through; font-size: 0.8rem; color: #999;">R{{ product.price }}</span>
-                        {% else %}
-                            <span class="price">R{{ product.price }}</span>
-                        {% endif %}-->
+                       
                     </div>
                     &nbsp;
                     <button class="add-to-cart card-add-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}">Add to Cart</button>
@@ -170,7 +161,7 @@
             <p>Check back soon — we're always adding new organic formulations.</p>
         </div>
         {% endfor %}
-    </div>
+    </div>-->
 
     <!-- No results (hidden by default, shown when filter returns nothing) -->
     <div class="no-results" id="noResults" style="display: none;">
@@ -214,7 +205,7 @@
                 </div>
                 <div class="modal-trust-badges">
                     <div class="trust-badge"><span class="trust-icon">🌿</span><span>Organic</span></div>
-                    <div class="trust-badge"><span class="trust-icon">🐰</span><span>Cruelty Free</span></div>
+                    <div class="trust-badge"><span class="trust-icon">🧪</span><span>Science Backed</span></div>
                     <div class="trust-badge"><span class="trust-icon">🔬</span><span>Lab Tested</span></div>
                     <div class="trust-badge"><span class="trust-icon">🇿🇦</span><span>Made in SA</span></div>
                 </div>

@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product, Profile
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -284,9 +284,27 @@ def shop_all(request):
 	all_products = Product.objects.all().order_by("-is_sale")
 	return render(request, 'shop.html', {'products': all_products})
 
+
+def product_detail(request, slug):
+    """
+    Serve a single product page.
+    URL: /product/<slug>/  e.g. /product/vitality-hair-spray/
+    """
+    product = get_object_or_404(Product, slug=slug)
+    
+    # Fetch related products for the "You might also like" section
+    related_products = Product.objects.exclude(id=product.id).order_by('?')[:3]
+    
+    return render(request, 'product_detail.html', {
+        'product':          product,
+        'related_products': related_products,
+    })
+
+
 def about(request):
 	#products = Product.objects.all()
 	return render(request, 'about.html', {})
+
 
 
 def search(request):

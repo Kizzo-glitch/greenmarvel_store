@@ -14,6 +14,7 @@ urlpatterns = [
     path('update_info/', views.update_info, name='update_info'),
     path('update_password/', views.update_password, name='update_password'),
     path('product/<int:pk>', views.product, name='product'),
+    path('product/<slug:slug>/', views.product_detail, name='product_detail'),
     path('shop/', views.shop_all, name='shop'),
     path('search/', views.search, name='search'),
     
