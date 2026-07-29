@@ -1,5 +1,5 @@
 {% load static %}
-{% include 'responsive_nav_styles.html' %}
+{% include 'partials/responsive_nav_styles.html' %}
 
  <!-- ============================================ -->
 <!-- REPLACE YOUR ENTIRE <header> + <nav> WITH THIS -->
@@ -53,7 +53,7 @@
             <div class="mg-search-icon" title="Search">🔍</div>
             <a href="{% url 'cart_summary' %}" class="mg-cart-icon" title="View Cart">
                 🛒
-                <span class="mg-cart-count" id="cartCount">{{ cart|length|default:0 }}</span>
+                <span class="mg-cart-count" id="cartCount" data-cart-badge>{{ cart|length|default:0 }}</span>
             </a>
 
             <!-- Auth area (desktop) / Profile dropdown if logged in -->

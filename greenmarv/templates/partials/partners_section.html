@@ -1,0 +1,525 @@
+{# ============================================================ #}
+{# STOCKISTS / RETAIL PARTNERS SECTION                          #}
+{# Add this to home.html — recommended placement: after the     #}
+{# products grid, before the testimonials/footer                 #}
+{# ============================================================ #}
+
+{% load static %}
+
+<section class="stockists-section">
+    <div class="stockists-container">
+        
+        <!-- Section header -->
+        <div class="stockists-header">
+            <span class="stockists-eyebrow">🏪 FIND US IN-STORE</span>
+            <h2 class="stockists-title">Our <span>trusted</span> retail partners</h2>
+            <p class="stockists-subtitle">
+                Prefer to see the products in person before you buy? You'll find Marvelously Green 
+                on the shelves at these trusted pharmacies across Gauteng.
+            </p>
+        </div>
+
+        <!-- Partner cards -->
+        <div class="partners-grid">
+            
+            <!-- Kalapeng Pharmacy -->
+            <div class="partner-card">
+                <div class="partner-badge">🌟 FLAGSHIP PARTNER</div>
+                <div class="partner-logo-area kalapeng-logo">
+                    <div class="partner-logo-text">
+                        <img src="{% static 'landing/assets/img/logos/kalapeng.png' %}" alt="Kalapeng Pharmacy" class="partner-logo-img">
+                        <span class="logo-name">Kalapeng<br>Pharmacy</span>
+                    </div>
+                </div>
+                <div class="partner-details">
+                    <h3>Kalapeng Pharmacy</h3>
+                    <p class="partner-tagline">Multi-branch pharmacy chain across Pretoria</p>
+                    
+                    <div class="partner-branches">
+                        <h4>📍 Available at:</h4>
+                        <ul class="branches-list">
+                            <li>
+                                <span class="branch-name">Pretoria CBD</span>
+                                <span class="branch-status status-active">Now stocking</span>
+                            </li>
+                            <li>
+                                <span class="branch-name">Mamelodi</span>
+                                <span class="branch-status status-coming">Launching July 2026</span>
+                            </li>
+                            <li>
+                                <span class="branch-name">Soshanguve</span>
+                                <span class="branch-status status-coming">Launching July 2026</span>
+                            </li>
+                            <li>
+                                <span class="branch-name">Hebron</span>
+                                <span class="branch-status status-coming">Launching July 2026</span>
+                            </li>
+                            <li>
+                                <span class="branch-name">Midrand</span>
+                                <span class="branch-status status-coming">Launching July 2026</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a href="https://www.google.com/maps/search/Kalapeng+Pharmacy+Pretoria" 
+                       target="_blank" rel="noopener" 
+                       class="partner-cta">
+                        View on Google Maps →
+                    </a>
+                </div>
+            </div>
+
+            <!-- RRK Pharmacy -->
+            <div class="partner-card">
+                <div class="partner-badge partner-badge-rose">💊 ALSO COLLECTION POINT</div>
+                <div class="partner-logo-area rrk-logo">
+                    <div class="partner-logo-text">
+                        <img src="{% static 'landing/assets/img/logos/rrk.png' %}" alt="RRK Pharmacy" class="partner-logo-img">
+                        <!--<span class="logo-name">RRK<br>Pharmacy</span>-->
+                    </div>
+                </div>
+                <div class="partner-details">
+                    <h3>RRK Pharmacy</h3>
+                    <p class="partner-tagline">Convenient walk-in and pickup location in Arcadia</p>
+                    
+                    <div class="partner-info-block">
+                        <div class="info-row">
+                            <span class="info-icon">📍</span>
+                            <div>
+                                <strong>Location</strong>
+                                <p>Shop 0006, Apollo Centre<br>
+                                210 Du Toit Street, Arcadia<br>
+                                Pretoria, 0002</p>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-icon">🕐</span>
+                            <div>
+                                <strong>Hours</strong>
+                                <p>Extended pharmacy hours<br>
+                                Including Saturdays</p>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-icon">✅</span>
+                            <div>
+                                <strong>Also serves as</strong>
+                                <p>Free order collection point<br>
+                                (choose at checkout)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="https://www.google.com/maps/search/Apollo+Centre+210+Du+Toit+Street+Arcadia+Pretoria" 
+                       target="_blank" rel="noopener" 
+                       class="partner-cta">
+                        Get directions →
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom callout -->
+        <div class="stockists-footer">
+            <div class="stockists-footer-content">
+                <span class="stockists-footer-icon">🏪</span>
+                <div>
+                    <strong>Are you a pharmacy or health store owner?</strong>
+                    <p>Marvelously Green is actively expanding retail partnerships across South Africa. 
+                    We offer competitive wholesale pricing, marketing support, and dedicated account management.</p>
+                </div>
+                <a href="mailto:segonert@greenmarvel.co.za?subject=Retail%20Partnership%20Enquiry" 
+                   class="wholesale-cta">
+                    Partner with us →
+                </a>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<style>
+    /* ============================================
+       STOCKISTS SECTION
+       ============================================ */
+    .stockists-section {
+        padding: 5rem 5% 4rem;
+        background: linear-gradient(180deg, #fafbf9 0%, #ffffff 100%);
+        position: relative;
+    }
+    
+    .stockists-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Header */
+    .stockists-header {
+        text-align: center;
+        margin-bottom: 3.5rem;
+    }
+    .stockists-eyebrow {
+        display: inline-block;
+        color: #c5a059;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 3px;
+        margin-bottom: 1rem;
+        padding: 0.4rem 1rem;
+        background: rgba(197, 160, 89, 0.1);
+        border-radius: 30px;
+    }
+    .stockists-title {
+        color: #1b3022;
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin: 0 0 1rem 0;
+        letter-spacing: -0.5px;
+    }
+    .stockists-title span {
+        color: #c5a059;
+        font-style: italic;
+    }
+    .stockists-subtitle {
+        color: #666;
+        font-size: 1.05rem;
+        max-width: 620px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    /* Partner cards grid */
+    .partners-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .partner-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(197, 160, 89, 0.15);
+        position: relative;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+    }
+    .partner-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+        border-color: #c5a059;
+    }
+
+    /* Gold top border */
+    .partner-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #2d5016, #c5a059, #2d5016);
+    }
+
+    /* Badge */
+    .partner-badge {
+        position: absolute;
+        top: 1.25rem;
+        right: 1.25rem;
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        padding: 0.35rem 0.85rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        z-index: 2;
+        box-shadow: 0 4px 12px rgba(45, 80, 22, 0.25);
+    }
+    .partner-badge-rose {
+        background: linear-gradient(135deg, #8B4A5C, #a76077);
+    }
+
+    /* Logo area */
+    .partner-logo-area {
+        background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+        padding: 3rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 180px;
+        position: relative;
+    }
+    .partner-logo-area.rrk-logo {
+        background: linear-gradient(135deg, #fdf4f5, #f9eff0);
+    }
+    .partner-logo-text {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .logo-K {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #2d5016, #1b3022);
+        color: #fcf8ef;
+        border: 3px solid #c5a059;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 800;
+        font-family: Georgia, serif;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    .partner-logo-img { max-height: 80px; width: auto; }
+    .rrk-logo .logo-K {
+        background: linear-gradient(135deg, #8B4A5C, #6d3a48);
+    }
+    .logo-name {
+        color: #1b3022;
+        font-size: 1.15rem;
+        font-weight: 800;
+        line-height: 1.15;
+        font-family: Georgia, serif;
+    }
+
+    /* Details section */
+    .partner-details {
+        padding: 2rem 2rem 2.25rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+    .partner-details h3 {
+        color: #1b3022;
+        font-size: 1.5rem;
+        margin: 0 0 0.35rem 0;
+        font-weight: 800;
+    }
+    .partner-tagline {
+        color: #c5a059;
+        font-style: italic;
+        font-size: 0.95rem;
+        margin: 0 0 1.5rem 0;
+        font-weight: 500;
+    }
+
+    /* Kalapeng branches list */
+    .partner-branches h4 {
+        color: #2d5016;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin: 0 0 1rem 0;
+    }
+    .branches-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.5rem 0;
+    }
+    .branches-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px dashed rgba(197, 160, 89, 0.25);
+    }
+    .branches-list li:last-child {
+        border-bottom: none;
+    }
+    .branch-name {
+        color: #1b3022;
+        font-weight: 600;
+        font-size: 0.98rem;
+    }
+    .branch-status {
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.3rem 0.7rem;
+        border-radius: 15px;
+        letter-spacing: 0.5px;
+    }
+    .status-active {
+        background: linear-gradient(135deg, #4CAF50, #2d5016);
+        color: white;
+    }
+    .status-coming {
+        background: rgba(197, 160, 89, 0.15);
+        color: #8a6d2e;
+    }
+
+    /* RRK info blocks */
+    .partner-info-block {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        margin-bottom: 1.75rem;
+    }
+    .info-row {
+        display: flex;
+        gap: 0.85rem;
+        align-items: flex-start;
+    }
+    .info-icon {
+        font-size: 1.35rem;
+        flex-shrink: 0;
+        margin-top: 0.15rem;
+    }
+    .info-row strong {
+        color: #2d5016;
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        display: block;
+        margin-bottom: 0.35rem;
+    }
+    .info-row p {
+        color: #444;
+        font-size: 0.92rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* CTA button */
+    .partner-cta {
+        display: inline-block;
+        padding: 0.9rem 1.5rem;
+        background: transparent;
+        color: #2d5016;
+        border: 1.5px solid #2d5016;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.92rem;
+        text-align: center;
+        transition: all 0.3s;
+        margin-top: auto;
+    }
+    .partner-cta:hover {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        border-color: #c5a059;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(45, 80, 22, 0.25);
+    }
+
+    /* Bottom "become a partner" callout */
+    .stockists-footer {
+        background: linear-gradient(135deg, #1b3022, #2d5016);
+        border-radius: 20px;
+        padding: 2rem 2.5rem;
+        color: #fcf8ef;
+        position: relative;
+        overflow: hidden;
+    }
+    .stockists-footer::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #c5a059, #d4b374, #c5a059);
+    }
+    .stockists-footer-content {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 1.5rem;
+        align-items: center;
+    }
+    .stockists-footer-icon {
+        font-size: 3rem;
+    }
+    .stockists-footer strong {
+        color: #c5a059;
+        font-size: 1.15rem;
+        display: block;
+        margin-bottom: 0.4rem;
+    }
+    .stockists-footer p {
+        color: rgba(252, 248, 239, 0.9);
+        font-size: 0.92rem;
+        margin: 0;
+        line-height: 1.5;
+    }
+    .wholesale-cta {
+        padding: 0.9rem 1.75rem;
+        background: linear-gradient(135deg, #c5a059, #d4b374);
+        color: #1b3022;
+        border: 1px solid #c5a059;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.92rem;
+        white-space: nowrap;
+        transition: all 0.3s;
+    }
+    .wholesale-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(197, 160, 89, 0.4);
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 900px) {
+        .partners-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        .stockists-title {
+            font-size: 2rem;
+        }
+        .stockists-footer-content {
+            grid-template-columns: 1fr;
+            text-align: center;
+            gap: 1.25rem;
+        }
+    }
+
+    @media (max-width: 500px) {
+        .stockists-section {
+            padding: 3.5rem 5% 3rem;
+        }
+        .stockists-title {
+            font-size: 1.75rem;
+        }
+        .stockists-subtitle {
+            font-size: 0.95rem;
+        }
+        .partner-logo-area {
+            padding: 2rem 1.5rem;
+            min-height: 150px;
+        }
+        .logo-K {
+            width: 55px;
+            height: 55px;
+            font-size: 2rem;
+        }
+        .logo-name {
+            font-size: 1rem;
+        }
+        .partner-details {
+            padding: 1.5rem 1.5rem 2rem;
+        }
+        .partner-details h3 {
+            font-size: 1.3rem;
+        }
+        .stockists-footer {
+            padding: 1.75rem 1.5rem;
+        }
+        .stockists-footer strong {
+            font-size: 1rem;
+        }
+        .branches-list li {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.4rem;
+        }
+    }
+</style>

@@ -83,7 +83,7 @@
 <!-- PRODUCTS -->
 <!-- ============================================ -->
 <section class="products shop-products" id="shop">
-    {% include 'product_grid.html' %}
+    {% include 'partials/product_grid.html' %}
     <!--<div class="products-grid" id="productsGrid">
         {% for product in products %}
         <div class="product-card" 
@@ -789,20 +789,7 @@
         setTimeout(() => notification.classList.remove('show'), 3000);
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.card-add-cart').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                addProductToCart(this.dataset.productId, this.dataset.productName, 1, this);
-            });
-        });
-        document.querySelectorAll('.quick-add-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                addProductToCart(this.dataset.productId, this.dataset.productName, 1, this);
-            });
-        });
-    });
+
 
     // ============================================
     // PRODUCT MODAL

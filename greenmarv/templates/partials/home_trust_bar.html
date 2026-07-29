@@ -1,0 +1,229 @@
+{% load static %}
+
+<section class="trust-bar-section">
+    <div class="trust-bar-container">
+        
+        <div class="trust-bar-header">
+            <span class="trust-bar-eyebrow">RECOGNISED · CERTIFIED · TESTED</span>
+            <h3 class="trust-bar-title">
+                Marvelously Green participates in and is recognised by
+                <br>South Africa's leading standards and innovation institutions.
+            </h3>
+        </div>
+
+        <div class="trust-logos-row">
+            
+            <div class="trust-logo-item">
+                <div class="trust-logo-wrap">
+                    <img src="{% static 'landing/assets/img/logos/logo-sabs.png' %}" 
+                         alt="South African Bureau of Standards" 
+                         class="trust-logo">
+                </div>
+                <span class="trust-caption">Safety testing partner</span>
+            </div>
+
+            <div class="trust-logo-item">
+                <div class="trust-logo-wrap">
+                    <img src="{% static 'landing/assets/img/logos/logo-proudly-sa.png' %}" 
+                         alt="Proudly South African" 
+                         class="trust-logo">
+                </div>
+                <span class="trust-caption">Certified member</span>
+            </div>
+
+            <div class="trust-logo-item">
+                <div class="trust-logo-wrap">
+                    <img src="{% static 'landing/assets/img/logos/logo-tia.jpeg' %}" 
+                         alt="Technology Innovation Agency" 
+                         class="trust-logo">
+                </div>
+                <span class="trust-caption">Grassroots Innovation Programme</span>
+            </div>
+
+            <div class="trust-logo-item">
+                <div class="trust-logo-wrap">
+                    <img src="{% static 'landing/assets/img/logos/logo-edhe.png' %}" 
+                         alt="Entrepreneurship Development in Higher Education" 
+                         class="trust-logo">
+                </div>
+                <span class="trust-caption">Gauteng Regional Winner 2025</span>
+            </div>
+
+        </div>
+
+        {# ============================================ #}
+        {# NEW: Learn more link — jumps to About page   #}
+        {# ============================================ #}
+        <div class="trust-bar-cta">
+            <a href="{% url 'about' %}#recognition" class="trust-bar-cta-link">
+                <span>Read the full story behind our recognition</span>
+                <span class="cta-arrow">→</span>
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    /* ============================================
+       TRUST BAR — v2
+       ============================================ */
+    .trust-bar-section {
+        padding: 3.5rem 5%;
+        background: #ffffff;
+        border-top: 1px solid rgba(197, 160, 89, 0.15);
+        border-bottom: 1px solid rgba(197, 160, 89, 0.15);
+    }
+
+    .trust-bar-container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    /* Header */
+    .trust-bar-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+    .trust-bar-eyebrow {
+        display: inline-block;
+        color: #c5a059;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 3px;
+        margin-bottom: 0.75rem;
+    }
+    .trust-bar-title {
+        color: #444;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.6;
+        margin: 0;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Logos row */
+    .trust-logos-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
+        align-items: start;
+        margin-bottom: 2.5rem;
+    }
+
+    .trust-logo-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        text-align: center;
+    }
+
+    .trust-logo-wrap {
+        width: 100%;
+        height: 75px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+    }
+
+    .trust-logo {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        filter: grayscale(100%) opacity(0.55);
+        transition: filter 0.4s ease, transform 0.3s ease;
+    }
+    
+    .trust-logo-item:hover .trust-logo {
+        filter: grayscale(0%) opacity(1);
+        transform: scale(1.05);
+    }
+
+    .trust-caption {
+        font-size: 0.75rem;
+        color: #888;
+        font-style: italic;
+        line-height: 1.4;
+        max-width: 180px;
+        transition: color 0.3s ease;
+    }
+    
+    .trust-logo-item:hover .trust-caption {
+        color: #2d5016;
+    }
+
+    /* ============================================
+       NEW: LEARN MORE CTA
+       ============================================ */
+    .trust-bar-cta {
+        text-align: center;
+        padding-top: 2rem;
+        border-top: 1px dashed rgba(197, 160, 89, 0.25);
+    }
+
+    .trust-bar-cta-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.65rem 1.4rem;
+        color: #2d5016;
+        background: transparent;
+        border: 1.5px solid rgba(197, 160, 89, 0.4);
+        border-radius: 30px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .trust-bar-cta-link:hover {
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        border-color: #c5a059;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(45, 80, 22, 0.2);
+    }
+
+    .cta-arrow {
+        font-size: 1.05rem;
+        transition: transform 0.3s;
+        display: inline-block;
+    }
+    
+    .trust-bar-cta-link:hover .cta-arrow {
+        transform: translateX(4px);
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 850px) {
+        .trust-logos-row {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem 1.5rem;
+        }
+        .trust-bar-title {
+            font-size: 0.92rem;
+        }
+    }
+
+    @media (max-width: 500px) {
+        .trust-bar-section {
+            padding: 2.5rem 5%;
+        }
+        .trust-bar-title {
+            font-size: 0.88rem;
+        }
+        .trust-logo-wrap {
+            height: 55px;
+        }
+        .trust-bar-cta-link {
+            font-size: 0.85rem;
+            padding: 0.6rem 1.1rem;
+        }
+    }
+</style>

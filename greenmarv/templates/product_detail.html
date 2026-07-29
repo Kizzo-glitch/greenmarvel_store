@@ -116,6 +116,7 @@
                         🛒 Add to Cart
                     </button>
                 </div>
+                {% include 'partials/product_science_badge.html' %}
 
                 <!-- SHARE BUTTONS -->
                 <div class="product-share">
@@ -663,6 +664,117 @@
                 textarea.remove();
             }
         }
+    });
+</script>
+
+
+
+ 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const addToCartBtn = document.querySelector('.btn-add-to-cart-large');
+        if (!addToCartBtn) return;
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // ============================================
+        // Update ALL cart badges on the page
+        // (handles mobile + desktop nav)
+        // ============================================
+        function updateCartBadges(newQty) {
+            // Find every cart badge marked with data-cart-badge
+            const badges = document.querySelectorAll('[data-cart-badge]');
+            badges.forEach(badge => {
+                badge.textContent = newQty;
+                
+                // Visual feedback — pulse animation
+                badge.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+                badge.style.transform = 'scale(1.4)';
+                setTimeout(() => {
+                    badge.style.transform = 'scale(1)';
+                }, 300);
+                
+                // Show badge if it was hidden (empty cart)
+                badge.style.display = 'inline-block';
+            });
+        }
+        
+        addToCartBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const productId = this.dataset.productId;
+            if (!productId) {
+                console.error('Product ID missing');
+                return;
+            }
+            
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '⏳ Adding...';
+            this.disabled = true;
+            this.style.opacity = '0.7';
+            
+            fetch('{% url "cart_add" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: new URLSearchParams({
+                    'product_id': productId,
+                    'product_qty': '1',
+                    'action': 'post',
+                    'csrfmiddlewaretoken': getCookie('csrftoken'),
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Success button state
+                addToCartBtn.innerHTML = '✅ Added to Cart!';
+                addToCartBtn.style.opacity = '1';
+                addToCartBtn.style.background = 'linear-gradient(135deg, #c5a059, #d4b374)';
+                addToCartBtn.style.color = '#1b3022';
+                
+                // ============================================
+                // UPDATE CART BADGES — this is the fix
+                // ============================================
+                if (data.qty !== undefined) {
+                    updateCartBadges(data.qty);
+                }
+                
+                // Restore button after 2 seconds
+                setTimeout(function() {
+                    addToCartBtn.innerHTML = originalHTML;
+                    addToCartBtn.disabled = false;
+                    addToCartBtn.style.background = '';
+                    addToCartBtn.style.color = '';
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Add to cart error:', error);
+                addToCartBtn.innerHTML = '⚠️ Try again';
+                addToCartBtn.disabled = false;
+                addToCartBtn.style.opacity = '1';
+                
+                setTimeout(function() {
+                    addToCartBtn.innerHTML = originalHTML;
+                }, 2500);
+            });
+        });
     });
 </script>
 
