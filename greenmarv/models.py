@@ -5,7 +5,9 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.utils.text import slugify
 from django.urls import reverse
-
+from django.db import models
+from django.core.validators import EmailValidator
+ 
 
 
 # Create Customer Profile
@@ -128,7 +130,49 @@ class Influencer(models.Model):
 	def __str__(self):
 		return self.name
 
-
+ 
+class DiscountCode(models.Model):
+    code = models.CharField(max_length=20, unique=True)
+    influencer = models.ForeignKey(
+        Influencer,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='discount_codes',
+    )
+    discount_percentage = models.IntegerField(
+        default=0,
+        help_text="Percentage off. Use this OR amount_off, not both.",
+    )
+    amount_off = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Fixed Rand amount off. Use this OR discount_percentage.",
+    )
+    usage_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of times this code has been used.",
+    )
+    total_before_discount = models.DecimalField(
+        max_digits=10,               
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=0,
+        help_text="Cumulative Rand value of orders that used this code.",
+    )
+    is_active = models.BooleanField(default=False)
+ 
+    # Optional but useful — track when the code was created
+    date_created = models.DateTimeField(auto_now_add=True, null=True)
+ 
+    def __str__(self):
+        if self.influencer:
+            return f'{self.code} ({self.discount_percentage}% via {self.influencer.name})'
+        return f'{self.code} ({self.discount_percentage}%)'
+"""
 class DiscountCode(models.Model):
 	code = models.CharField(max_length=20, unique=True)
 	influencer = models.ForeignKey(Influencer, on_delete=models.SET_NULL, null=True, blank=True, related_name='discount_codes')
@@ -140,4 +184,66 @@ class DiscountCode(models.Model):
 
 	def __str__(self):
 		return f'{self.code}' #({self.discount_percentage}% discount by {self.influencer.name})
-
+"""
+# ================================================================
+# NEWSLETTER SUBSCRIPTION — Backend
+# ================================================================
+# Three files needed:
+#   1. models.py         — Subscriber model
+#   2. views.py          — subscribe endpoint
+#   3. urls.py           — route it
+#
+# Save these in whichever Django app makes sense (probably 'store' or
+# a new 'newsletter' app). Each section below shows where it goes.
+# ================================================================
+ 
+ 
+# ============================================================
+# 1. MODEL — Add to your models.py
+# ============================================================
+ 
+class NewsletterSubscriber(models.Model):
+    """
+    Stores email addresses of customers who signed up for the newsletter.
+    
+    Simple by design — the point is to collect emails now, integrate
+    with an ESP (Mailchimp/Brevo/etc) later when you're ready.
+    """
+    CHANNEL_CHOICES = [
+        ('email', 'Email'),
+        ('whatsapp', 'WhatsApp'),
+    ]
+ 
+    email = models.EmailField(
+        unique=True,
+        validators=[EmailValidator()],
+        help_text="Subscriber's email address",
+    )
+    signup_channel = models.CharField(
+        max_length=10,
+        choices=CHANNEL_CHOICES,
+        default='email',
+        help_text="How they subscribed (for segmentation)",
+    )
+    date_subscribed = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Uncheck if user unsubscribes",
+    )
+    welcome_code_used = models.BooleanField(
+        default=False,
+        help_text="Set to True when they use their 10% off code",
+    )
+    source_page = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Which page they signed up from (home, checkout, etc)",
+    )
+ 
+    class Meta:
+        ordering = ['-date_subscribed']
+        verbose_name = 'Newsletter Subscriber'
+        verbose_name_plural = 'Newsletter Subscribers'
+ 
+    def __str__(self):
+        return f"{self.email} ({self.date_subscribed:%Y-%m-%d})"

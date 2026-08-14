@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Product, Profile
+from .models import Product, Profile, DiscountCode, NewsletterSubscriber
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -14,17 +14,13 @@ from payment.forms import ShippingForm
 from payment.models import ShippingAddress
 from django.utils import timezone
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 
-"""
-Updated register_user + update_info views with name/email prefill.
-
-Flow:
-1. User registers with first_name, last_name, email
-2. We immediately create a ShippingAddress with those fields prefilled
-3. They land on update_info — see their name & email already filled in
-4. They only need to add phone, address, city, province, postal code
-"""
 
 # ============================================================
 # REGISTER USER
@@ -326,6 +322,71 @@ def logout_user(request):
 	logout(request)
 	#messages.success(request, ('You have been logged out'))
 	return redirect('home')
+
+
+WELCOME_CODE = 'WELCOME2026'
+@require_POST
+@csrf_protect
+def newsletter_subscribe(request):
+    email = request.POST.get('email', '').strip().lower()
+ 
+    # Validation (unchanged)
+    if not email:
+        return JsonResponse({'success': False, 'message': 'Please enter your email address.'}, status=400)
+    try:
+        validate_email(email)
+    except ValidationError:
+        return JsonResponse({'success': False, 'message': 'Please enter a valid email address.'}, status=400)
+ 
+    # ============================================
+    # NEW: Fetch the welcome code dynamically
+    # ============================================
+    try:
+        welcome_code = DiscountCode.objects.get(code='WELCOME2026', is_active=True).code
+    except DiscountCode.DoesNotExist:
+        # Fallback if the code was accidentally disabled or renamed
+        # Log this because it means the welcome flow is broken
+        print("⚠️  WELCOME2026 code not found or inactive — subscribers can't claim discount")
+        welcome_code = None
+ 
+    # Check if already subscribed (unchanged)
+    existing = NewsletterSubscriber.objects.filter(email=email).first()
+    if existing:
+        if existing.is_active:
+            return JsonResponse({
+                'success': True,
+                'code': welcome_code,
+                'message': "You're already subscribed! Here's your code again.",
+            })
+        else:
+            existing.is_active = True
+            existing.save()
+            return JsonResponse({
+                'success': True,
+                'code': welcome_code,
+                'message': 'Welcome back! Your subscription has been reactivated.',
+            })
+ 
+    # Create new subscriber (unchanged)
+    referer = request.META.get('HTTP_REFERER', '')
+    source_page = referer.split('/')[-1] if referer else 'home'
+ 
+    try:
+        NewsletterSubscriber.objects.create(
+            email=email,
+            signup_channel='email',
+            source_page=source_page[:100],
+        )
+    except Exception as e:
+        print(f"Newsletter signup error for {email}: {e}")
+        return JsonResponse({'success': False, 'message': 'Something went wrong. Please try again.'}, status=500)
+ 
+    return JsonResponse({
+        'success': True,
+        'code': welcome_code,
+        'message': "Welcome to the community!",
+    })
+ 
 
 # ================================================================
 # Legal Pages

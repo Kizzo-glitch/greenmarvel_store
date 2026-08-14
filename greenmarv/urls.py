@@ -24,5 +24,6 @@ urlpatterns = [
     path('cookie-policy/', views.cookie_policy, name='cookie_policy'),
     path('shipping-policy/', views.shipping_policy, name='shipping_policy'),
 
-    path('faqs/', TemplateView.as_view(template_name='legal/faqs.html'), name='faqs')
+    path('faqs/', TemplateView.as_view(template_name='legal/faqs.html'), name='faqs'),
+    path('subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),
 ]
