@@ -983,16 +983,12 @@
         border-color: #c5a059;
     }
  
-    /* ============================================
-       BEFORE / AFTER IMAGES — controlled aspect ratio
-       This is the critical fix: aspect-ratio prevents the
-       card from becoming a stretched-tall ribbon on mobile
-       ============================================ */
+  
     .comparison-images {
         position: relative;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        aspect-ratio: 1 / 1;         /* Square image area — fixes the "tall thin card" bug */
+        aspect-ratio: 1 / 1;         
         overflow: hidden;
     }
  
@@ -1017,12 +1013,12 @@
         transform: scale(1.05);
     }
  
-    /* Labels */
+  
     .comparison-label {
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
+        right: 50%;
         padding: 0.5rem 0.75rem;
         font-size: 0.72rem;
         font-weight: 800;
@@ -1040,7 +1036,7 @@
         color: #1b3022;
     }
  
-    /* Vertical divider between before/after */
+   
     .comparison-divider-vertical {
         position: absolute;
         top: 0;
@@ -1052,7 +1048,7 @@
         z-index: 3;
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
     }
-    /* Optional arrow in the middle of the divider */
+    
     .comparison-divider-vertical::after {
         content: '→';
         position: absolute;
@@ -1072,9 +1068,6 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
  
-    /* ============================================
-       CARD INFO
-       ============================================ */
     .comparison-info {
         padding: 1.5rem 1.25rem 1.75rem;
         text-align: center;
