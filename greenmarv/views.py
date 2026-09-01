@@ -264,7 +264,8 @@ def update_password(request):
 
 
 def home(request):
-	products = Product.objects.filter(name__icontains="combo")
+	#products = Product.objects.filter(name__icontains="combo")
+	products = Product.objects.exclude(name__icontains="combo")
 
 	#products = Product.objects.all()
 	return render(request, 'home.html', {
