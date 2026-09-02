@@ -60,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'greenmarv.ttclid_middleware.TTClidCaptureMiddleware',
 ]
 
 ROOT_URLCONF = 'marvel.urls'
@@ -77,6 +78,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'cart.context_processors.cart',
                 'cart.context_processors.free_shipping',
+                'greenmarv.context_processors.tiktok_settings',
+                'greenmarv.context_processors.user_pixel_data',
             ],
         },
     },
@@ -209,6 +212,10 @@ SMS_CLIENT_ID = os.getenv('SMS_CLIENT_ID')
 SITE_URL = 'https://greenmarvel.co.za'
 LOGIN_URL = 'login'
 
+TIKTOK_PIXEL_ID = os.environ.get('TIKTOK_PIXEL_ID', '')
+TIKTOK_ACCESS_TOKEN = os.environ.get('TIKTOK_ACCESS_TOKEN', '')
+#TIKTOK_TEST_EVENT_CODE = os.environ.get('TIKTOK_TEST_EVENT_CODE', '')  
+
 
 LOGGING = {
     'version': 1,
@@ -223,3 +230,4 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+

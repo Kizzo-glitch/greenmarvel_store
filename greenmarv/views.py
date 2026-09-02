@@ -22,6 +22,7 @@ from django.core.exceptions import ValidationError
 
 
 
+
 # ============================================================
 # REGISTER USER
 # ============================================================
@@ -176,50 +177,6 @@ def login_user(request):
 
 	else:
 		return render(request, 'login.html', {})
-
-
-def register_user2(request):
-	if request.method == 'POST':
-		form = SignUpForm(request.POST)
-		if form.is_valid():
-			form.save()
-			username = form.cleaned_data['username']
-			password = form.cleaned_data['password1']
-
-			user = authenticate(username=username, password=password)
-			login(request, user)
-			messages.success(request, 'You have created your Username Successfully - Please complete the form below')
-			return redirect('update_info')
-		else:
-			messages.error(request, 'Oops, there was a problem registering. Please correct the errors below.')
-			return render(request, 'register.html', {'form': form})  
-	else:
-		form = SignUpForm()
-		return render(request, 'register.html', {'form': form})
-
-def update_info2(request):
-	if request.user.is_authenticated:
-		# Get Current User
-		current_user = Profile.objects.get(user__id=request.user.id)
-		# Get Current User's Shipping Info
-		shipping_user = ShippingAddress.objects.get(user__id=request.user.id)
-		
-		# Get original User Form
-		form = UserInfoForm(request.POST or None, instance=current_user)
-		# Get User's Shipping Form
-		shipping_form = ShippingForm(request.POST or None, instance=shipping_user)		
-		if form.is_valid() or shipping_form.is_valid():
-			# Save original form
-			form.save()
-			# Save shipping form
-			shipping_form.save()
-
-			messages.success(request, "Your Info Has Been Updated!!")
-			return redirect('shop')
-		return render(request, "update_info.html", {'form':form, 'shipping_form':shipping_form})
-	else:
-		messages.success(request, "You Must Be Logged In To Access That Page!!")
-		return redirect('home')
 
 
 def update_user(request):

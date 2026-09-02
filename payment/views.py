@@ -26,6 +26,7 @@ from .forms import ShippingForm, PaymentForm
 from .models import ShippingAddress, Order, OrderItem, PayfastPayment, CourierGuy
 from .utils import send_sms_smsportal, get_shipping_rates
 from greenmarv.models import Product, Profile, DiscountCode, Influencer
+from greenmarv.tiktok_events_api import track_complete_payment
 
 from .shipping_calculator import (
     get_shipping_options,
@@ -1007,6 +1008,13 @@ def payment_notify(request):
 			send_admin_order_alert_sms(order)
  
 			logger.info(f"Order {order_id} confirmed as paid")
+			try:
+				track_complete_payment(order, request=request)
+			except Exception as e:
+				# Log but don't raise — payment must succeed regardless
+				logger.error(f"TikTok event tracking failed for order #{order.id}: {e}")
+			
+			return HttpResponse(status=200)
  
 	elif payment_status == 'CANCELLED':
 		order.status = 'cancelled'
