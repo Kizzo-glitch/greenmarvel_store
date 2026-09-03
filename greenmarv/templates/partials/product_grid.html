@@ -253,9 +253,351 @@
     }
 </style>
 
-
+{# ============================================================ #}
+{# PRODUCT GRID SCRIPTS — shared between home + shop            #}
+{# Cleaned up, unified, with TikTok events + modal preserved    #}
+{# ============================================================ #}
 
 <script>
+    // ================================================
+    // MODAL STATE (globals — accessed by HTML onclick)
+    // ================================================
+    let currentProductId = null;
+    let currentProductName = null;
+    let currentProductPrice = 0;
+    let currentQuantity = 1;
+
+    // ================================================
+    // HELPERS
+    // ================================================
+    function getCsrfToken() {
+        // Prefer form field if present, fall back to cookie
+        const field = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (field) return field.value;
+        const match = document.cookie.match(/csrftoken=([^;]+)/);
+        return match ? match[1] : '';
+    }
+
+    function updateCartBadges(newQty) {
+        // Handles both new [data-cart-badge] and legacy #cartCount / #cart_quantity
+        const selector = '[data-cart-badge], #cartCount, #cart_quantity';
+        document.querySelectorAll(selector).forEach(badge => {
+            badge.textContent = newQty;
+            badge.classList.add('cart-badge-pulse');
+            badge.style.display = 'inline-block';
+            setTimeout(() => badge.classList.remove('cart-badge-pulse'), 400);
+        });
+        // Keep the legacy global in sync if it exists
+        if (typeof cartCount !== 'undefined') cartCount = newQty;
+    }
+
+    function showNotification(productName, quantity) {
+        const notification = document.getElementById('notification');
+        if (!notification) return;
+        const strong = notification.querySelector('strong');
+        const para = notification.querySelector('p');
+        if (strong) strong.textContent = `${productName} added!`;
+        if (para) para.textContent = quantity > 1 ? `${quantity} items added` : 'Added to cart';
+        notification.classList.add('show');
+        setTimeout(() => notification.classList.remove('show'), 3000);
+    }
+
+    // ================================================
+    // ADD TO CART — unified handler (grid + modal)
+    // ================================================
+    function addProductToCart(product, quantity, buttonEl) {
+        if (!product || !product.id) {
+            console.error('addProductToCart: missing product data');
+            return;
+        }
+
+        const originalHTML = buttonEl ? buttonEl.innerHTML : '';
+
+        // Loading state
+        if (buttonEl) {
+            buttonEl.disabled = true;
+            buttonEl.innerHTML = '⏳ Adding...';
+            buttonEl.style.opacity = '0.7';
+        }
+
+        fetch('{% url "cart_add" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCsrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: new URLSearchParams({
+                product_id: product.id,
+                product_qty: quantity,
+                action: 'post',
+                csrfmiddlewaretoken: getCsrfToken(),
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Success state — matches product_detail button UI
+            if (buttonEl) {
+                buttonEl.innerHTML = '✅ Added!';
+                buttonEl.style.opacity = '1';
+                buttonEl.style.background = 'linear-gradient(135deg, #c5a059, #d4b374)';
+                buttonEl.style.color = '#1b3022';
+            }
+
+            // Update all cart badges
+            if (data.qty !== undefined) {
+                updateCartBadges(data.qty);
+            }
+
+            // Notification bubble (existing behaviour)
+            showNotification(product.name, quantity);
+
+            // Fire TikTok AddToCart event
+            if (window.TT) {
+                TT.addToCart(product, quantity);
+            }
+
+            // Restore button after 2s
+            if (buttonEl) {
+                setTimeout(() => {
+                    buttonEl.innerHTML = originalHTML;
+                    buttonEl.disabled = false;
+                    buttonEl.style.background = '';
+                    buttonEl.style.color = '';
+                }, 2000);
+            }
+        })
+        .catch(error => {
+            console.error('Add to cart error:', error);
+            if (buttonEl) {
+                buttonEl.innerHTML = '⚠️ Try again';
+                buttonEl.style.opacity = '1';
+                setTimeout(() => {
+                    buttonEl.innerHTML = originalHTML;
+                    buttonEl.disabled = false;
+                }, 2500);
+            } else {
+                alert('Something went wrong. Please try again.');
+            }
+        });
+    }
+
+    // ================================================
+    // SHARE FUNCTIONALITY
+    // ================================================
+    async function shareProduct(button) {
+        const url = button.dataset.shareUrl;
+        const name = button.dataset.shareName;
+        const shareText = `Check out ${name} from Marvelously Green`;
+
+        // Try native share first (mobile share sheet)
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: name + ' — Marvelously Green',
+                    text: shareText,
+                    url: url,
+                });
+                return;
+            } catch (err) {
+                // User cancelled — fall through to clipboard
+                if (err.name === 'AbortError') return;
+            }
+        }
+
+        // Fallback: copy to clipboard
+        try {
+            await navigator.clipboard.writeText(url);
+            showShareToast('✅ Link copied — paste anywhere to share');
+        } catch (err) {
+            showShareToast('⚠️ Copy failed — please copy the URL from your browser');
+        }
+    }
+
+    function showShareToast(message) {
+        let toast = document.getElementById('shareToastGlobal');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'shareToastGlobal';
+            toast.className = 'share-toast-global';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        requestAnimationFrame(() => toast.classList.add('visible'));
+        setTimeout(() => toast.classList.remove('visible'), 2500);
+    }
+
+    // ================================================
+    // MODAL — full behaviour preserved
+    // ================================================
+    function openProductModal(button) {
+        const modal = document.getElementById('productModal');
+        const d = button.dataset;
+
+        currentProductId = d.productId;
+        currentProductName = d.productName;
+        currentProductPrice = parseFloat(d.productPrice) || 0;
+        currentQuantity = 1;
+
+        document.getElementById('quantityValue').textContent = '1';
+        document.getElementById('modalProductTitle').textContent = d.productName;
+        document.getElementById('modalProductSubtitle').textContent = d.productSubtitle || 'Premium Hair Care';
+        document.getElementById('modalProductDescription').textContent = d.productDescription || '';
+        document.getElementById('modalProductImage').src = d.productImage;
+        document.getElementById('modalProductImage').alt = d.productName;
+        document.getElementById('modalBadge').textContent = d.productBadge || '100% Organic';
+
+        const priceContainer = document.getElementById('modalPriceContainer');
+        if (d.productIsSale === 'True') {
+            priceContainer.innerHTML = `
+                <span class="modal-price sale">R${d.productSalePrice}</span>
+                <span class="modal-original-price">R${d.productPrice}</span>
+                <span class="modal-sale-badge">SALE</span>
+            `;
+        } else {
+            priceContainer.innerHTML = `<span class="modal-price">R${d.productPrice}</span>`;
+        }
+
+        const featuresContainer = document.getElementById('modalFeatures');
+        featuresContainer.innerHTML = '';
+        [d.productTag1, d.productTag2, d.productTag3].forEach(tag => {
+            if (tag && tag.trim()) {
+                const span = document.createElement('span');
+                span.className = 'modal-feature-tag';
+                span.textContent = tag;
+                featuresContainer.appendChild(span);
+            }
+        });
+
+        document.getElementById('modalIngredients').innerHTML =
+            d.productIngredients && d.productIngredients.trim() ? d.productIngredients : '<div class="empty-content">Coming soon.</div>';
+        document.getElementById('modalBenefits').innerHTML =
+            d.productBenefits && d.productBenefits.trim() ? d.productBenefits : '<div class="empty-content">Coming soon.</div>';
+        document.getElementById('modalUse').innerHTML =
+            d.productUse && d.productUse.trim() ? d.productUse : '<div class="empty-content">Coming soon.</div>';
+
+        document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelector('.modal-tab').classList.add('active');
+        document.getElementById('tab-ingredients').classList.add('active');
+
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+
+        // Fire TikTok ViewContent — opening the modal is a product view
+        if (window.TT) {
+            TT.viewContent({
+                id: currentProductId,
+                name: currentProductName,
+                price: currentProductPrice,
+                category: 'Hair Care',
+            });
+        }
+    }
+
+    function closeProductModal() {
+        const modal = document.getElementById('productModal');
+        if (!modal) return;
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+        currentProductId = null;
+    }
+
+    function closeModalOnOverlay(event) {
+        if (event.target.id === 'productModal') closeProductModal();
+    }
+
+    function switchTab(tabName, button) {
+        document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById('tab-' + tabName).classList.add('active');
+    }
+
+    function changeQuantity(delta) {
+        currentQuantity = Math.max(1, Math.min(99, currentQuantity + delta));
+        document.getElementById('quantityValue').textContent = currentQuantity;
+    }
+
+    function modalAddToCart() {
+        if (!currentProductId) return;
+        const btn = document.getElementById('modal-add-cart-btn');
+        addProductToCart(
+            {
+                id: currentProductId,
+                name: currentProductName,
+                price: currentProductPrice,
+            },
+            currentQuantity,
+            btn
+        );
+    }
+
+    // ================================================
+    // EVENT WIRING — after DOM is ready
+    // ================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add-to-cart buttons on cards + quick-add (unified selector)
+        document.querySelectorAll('.card-add-cart, .quick-add-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                addProductToCart(
+                    {
+                        id: this.dataset.productId,
+                        name: this.dataset.productName,
+                        price: parseFloat(this.dataset.productPrice) || 0,
+                    },
+                    1,
+                    this
+                );
+            });
+        });
+
+        // Escape key closes modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeProductModal();
+            }
+        });
+    });
+</script>
+
+<style>
+    /* Cart badge pulse — same class used by product_detail */
+    .cart-badge-pulse {
+        animation: cartBadgePulse 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes cartBadgePulse {
+        0%   { transform: scale(1); }
+        50%  { transform: scale(1.4); }
+        100% { transform: scale(1); }
+    }
+
+    /* Share toast — used by showShareToast() */
+    .share-toast-global {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: linear-gradient(135deg, #2d5016, #4CAF50);
+        color: #fcf8ef;
+        padding: 0.9rem 1.75rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 9999;
+        pointer-events: none;
+    }
+    .share-toast-global.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+</style>
+
+<!--<script>
     let currentProductId = null;
     let currentProductName = null;
     let currentQuantity = 1;
@@ -501,4 +843,4 @@
         addProductToCart(currentProductId, currentProductName, currentQuantity, currentProductPrice, btn);
     }
     
-</script>
+</script>-->
