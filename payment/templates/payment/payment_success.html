@@ -436,43 +436,43 @@
 </script>
 
 
-
-        <!-- Header-->
-        <!--<header class="bg-dark py-5">
-            <div class="container px-4 px-lg-5 my-5">
-                <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">Payment Notification</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">Your Payment was successful</p>
-                </div>
-            </div>
-        </header>
-
-        <br/><br/>
- 
-
-        <div class="container">
-            <div class="row">
-                <center>
-                    <div class="col-8">
-                        <br/><br/>
-                        <div class="alert alert-info mt-3">
-                            <p>Thank you for your purchase!</p>
-                            <p>Your order has been confirmed.</p>
-                        </div>
-
-                        <a href="{% url 'order_history' %}" class="btn btn-primary">View Order History</a>
-                                                           
-                        <br/><br/>
-                        <br/><br/>
-                    </div>
-                </center>
-            </div>
-        </div>
     
-    <br/><br/>
-    <br/><br>
-    <br/><br>-->
+{% block scripts %}
+{{ block.super }}
+ 
+{% if order_is_paid %}
+ 
+<script id="tiktok-order-data" type="application/json">
+    {{ tiktok_order_json|safe }}
+</script>
+ 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Refresh protection — users often refresh confirmation pages
+        const orderKey = 'tt_fired_order_{{ order.id }}';
+        if (sessionStorage.getItem(orderKey)) {
+            return;
+        }
+        
+        if (window.TT) {
+            try {
+                const orderData = JSON.parse(
+                    document.getElementById('tiktok-order-data').textContent
+                );
+                
+                // Pass the shared event_id so client + server events dedupe
+                TT.completePayment(orderData, { event_id: '{{ tiktok_event_id }}' });
+                
+                sessionStorage.setItem(orderKey, '1');
+            } catch (err) {
+                console.error('[TikTok] CompletePayment error:', err);
+            }
+        }
+    });
+</script>
+ 
+{% endif %}
+{% endblock %}
+  
    
-
-
-  {% endblock %}
+{% endblock %}

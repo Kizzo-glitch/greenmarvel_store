@@ -36,9 +36,12 @@
                 <button class="quick-add-btn" 
                         data-product-id="{{ product.id }}" 
                         data-product-name="{{ product.name }}"
+                        data-product-price="{{ product.price }}"
                         onclick="event.stopPropagation();">
                     Quick Add
                 </button>
+
+              
                 
                 {# NEW: Share button next to Quick Add #}
                 <button class="share-icon-btn" 
@@ -86,9 +89,6 @@
                 </button>
             </div>
             
-            {# UPDATED: View Details button now also links to the detail page #}
-            {# You can either keep the modal (JS-based) OR link to the new page. #}
-            {# Recommended: link to the new page (better UX, shareable URLs) #}
             <button class="view-details-btn" 
                         data-product-id="{{ product.id }}"
                         data-product-name="{{ product.name }}"
@@ -254,6 +254,7 @@
 </style>
 
 
+
 <script>
     let currentProductId = null;
     let currentProductName = null;
@@ -266,7 +267,7 @@
         return token ? token.value : '';
     }
 
-    function addProductToCart(productId, productName, quantity, buttonEl) {
+    function addProductToCart(productId, productName, quantity, buttonEl, productPrice) {
         const originalText = buttonEl ? buttonEl.innerHTML : '';
         if (buttonEl) {
             buttonEl.disabled = true;
@@ -285,11 +286,21 @@
             success: function(json) {
                 updateCartCount(json.qty);
                 showNotification(productName, quantity);
+                
+                // NEW: Fire TikTok AddToCart event
+                if (window.TT) {
+                    TT.addToCart({
+                        id: productId,
+                        name: productName,
+                        price: productPrice || 0
+                    }, quantity);
+                }
                 if (buttonEl) {
                     buttonEl.disabled = false;
                     buttonEl.innerHTML = originalText;
                 }
             },
+            
             error: function(xhr, errmsg, err) {
                 console.error('Cart error:', errmsg);
                 alert('Something went wrong. Please try again.');
@@ -323,13 +334,13 @@
         document.querySelectorAll('.card-add-cart').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                addProductToCart(this.dataset.productId, this.dataset.productName, 1, this);
+                addProductToCart(this.dataset.productId, this.dataset.productName, 1, this.dataset.productPrice, this);
             });
         });
         document.querySelectorAll('.quick-add-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                addProductToCart(this.dataset.productId, this.dataset.productName, 1, this);
+                addProductToCart(this.dataset.productId, this.dataset.productName, 1, this.dataset.productPrice, this);
             });
         });
     });
@@ -406,6 +417,7 @@
 
         currentProductId = d.productId;
         currentProductName = d.productName;
+        currentProductPrice = d.productPrice;
         currentQuantity = 1;
         document.getElementById('quantityValue').textContent = '1';
 
@@ -486,7 +498,7 @@
     function modalAddToCart() {
         if (!currentProductId) return;
         const btn = document.getElementById('modal-add-cart-btn');
-        addProductToCart(currentProductId, currentProductName, currentQuantity, btn);
+        addProductToCart(currentProductId, currentProductName, currentQuantity, currentProductPrice, btn);
     }
     
 </script>

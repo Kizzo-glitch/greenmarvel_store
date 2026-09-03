@@ -194,7 +194,8 @@
 <!-- ============================================ -->
 <!-- PRODUCT DETAIL MODAL -->
 <!-- ============================================ -->
-<div class="modal-overlay" id="productModal" onclick="closeModalOnOverlay(event)">
+ 
+<!--<div class="modal-overlay" id="productModal" onclick="closeModalOnOverlay(event)">
     <div class="modal-content">
         <button class="modal-close" onclick="closeProductModal()">&times;</button>
         <div class="modal-body">
@@ -266,7 +267,7 @@
             </div>
         </div>
     </div>
-</div>
+</div>-->
 
 <style>
     /* ============================================ */
@@ -731,7 +732,7 @@
     // ============================================
     // CART AJAX
     // ============================================
-    function getCSRFToken() {
+    /*function getCSRFToken() {
         const token = document.querySelector('[name=csrfmiddlewaretoken]');
         return token ? token.value : '';
     }
@@ -954,7 +955,7 @@
         } else {
             grid.classList.remove('list-view');
         }
-    }
+    }*/
 </script>
 
 {% endblock %}

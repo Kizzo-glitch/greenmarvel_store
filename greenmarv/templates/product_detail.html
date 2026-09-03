@@ -778,4 +778,19 @@
     });
 </script>
 
+{% block scripts %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.TT) {
+            TT.viewContent({
+                id: {{ product.id }},
+                name: "{{ product.name|escapejs }}",
+                price: {{ product.price }},
+                category: 'Hair Care'
+            });
+        }
+    });
+</script>
+
 {% endblock %}

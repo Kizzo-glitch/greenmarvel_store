@@ -29,11 +29,11 @@ from greenmarv.models import Product, Profile, DiscountCode, Influencer
 from greenmarv.tiktok_events_api import track_complete_payment
 
 from .shipping_calculator import (
-    get_shipping_options,
-    calculate_parcel_weight,
-    get_pickup_points,
-    get_pickup_point,
-    FREE_SHIPPING_THRESHOLD,
+	get_shipping_options,
+	calculate_parcel_weight,
+	get_pickup_points,
+	get_pickup_point,
+	FREE_SHIPPING_THRESHOLD,
 	SHIPPING_RATES, PROVINCE_ZONES, PICKUP_POINTS,
 )
 
@@ -132,127 +132,147 @@ def _save_shipping_to_session(request, cleaned_data):
 
 
 def billing_info(request):
-    shipping_info = request.session.get('shipping_info')
-    if not shipping_info:
-        messages.warning(request, "Please complete your shipping details first.")
-        return redirect('checkout')
-    
-    cart = Cart(request)
-    cart_products = cart.get_prods()
-    quantities = cart.get_quants()
-    
-    base_total = cart.cart_total()
-    total_after_discount = Decimal(
-        request.session.get('total_after_discount', str(base_total))
-    )
-    
-    total_weight_kg = calculate_parcel_weight(cart_products, quantities)
-    
-    # ============================================
-    # POST: customer clicked "Pay Now"
-    # ============================================
-    if request.method == "POST":
-        selected_code = request.POST.get('selected_service_code', '').strip()
-        selected_price = request.POST.get('selected_price', '0')
-        selected_service = request.POST.get('selected_service_name', '').strip()
-        pickup_point_code = request.POST.get('pickup_point', '').strip()
-        terms_accepted = request.POST.get('terms')
-        
-        # Validation
-        valid_codes = ('collection', 'economy', 'standard', 'express')
-        if selected_code not in valid_codes:
-            messages.error(request, "Please select a valid shipping option.")
-        elif selected_code == 'collection' and not pickup_point_code:
-            messages.error(request, "Please choose a pickup point for collection.")
-        elif selected_code == 'collection' and not get_pickup_point(pickup_point_code):
-            messages.error(request, "Invalid pickup point selected.")
-        elif not terms_accepted:
-            messages.error(request, "Please accept the Terms of Service to continue.")
-        else:
-            # All good — save to session
-            try:
-                price_decimal = Decimal(selected_price)
-            except (TypeError, ValueError):
-                price_decimal = Decimal('0')
-            
-            request.session['shipping_service_code'] = selected_code
-            request.session['shipping_cost'] = str(price_decimal)
-            request.session['shipping_service_name'] = selected_service
-            
-            # Save pickup point if collection
-            if selected_code == 'collection':
-                request.session['pickup_point_code'] = pickup_point_code
-                request.session['pickup_point_details'] = get_pickup_point(pickup_point_code)
-            else:
-                # Clear any previous pickup point data (in case they switched from collection)
-                request.session.pop('pickup_point_code', None)
-                request.session.pop('pickup_point_details', None)
-            
-            return redirect('process_order')
-    
-    # ============================================
-    # GET: render the form
-    # ============================================
-    province = shipping_info.get('shipping_province') or shipping_info.get('province') or ''
-    
-    raw_options = get_shipping_options(
-        province=province,
-        weight_kg=total_weight_kg,
-        order_total=total_after_discount,
-    )
-    
-    # Adapt to template format
-    rates = []
-    for opt in raw_options:
-        rates.append({
-            'service_code':    opt['service_code'],
-            'service_level':   opt['service_name'],
-            'service_name':    opt['service_name'],
-            'rate':            opt['price'],
-            'description':     opt['description'],
-            'subtext':         opt['subtext'],
-            'icon':            opt['icon'],
-            'is_free':         opt['is_free'],
-            'is_collection':   opt['is_collection'],
-            'is_cheapest':     opt['is_cheapest'],
-            'is_fastest':      opt['is_fastest'],
-            'is_recommended':  opt['is_recommended'],
-        })
-    
-    # Default to recommended option (Collection for Gauteng, Economy otherwise)
-    selected_service_code = request.session.get('shipping_service_code')
-    if not selected_service_code or selected_service_code not in [r['service_code'] for r in rates]:
-        # Find the recommended option
-        recommended = next((r for r in rates if r['is_recommended']), rates[0] if rates else None)
-        selected_service_code = recommended['service_code'] if recommended else 'economy'
-    
-    # Look up the price for the currently-selected service
-    shipping_cost = Decimal('0')
-    for r in rates:
-        if r['service_code'] == selected_service_code:
-            shipping_cost = r['rate']
-            r['is_selected'] = True
-        else:
-            r['is_selected'] = False
-    
-    total_with_shipping = total_after_discount + shipping_cost
-    
-    # Restore previously-selected pickup point if any
-    selected_pickup_code = request.session.get('pickup_point_code', '')
-    
-    return render(request, 'payment/billing_info.html', {
-        'cart_products':         cart_products,
-        'quantities':            quantities,
-        'shipping_info':         shipping_info,
-        'rates':                 rates,
-        'totals':                total_after_discount,
-        'shipping_cost':         shipping_cost,
-        'total_with_shipping':   total_with_shipping,
-        'selected_service_code': selected_service_code,
-        'pickup_points':         get_pickup_points(),
-        'selected_pickup_code':  selected_pickup_code,
-        'free_shipping_threshold': FREE_SHIPPING_THRESHOLD,
-    })
+	shipping_info = request.session.get('shipping_info')
+	if not shipping_info:
+		messages.warning(request, "Please complete your shipping details first.")
+		return redirect('checkout')
+	
+	cart = Cart(request)
+	cart_products = cart.get_prods()
+	quantities = cart.get_quants()
+	
+	base_total = cart.cart_total()
+	total_after_discount = Decimal(
+		request.session.get('total_after_discount', str(base_total))
+	)
+	
+	total_weight_kg = calculate_parcel_weight(cart_products, quantities)
+	
+	# ============================================
+	# POST: customer clicked "Pay Now"
+	# ============================================
+	if request.method == "POST":
+		selected_code = request.POST.get('selected_service_code', '').strip()
+		selected_price = request.POST.get('selected_price', '0')
+		selected_service = request.POST.get('selected_service_name', '').strip()
+		pickup_point_code = request.POST.get('pickup_point', '').strip()
+		terms_accepted = request.POST.get('terms')
+		
+		# Validation
+		valid_codes = ('collection', 'economy', 'standard', 'express')
+		if selected_code not in valid_codes:
+			messages.error(request, "Please select a valid shipping option.")
+		elif selected_code == 'collection' and not pickup_point_code:
+			messages.error(request, "Please choose a pickup point for collection.")
+		elif selected_code == 'collection' and not get_pickup_point(pickup_point_code):
+			messages.error(request, "Invalid pickup point selected.")
+		elif not terms_accepted:
+			messages.error(request, "Please accept the Terms of Service to continue.")
+		else:
+			# All good — save to session
+			try:
+				price_decimal = Decimal(selected_price)
+			except (TypeError, ValueError):
+				price_decimal = Decimal('0')
+			
+			request.session['shipping_service_code'] = selected_code
+			request.session['shipping_cost'] = str(price_decimal)
+			request.session['shipping_service_name'] = selected_service
+			
+			# Save pickup point if collection
+			if selected_code == 'collection':
+				request.session['pickup_point_code'] = pickup_point_code
+				request.session['pickup_point_details'] = get_pickup_point(pickup_point_code)
+			else:
+				# Clear any previous pickup point data (in case they switched from collection)
+				request.session.pop('pickup_point_code', None)
+				request.session.pop('pickup_point_details', None)
+			
+			return redirect('process_order')
+	
+	# ============================================
+	# GET: render the form
+	# ============================================
+	province = shipping_info.get('shipping_province') or shipping_info.get('province') or ''
+	
+	raw_options = get_shipping_options(
+		province=province,
+		weight_kg=total_weight_kg,
+		order_total=total_after_discount,
+	)
+	
+	# Adapt to template format
+	rates = []
+	for opt in raw_options:
+		rates.append({
+			'service_code':    opt['service_code'],
+			'service_level':   opt['service_name'],
+			'service_name':    opt['service_name'],
+			'rate':            opt['price'],
+			'description':     opt['description'],
+			'subtext':         opt['subtext'],
+			'icon':            opt['icon'],
+			'is_free':         opt['is_free'],
+			'is_collection':   opt['is_collection'],
+			'is_cheapest':     opt['is_cheapest'],
+			'is_fastest':      opt['is_fastest'],
+			'is_recommended':  opt['is_recommended'],
+		})
+	
+	# Default to recommended option (Collection for Gauteng, Economy otherwise)
+	selected_service_code = request.session.get('shipping_service_code')
+	if not selected_service_code or selected_service_code not in [r['service_code'] for r in rates]:
+		# Find the recommended option
+		recommended = next((r for r in rates if r['is_recommended']), rates[0] if rates else None)
+		selected_service_code = recommended['service_code'] if recommended else 'economy'
+	
+	# Look up the price for the currently-selected service
+	shipping_cost = Decimal('0')
+	for r in rates:
+		if r['service_code'] == selected_service_code:
+			shipping_cost = r['rate']
+			r['is_selected'] = True
+		else:
+			r['is_selected'] = False
+	
+	total_with_shipping = total_after_discount + shipping_cost
+	
+	# Restore previously-selected pickup point if any
+	selected_pickup_code = request.session.get('pickup_point_code', '')
+
+	import json
+
+	# Build TikTok cart data from your existing cart_products and quantities
+	tiktok_cart = {
+		'items': [
+			{
+				'id': product.id,
+				'name': product.name,
+				'price': float(product.price),
+				'quantity': int(quantities().get(str(product.id), 1)),
+			}
+			for product in cart_products()
+		],
+		'total': float(total_after_discount),
+	}
+
+	# Add to context
+	tiktok_cart_json = json.dumps(tiktok_cart)
+	
+	return render(request, 'payment/billing_info.html', {
+		'cart_products':         cart_products,
+		'quantities':            quantities,
+		'shipping_info':         shipping_info,
+		'rates':                 rates,
+		'totals':                total_after_discount,
+		'shipping_cost':         shipping_cost,
+		'total_with_shipping':   total_with_shipping,
+		'selected_service_code': selected_service_code,
+		'pickup_points':         get_pickup_points(),
+		'selected_pickup_code':  selected_pickup_code,
+		'free_shipping_threshold': FREE_SHIPPING_THRESHOLD,
+		'tiktok_cart_json':      tiktok_cart_json,
+	})
  
 
 
@@ -459,7 +479,7 @@ def process_order(request):
 		shipping_actual_cost=actual_courier_cost,
 
 		# Pickup point (only filled if collection)
-    	pickup_point_code=pickup_point_code,
+		pickup_point_code=pickup_point_code,
 	)
 	
 	# Create OrderItem records for each cart line
@@ -487,7 +507,7 @@ def process_order(request):
 	payfast_data = {
 		'merchant_id':       settings.PAYFAST_MERCHANT_ID,
 		'merchant_key':      settings.PAYFAST_MERCHANT_KEY,
-		'return_url':        site_url + reverse('payment_success'),
+		'return_url':        site_url + reverse('payment_success', kwargs={'order_id': order.id}),
 		'cancel_url':        site_url + reverse('payment_cancel'),
 		'notify_url':        site_url + reverse('payment_notify'),
 		'name_first':        shipping_info.get('shipping_full_name', '').split(' ')[0][:100],
@@ -1035,11 +1055,67 @@ def payment_notify(request):
 # PAYMENT SUCCESS / CANCEL — user-facing landing pages
 # These DON'T change order status (that's the webhook's job)
 # ================================================================
-def payment_success(request):
-	"""User lands here after successful Payfast payment. Display-only."""
-	return render(request, 'payment/payment_success.html')
  
+def payment_success(request, order_id):
+    """
+    User lands here after successful Payfast payment. Display-only.
+    Renders the confirmation page and fires the TikTok CompletePayment event.
+    """
+    # ---- Fetch order (404 on bad IDs instead of 500) ----
+    order = get_object_or_404(Order, id=order_id)
  
+    # ---- Security: verify order belongs to current user OR current session ----
+    is_authorised = False
+    if request.user.is_authenticated and order.user_id == request.user.id:
+        is_authorised = True
+    elif order.session_key and order.session_key == request.session.session_key:
+        is_authorised = True
+ 
+    if not is_authorised:
+        messages.error(request, "Order not found.")
+        return redirect('home')
+ 
+    # ---- Only fire TikTok event for actually paid orders ----
+    # This prevents CompletePayment firing if someone hits the URL for a
+    # pending/failed order (edge case, but worth guarding against)
+    PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
+    order_is_paid = order.status in PAID_STATUSES
+ 
+    # ---- Build TikTok CompletePayment payload ----
+    tiktok_items = []
+    for item in order.orderitem_set.all():
+        try:
+            tiktok_items.append({
+                'id': item.product.id,
+                'name': item.product.name,
+                'price': float(item.price),
+                'quantity': int(item.quantity),
+            })
+        except AttributeError:
+            # Guards against item.product being None (product deleted after order)
+            continue
+ 
+    tiktok_order = {
+        'id': order.id,
+        'items': tiktok_items,
+        'total': float(order.amount_paid or 0),
+    }
+ 
+    # ---- Event ID for client/server dedup ----
+    # If your Payfast webhook already fires CompletePayment server-side, this
+    # stable order-based ID lets TikTok dedupe. Uses order.id so refreshing
+    # the page or hitting via webhook + browser all produce the same event_id.
+    tiktok_event_id = f'order_{order.id}'
+ 
+    context = {
+        'order': order,
+        'order_is_paid': order_is_paid,
+        'tiktok_order_json': json.dumps(tiktok_order),
+        'tiktok_event_id': tiktok_event_id,
+    }
+    return render(request, 'payment/payment_success.html', context)
+
+
 def payment_cancel(request):
 	"""User lands here if they cancel at Payfast."""
 	return render(request, 'payment/payment_cancel.html')
@@ -1569,54 +1645,54 @@ def order_history(request):
 
 
 def track_order(request):
-    # Read from GET (prefilled link) or POST (form submission)
-    order_id = (request.GET.get('order_id') or request.POST.get('order_id') or '').strip()
-    email = (request.GET.get('email') or request.POST.get('email') or '').strip().lower()
-    
-    order = None
-    error = None
-    
-    # ============================================
-    # Only attempt lookup if we have BOTH inputs
-    # ============================================
-    if order_id and email:
-        try:
-            # Coerce order_id to int (URL params are strings)
-            order_id_int = int(order_id)
-        except (ValueError, TypeError):
-            error = "Order number must be a number."
-        else:
-            try:
-                # Match on both order_id AND email — prevents random lookups
-                # by people who don't own the order
-                order = Order.objects.get(
-                    id=order_id_int,
-                    email__iexact=email,
-                )
-            except Order.DoesNotExist:
-                error = (
-                    "We couldn't find an order matching that order number "
-                    "and email. Please check your details and try again."
-                )
-    
-    # ============================================
-    # If user provided ONLY one of the two fields
-    # ============================================
-    elif order_id and not email:
-        error = "Please enter the email address used at checkout."
-    elif email and not order_id:
-        error = "Please enter your order number."
-    # else: both empty → no error (initial form view)
-    
-    # ============================================
-    # ALWAYS return a response (this is what fixes the bug)
-    # ============================================
-    return render(request, 'payment/track_order.html', {
-        'order': order,
-        'order_id_input': order_id,
-        'email_input': email,
-        'error': error,
-    })
+	# Read from GET (prefilled link) or POST (form submission)
+	order_id = (request.GET.get('order_id') or request.POST.get('order_id') or '').strip()
+	email = (request.GET.get('email') or request.POST.get('email') or '').strip().lower()
+	
+	order = None
+	error = None
+	
+	# ============================================
+	# Only attempt lookup if we have BOTH inputs
+	# ============================================
+	if order_id and email:
+		try:
+			# Coerce order_id to int (URL params are strings)
+			order_id_int = int(order_id)
+		except (ValueError, TypeError):
+			error = "Order number must be a number."
+		else:
+			try:
+				# Match on both order_id AND email — prevents random lookups
+				# by people who don't own the order
+				order = Order.objects.get(
+					id=order_id_int,
+					email__iexact=email,
+				)
+			except Order.DoesNotExist:
+				error = (
+					"We couldn't find an order matching that order number "
+					"and email. Please check your details and try again."
+				)
+	
+	# ============================================
+	# If user provided ONLY one of the two fields
+	# ============================================
+	elif order_id and not email:
+		error = "Please enter the email address used at checkout."
+	elif email and not order_id:
+		error = "Please enter your order number."
+	# else: both empty → no error (initial form view)
+	
+	# ============================================
+	# ALWAYS return a response (this is what fixes the bug)
+	# ============================================
+	return render(request, 'payment/track_order.html', {
+		'order': order,
+		'order_id_input': order_id,
+		'email_input': email,
+		'error': error,
+	})
 
 
 
@@ -1625,145 +1701,145 @@ def track_order(request):
 # Shared helper
 # ================================================================
 def _update_order_status(order, new_status):
-    """
-    Update order status + auto-set the corresponding date field.
-    Returns True if updated successfully.
-    """
-    valid_statuses = dict(Order.STATUS_CHOICES).keys()
-    if new_status not in valid_statuses:
-        return False
-    
-    now = timezone.now()
-    date_field_map = {
-        'paid':       'date_paid',
-        'dispatched': 'date_dispatched',
-        'in_transit': 'date_in_transit',
-        'delivered':  'date_delivered',
-        'collected':  'date_collected',
-    }
-    shipped_states = ('dispatched', 'in_transit', 'delivered', 'collected')
-    
-    updates = {
-        'status':  new_status,
-        'shipped': new_status in shipped_states,
-    }
-    
-    date_field = date_field_map.get(new_status)
-    if date_field and not getattr(order, date_field):
-        updates[date_field] = now
-    
-    # Legacy date_shipped — populated on first transition to dispatched
-    if new_status == 'dispatched' and not order.date_shipped:
-        updates['date_shipped'] = now
-    
-    Order.objects.filter(id=order.id).update(**updates)
-    return True
+	"""
+	Update order status + auto-set the corresponding date field.
+	Returns True if updated successfully.
+	"""
+	valid_statuses = dict(Order.STATUS_CHOICES).keys()
+	if new_status not in valid_statuses:
+		return False
+	
+	now = timezone.now()
+	date_field_map = {
+		'paid':       'date_paid',
+		'dispatched': 'date_dispatched',
+		'in_transit': 'date_in_transit',
+		'delivered':  'date_delivered',
+		'collected':  'date_collected',
+	}
+	shipped_states = ('dispatched', 'in_transit', 'delivered', 'collected')
+	
+	updates = {
+		'status':  new_status,
+		'shipped': new_status in shipped_states,
+	}
+	
+	date_field = date_field_map.get(new_status)
+	if date_field and not getattr(order, date_field):
+		updates[date_field] = now
+	
+	# Legacy date_shipped — populated on first transition to dispatched
+	if new_status == 'dispatched' and not order.date_shipped:
+		updates['date_shipped'] = now
+	
+	Order.objects.filter(id=order.id).update(**updates)
+	return True
 
 
 # ================================================================
 # Order detail view — full status control
 # ================================================================
 def orders_admin(request, pk):
-    if not (request.user.is_authenticated and request.user.is_superuser):
-        messages.error(request, "Access Denied")
-        return redirect('home')
-    
-    order = get_object_or_404(Order, id=pk)
-    items = OrderItem.objects.filter(order=pk)
-    
-    if request.method == 'POST':
-        new_status = request.POST.get('new_status', '').strip()
-        
-        if not new_status:
-            messages.error(request, "Please select a status.")
-        elif _update_order_status(order, new_status):
-            status_label = dict(Order.STATUS_CHOICES).get(new_status, new_status)
-            messages.success(request, f"Order #{order.id} marked as {status_label}.")
-            return redirect('orders_admin', pk=pk)
-        else:
-            messages.error(request, "Invalid status.")
-    
-    order.refresh_from_db()
-    
-    return render(request, 'payment/orders_admin.html', {
-        'order':           order,
-        'items':           items,
-        'status_choices':  Order.STATUS_CHOICES,
-        'next_statuses':   order.get_next_valid_statuses(),
-        'next_suggestion': order.get_next_status_suggestion(),
-    })
+	if not (request.user.is_authenticated and request.user.is_superuser):
+		messages.error(request, "Access Denied")
+		return redirect('home')
+	
+	order = get_object_or_404(Order, id=pk)
+	items = OrderItem.objects.filter(order=pk)
+	
+	if request.method == 'POST':
+		new_status = request.POST.get('new_status', '').strip()
+		
+		if not new_status:
+			messages.error(request, "Please select a status.")
+		elif _update_order_status(order, new_status):
+			status_label = dict(Order.STATUS_CHOICES).get(new_status, new_status)
+			messages.success(request, f"Order #{order.id} marked as {status_label}.")
+			return redirect('orders_admin', pk=pk)
+		else:
+			messages.error(request, "Invalid status.")
+	
+	order.refresh_from_db()
+	
+	return render(request, 'payment/orders_admin.html', {
+		'order':           order,
+		'items':           items,
+		'status_choices':  Order.STATUS_CHOICES,
+		'next_statuses':   order.get_next_valid_statuses(),
+		'next_suggestion': order.get_next_status_suggestion(),
+	})
 
 
 # ================================================================
 # NOT SHIPPED dashboard — paid orders awaiting dispatch
 # ================================================================
 def not_shipped_dash(request):
-    if not (request.user.is_authenticated and request.user.is_superuser):
-        messages.error(request, "Access Denied")
-        return redirect('home')
-    
-    # Show all PAID orders that haven't moved into shipped/delivered/collected yet
-    orders = Order.objects.filter(status='paid').order_by('-date_ordered')
-    
-    if request.method == 'POST':
-        order_id = request.POST.get('num')
-        try:
-            order = Order.objects.get(id=order_id)
-            # Default action: mark as dispatched (most common operation)
-            if _update_order_status(order, 'dispatched'):
-                messages.success(request, f"Order #{order_id} marked as Dispatched.")
-        except Order.DoesNotExist:
-            messages.error(request, f"Order #{order_id} not found.")
-        
-        return redirect('not_shipped_dash')
-    
-    return render(request, 'payment/not_shipped_dash.html', {'orders': orders})
+	if not (request.user.is_authenticated and request.user.is_superuser):
+		messages.error(request, "Access Denied")
+		return redirect('home')
+	
+	# Show all PAID orders that haven't moved into shipped/delivered/collected yet
+	orders = Order.objects.filter(status='paid').order_by('-date_ordered')
+	
+	if request.method == 'POST':
+		order_id = request.POST.get('num')
+		try:
+			order = Order.objects.get(id=order_id)
+			# Default action: mark as dispatched (most common operation)
+			if _update_order_status(order, 'dispatched'):
+				messages.success(request, f"Order #{order_id} marked as Dispatched.")
+		except Order.DoesNotExist:
+			messages.error(request, f"Order #{order_id} not found.")
+		
+		return redirect('not_shipped_dash')
+	
+	return render(request, 'payment/not_shipped_dash.html', {'orders': orders})
 
 
 # ================================================================
 # SHIPPED dashboard — anything past 'paid'
 # ================================================================
 def shipped_dash(request):
-    if not (request.user.is_authenticated and request.user.is_superuser):
-        messages.error(request, "Access Denied")
-        return redirect('home')
-    
-    # Show everything that's been dispatched onwards
-    orders = Order.objects.filter(
-        status__in=['dispatched', 'in_transit', 'delivered', 'collected']
-    ).order_by('-date_dispatched')
-    
-    if request.method == 'POST':
-        order_id = request.POST.get('num')
-        action = request.POST.get('action', 'advance')
-        
-        try:
-            order = Order.objects.get(id=order_id)
-            
-            if action == 'advance':
-                # Advance to the next stage in the lifecycle
-                next_status = order.get_next_status_suggestion()
-                if next_status and _update_order_status(order, next_status):
-                    status_label = dict(Order.STATUS_CHOICES).get(next_status, next_status)
-                    messages.success(request, f"Order #{order_id} → {status_label}.")
-                else:
-                    messages.info(request, f"Order #{order_id} is already complete.")
-            
-            elif action == 'revert':
-                # Move back one stage (in case of mistake)
-                revert_map = {
-                    'delivered':  'in_transit',
-                    'in_transit': 'dispatched',
-                    'dispatched': 'paid',
-                    'collected':  'dispatched',
-                }
-                revert_to = revert_map.get(order.status)
-                if revert_to and _update_order_status(order, revert_to):
-                    messages.success(request, f"Order #{order_id} reverted to {revert_to}.")
-        
-        except Order.DoesNotExist:
-            messages.error(request, f"Order #{order_id} not found.")
-        
-        return redirect('shipped_dash')
-    
-    return render(request, 'payment/shipped_dash.html', {'orders': orders})
+	if not (request.user.is_authenticated and request.user.is_superuser):
+		messages.error(request, "Access Denied")
+		return redirect('home')
+	
+	# Show everything that's been dispatched onwards
+	orders = Order.objects.filter(
+		status__in=['dispatched', 'in_transit', 'delivered', 'collected']
+	).order_by('-date_dispatched')
+	
+	if request.method == 'POST':
+		order_id = request.POST.get('num')
+		action = request.POST.get('action', 'advance')
+		
+		try:
+			order = Order.objects.get(id=order_id)
+			
+			if action == 'advance':
+				# Advance to the next stage in the lifecycle
+				next_status = order.get_next_status_suggestion()
+				if next_status and _update_order_status(order, next_status):
+					status_label = dict(Order.STATUS_CHOICES).get(next_status, next_status)
+					messages.success(request, f"Order #{order_id} → {status_label}.")
+				else:
+					messages.info(request, f"Order #{order_id} is already complete.")
+			
+			elif action == 'revert':
+				# Move back one stage (in case of mistake)
+				revert_map = {
+					'delivered':  'in_transit',
+					'in_transit': 'dispatched',
+					'dispatched': 'paid',
+					'collected':  'dispatched',
+				}
+				revert_to = revert_map.get(order.status)
+				if revert_to and _update_order_status(order, revert_to):
+					messages.success(request, f"Order #{order_id} reverted to {revert_to}.")
+		
+		except Order.DoesNotExist:
+			messages.error(request, f"Order #{order_id} not found.")
+		
+		return redirect('shipped_dash')
+	
+	return render(request, 'payment/shipped_dash.html', {'orders': orders})

@@ -1582,4 +1582,28 @@
     })();
 </script>
 
+{% block scripts %}
+{{ block.super }}
+<script id="tiktok-cart-data" type="application/json">
+    {{ tiktok_cart_json|safe }}
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Find your billing form — adjust selector to match yours
+        const billingForm = document.querySelector('form[method="post"]');
+        if (!billingForm) return;
+        
+        billingForm.addEventListener('submit', function(e) {
+            if (window.TT) {
+                const cartData = JSON.parse(
+                    document.getElementById('tiktok-cart-data').textContent
+                );
+                TT.addPaymentInfo(cartData);
+            }
+            // Form continues to submit normally — don't preventDefault
+        });
+    });
+</script>
+{% endblock %}
+
 {% endblock %}

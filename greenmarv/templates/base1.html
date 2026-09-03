@@ -74,6 +74,9 @@
 		  gtag('js', new Date());
 		  gtag('config', 'G-FNT0H9V61Y');
 		</script>
+
+ 
+        <script src="{% static 'landing/js/tiktok_events.js' %}" defer></script>
     
     
     
@@ -272,6 +275,7 @@
     </defs>
     </svg>
 
+
 <script>
         window.addEventListener('scroll', () => {
             const header = document.getElementById('header');
@@ -282,7 +286,7 @@
             }
         });
 
-        function addToCart(productName, price) {
+        /*function addToCart(productName, price) {
             cartCount++;
             document.getElementById('cartCount').textContent = cartCount;
             
@@ -293,7 +297,7 @@
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
-        }
+        }*/
 
         function scrollToProducts() {
             document.getElementById('shop').scrollIntoView({ behavior: 'smooth' });

@@ -63,8 +63,8 @@ class Order(models.Model):
 		('paid',            'Paid'),
 		('dispatched',      'Dispatched'),       
 		('in_transit',      'In Transit'),       
-		('delivered',       'Delivered'),        # NEW
-		('collected',       'Collected'),        # NEW (for pickup orders)
+		('delivered',       'Delivered'),        
+		('collected',       'Collected'),        
 		('cancelled',       'Cancelled'),
 		('failed',          'Failed'),
 	]
@@ -234,6 +234,8 @@ class Order(models.Model):
 	def __str__(self):
 		return f'Order - {str(self.id)}'
 
+
+
 # Auto Add shipping Date
 @receiver(pre_save, sender=Order)
 def set_shipped_date_on_update(sender, instance, **kwargs):
@@ -242,6 +244,8 @@ def set_shipped_date_on_update(sender, instance, **kwargs):
 		obj = sender._default_manager.get(pk=instance.pk)
 		if instance.shipped and not obj.shipped:
 			instance.date_shipped = now
+
+
 
 class OrderItem(models.Model):
 	# Foreign Keys

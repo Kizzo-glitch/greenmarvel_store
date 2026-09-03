@@ -1051,4 +1051,23 @@
     });
 </script>
 
+{% block scripts %}
+{{ block.super }}
+<script id="tiktok-cart-data" type="application/json">
+    {{ tiktok_cart_json|safe }}
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.TT) {
+            const cartData = JSON.parse(
+                document.getElementById('tiktok-cart-data').textContent
+            );
+            if (cartData.items && cartData.items.length > 0) {
+                TT.initiateCheckout(cartData);
+            }
+        }
+    });
+</script>
+{% endblock %}
+
 {% endblock %}
