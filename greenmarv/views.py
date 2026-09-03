@@ -22,7 +22,8 @@ from django.core.exceptions import ValidationError
 
 import hashlib
 import logging
-from .tiktok_events_api import track_complete_payment
+
+from .tiktok_events_api import _send_event, build_user_data_from_request
  
 logger = logging.getLogger(__name__)
 
@@ -350,7 +351,7 @@ def newsletter_subscribe(request):
     })
  
 
- 
+''' 
 @csrf_protect
 @require_POST
 def tiktok_track(request):
@@ -402,13 +403,12 @@ def tiktok_track(request):
     # Forward to TikTok Events API using your existing helper
     # Adjust the function name to match your existing helper in tiktok_events_api.py
     try:
-        
-        track_complete_payment(
-            event_name=event_name,
-            event_data=event_data,
-            event_id=event_id,
-            user_data=user_data,
-        )
+        _send_event(
+			event_name=event_name,
+			event_id=event_id,
+			properties=properties,
+			user_data=user_data,
+		)
     except ImportError:
         logger.warning(
             "TikTok Events API helper not found — event %s not forwarded server-side",
@@ -420,8 +420,79 @@ def tiktok_track(request):
  
     return JsonResponse({'ok': True})
  
- 
+ '''
 
+
+# ================================================================
+# tiktok_track view — the /tiktok/track/ endpoint
+# ================================================================
+# Called by tiktok_events.js from the browser after every client-side
+# event fires. Forwards the event to TikTok Events API server-side
+# with the same event_id so TikTok can dedupe.
+#
+# Add to whichever views.py makes sense (probably store or checkout).
+# ================================================================
+
+@csrf_protect
+@require_POST
+def tiktok_track(request):
+    """
+    Generic client-side event forwarder.
+    Called by tiktok_events.js after every browser-side event fires.
+    """
+    try:
+        payload = json.loads(request.body)
+    except (ValueError, json.JSONDecodeError):
+        return JsonResponse({'error': 'invalid JSON'}, status=400)
+
+    event_name = payload.get('event')
+    event_id = payload.get('event_id')
+    event_data = payload.get('data', {})
+
+    if not event_name or not event_id:
+        return JsonResponse({'error': 'missing event or event_id'}, status=400)
+
+    # Skip CompletePayment — the Payfast webhook handles it exclusively
+    # to avoid double-firing with a different event_id format
+    if event_name == 'CompletePayment':
+        return JsonResponse({'ok': True, 'skipped': 'handled by webhook'})
+
+    # Build user_data from the request (IP, UA, cookies, session)
+    user_data = build_user_data_from_request(request)
+
+    # Convert client-side payload into TikTok Events API properties format
+    # tiktok_events.js sends: { contents: [...], value, currency, content_type }
+    # TikTok Events API expects the same structure
+    properties = {
+        "contents":     event_data.get('contents', []),
+        "value":        event_data.get('value', 0),
+        "currency":     event_data.get('currency', 'ZAR'),
+        "content_type": event_data.get('content_type', 'product'),
+    }
+    # Pass through order_id if present (unusual for browser events but safe)
+    if 'order_id' in event_data:
+        properties['order_id'] = event_data['order_id']
+
+    _send_event(
+        event_name=event_name,
+        event_id=event_id,
+        properties=properties,
+        user_data=user_data,
+    )
+
+    return JsonResponse({'ok': True})
+
+
+# ============================================================
+# ADD TO urls.py
+# ============================================================
+# from django.urls import path
+# from . import views
+#
+# urlpatterns = [
+#     # ... your existing URLs ...
+#     path('tiktok/track/', views.tiktok_track, name='tiktok_track'),
+# ]
 
 # ================================================================
 # Legal Pages

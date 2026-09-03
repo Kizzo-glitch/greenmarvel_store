@@ -681,7 +681,7 @@ def payment_success(request, order_id):
     # If your Payfast webhook already fires CompletePayment server-side, this
     # stable order-based ID lets TikTok dedupe. Uses order.id so refreshing
     # the page or hitting via webhook + browser all produce the same event_id.
-    tiktok_event_id = f'order_{order.id}'
+    tiktok_event_id = f'purchase_{order.id}'
  
     context = {
         'order': order,

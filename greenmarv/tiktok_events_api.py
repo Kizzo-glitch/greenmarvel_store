@@ -1,4 +1,234 @@
+# ================================================================
+# tiktok_events_api.py — REFACTORED
+# ================================================================
+# Adds a generic _send_event() helper that both:
+#   - track_complete_payment() (server-fired from webhook)
+#   - tiktok_track view (browser-fired from tiktok_events.js)
+# can use, so we don't duplicate the HTTP call code.
+# ================================================================
 
+import hashlib
+import logging
+import requests
+import time
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+TIKTOK_API_URL = "https://business-api.tiktok.com/open_api/v1.3/event/track/"
+
+
+# ============================================================
+# HASHING HELPERS (unchanged from your original)
+# ============================================================
+def _hash(value):
+    """SHA-256 hash a string, normalized (lowercased, trimmed)."""
+    if not value:
+        return None
+    return hashlib.sha256(str(value).strip().lower().encode('utf-8')).hexdigest()
+
+
+def _normalize_phone(raw_phone):
+    """Normalize SA phone to E.164 (+27...) for consistent hashing."""
+    if not raw_phone:
+        return None
+    digits = ''.join(c for c in str(raw_phone) if c.isdigit())
+    if not digits:
+        return None
+    if digits.startswith('0') and len(digits) == 10:
+        return '+27' + digits[1:]
+    if len(digits) == 9:
+        return '+27' + digits
+    if str(raw_phone).strip().startswith('+'):
+        return '+' + digits
+    return '+' + digits
+
+
+def _get_client_ip(request):
+    """Extract the real client IP, accounting for proxy headers."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '')
+
+
+# ============================================================
+# NEW: Build user_data from a request (used by tiktok_track view)
+# ============================================================
+def build_user_data_from_request(request):
+    """
+    Build a TikTok user_data dict from a Django request.
+    Used when firing events for anonymous/authenticated browsers
+    (as opposed to server-side webhook events tied to a specific Order).
+    """
+    user_data = {}
+
+    # IP + UA
+    user_data["ip"] = _get_client_ip(request)
+    user_data["user_agent"] = request.META.get('HTTP_USER_AGENT', '')[:500]
+
+    # TikTok click ID + browser cookie (essential for match quality)
+    ttclid = request.COOKIES.get('ttclid') or request.session.get('ttclid')
+    if ttclid:
+        user_data["ttclid"] = ttclid
+
+    ttp = request.COOKIES.get('_ttp')
+    if ttp:
+        user_data["ttp"] = ttp
+
+    # If authenticated, add hashed identifiers for stronger matching
+    if request.user.is_authenticated:
+        user_data["external_id"] = [_hash(str(request.user.id))]
+        if request.user.email:
+            user_data["em"] = [_hash(request.user.email)]
+
+    return {k: v for k, v in user_data.items() if v}
+
+
+# ============================================================
+# NEW: Low-level HTTP call — one implementation, many callers
+# ============================================================
+def _send_event(event_name, event_id, properties, user_data, event_time=None):
+    """
+    Post a single event to TikTok Events API.
+    Callers: track_complete_payment (webhook), tiktok_track (browser).
+    
+    Returns True if TikTok accepted the event, False otherwise.
+    """
+    if not getattr(settings, 'TIKTOK_ACCESS_TOKEN', None):
+        logger.warning("TIKTOK_ACCESS_TOKEN not configured — skipping %s", event_name)
+        return False
+
+    event_payload = {
+        "event":      event_name,
+        "event_time": event_time or int(time.time()),
+        "event_id":   event_id,
+        "user":       user_data,
+        "properties": properties,
+        "page": {
+            "url": getattr(settings, 'SITE_URL', 'https://greenmarvel.co.za'),
+        },
+    }
+
+    request_body = {
+        "event_source":    "web",
+        "event_source_id": settings.TIKTOK_PIXEL_ID,
+        "data":            [event_payload],
+    }
+
+    test_code = getattr(settings, 'TIKTOK_TEST_EVENT_CODE', '')
+    if test_code:
+        request_body["test_event_code"] = test_code
+
+    headers = {
+        "Access-Token": settings.TIKTOK_ACCESS_TOKEN,
+        "Content-Type": "application/json",
+    }
+
+    try:
+        response = requests.post(
+            TIKTOK_API_URL,
+            json=request_body,
+            headers=headers,
+            timeout=10,
+        )
+        result = response.json()
+
+        if response.status_code == 200 and result.get('code') == 0:
+            logger.info(
+                "TikTok %s sent: event_id=%s",
+                event_name, event_id
+            )
+            return True
+        else:
+            logger.error(
+                "TikTok API error for %s (event_id=%s): status=%s, response=%s",
+                event_name, event_id, response.status_code, result
+            )
+            return False
+
+    except requests.exceptions.Timeout:
+        logger.error("TikTok API timeout for %s (event_id=%s)", event_name, event_id)
+        return False
+    except Exception as e:
+        logger.error("TikTok API exception for %s (event_id=%s): %s", event_name, event_id, e)
+        return False
+
+
+# ============================================================
+# CompletePayment — now uses _send_event() internally
+# ============================================================
+def track_complete_payment(order, request=None):
+    """
+    Fire CompletePayment to TikTok Events API for a paid order.
+    Call from payment_notify (Payfast ITN handler) after order.status='paid'.
+    """
+    if order.status != 'paid':
+        logger.warning(
+            "Order %s status is '%s', not 'paid' — skipping CompletePayment",
+            order.id, order.status
+        )
+        return False
+
+    # Build order-specific user_data (hashed PII for Advanced Matching)
+    user_data = {
+        "em": [_hash(order.email)] if order.email else [],
+        "ph": [_hash(_normalize_phone(order.phone))] if order.phone else [],
+        "external_id": [_hash(str(order.user.id))] if order.user else [],
+    }
+
+    name_parts = (order.full_name or '').strip().split(' ', 1)
+    if name_parts and name_parts[0]:
+        user_data["fn"] = [_hash(name_parts[0])]
+        if len(name_parts) > 1:
+            user_data["ln"] = [_hash(name_parts[1])]
+
+    if request:
+        user_data["ip"] = _get_client_ip(request)
+        user_data["user_agent"] = request.META.get('HTTP_USER_AGENT', '')[:500]
+
+        ttclid = request.COOKIES.get('ttclid') or request.session.get('ttclid')
+        if ttclid:
+            user_data["ttclid"] = ttclid
+        ttp = request.COOKIES.get('_ttp')
+        if ttp:
+            user_data["ttp"] = ttp
+
+    user_data = {k: v for k, v in user_data.items() if v}
+
+    # Build contents from order line items
+    contents = []
+    try:
+        for item in order.orderitem_set.all():
+            try:
+                contents.append({
+                    "content_id":   str(item.product.id),
+                    "content_type": "product",
+                    "content_name": item.product.name,
+                    "price":        float(item.price),
+                    "quantity":     int(item.quantity),
+                })
+            except AttributeError:
+                # Skip if item.product is None (deleted product)
+                continue
+    except Exception as e:
+        logger.error("Error building contents for order %s: %s", order.id, e)
+
+    properties = {
+        "contents": contents,
+        "value":    float(order.amount_paid),
+        "currency": "ZAR",
+        "order_id": str(order.id),
+    }
+
+    return _send_event(
+        event_name="CompletePayment",
+        event_id=f"purchase_{order.id}",  # Must match the browser pixel
+        properties=properties,
+        user_data=user_data,
+    )
+
+'''
 import hashlib
 import logging
 import requests
@@ -193,3 +423,4 @@ def _get_client_ip(request):
         # First IP in the chain is the real client
         return x_forwarded_for.split(',')[0].strip()
     return request.META.get('REMOTE_ADDR', '')
+'''
