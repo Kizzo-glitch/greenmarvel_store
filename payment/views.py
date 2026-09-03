@@ -1250,7 +1250,169 @@ def generate_signature(dataArray, passPhrase = ''):
 # CUSTOMER VIEW
 # ================================================================
 @login_required
-def order_detail(request, pk):
+def order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+ 
+    # Security: same as payment_success
+    is_authorised = (
+        (request.user.is_authenticated and order.user_id == request.user.id)
+        or (order.session_key and order.session_key == request.session.session_key)
+    )
+    if not is_authorised:
+        messages.error(request, "Order not found.")
+        return redirect('home')
+ 
+    items = order.orderitem_set.all()
+    subtotal = sum(item.price * item.quantity for item in items)
+    shipping_cost = order.shipping_cost or 0
+ 
+    # ============================================
+    # BUILD TIMELINE — different steps per fulfillment type
+    # ============================================
+    if order.status == 'cancelled':
+        timeline = [
+            {
+                'title': 'Order Placed',
+                'description': 'Your order was received',
+                'date': order.date_ordered,
+                'icon': '📝',
+                'completed': True,
+                'active': False,
+                'cancelled': False,
+            },
+            {
+                'title': 'Order Cancelled',
+                'description': 'This order was cancelled. No charges were made.',
+                'date': None,
+                'icon': '❌',
+                'completed': True,
+                'active': False,
+                'cancelled': True,
+            },
+        ]
+    elif order.is_collection:
+        # Collection timeline: Placed → Paid → Processing → Ready → Collected
+        timeline = [
+            {
+                'title': 'Order Placed',
+                'description': 'Your order has been received',
+                'date': order.date_ordered,
+                'icon': '📝',
+                'completed': True,
+                'active': False,
+                'cancelled': False,
+            },
+            {
+                'title': 'Payment Confirmed',
+                'description': "We've received your payment",
+                'date': order.date_paid,
+                'icon': '💳',
+                'completed': bool(order.date_paid),
+                'active': order.status == 'paid' and not order.date_dispatched,
+                'cancelled': False,
+            },
+            {
+                'title': 'Processing',
+                'description': "We're preparing your order for collection",
+                'date': None,
+                'icon': '📦',
+                'completed': bool(order.date_dispatched),
+                'active': (order.status == 'paid'
+                          and not order.date_dispatched
+                          and order.date_paid),
+                'cancelled': False,
+            },
+            {
+                'title': 'Ready for Collection',
+                'description': (
+                    f'Your order is ready at {order.pickup_point["name"]}'
+                    if order.pickup_point else
+                    'Your order is ready to collect'
+                ),
+                'date': order.date_dispatched,
+                'icon': '🏪',
+                'completed': bool(order.date_dispatched),
+                'active': bool(order.date_dispatched) and not order.date_collected,
+                'cancelled': False,
+            },
+            {
+                'title': 'Collected',
+                'description': 'Enjoy your natural beauty products!',
+                'date': order.date_collected,
+                'icon': '💚',
+                'completed': bool(order.date_collected),
+                'active': False,
+                'cancelled': False,
+            },
+        ]
+    else:
+        # Shipping timeline: Placed → Paid → Processing → Shipped → Delivered
+        timeline = [
+            {
+                'title': 'Order Placed',
+                'description': 'Your order has been received',
+                'date': order.date_ordered,
+                'icon': '📝',
+                'completed': True,
+                'active': False,
+                'cancelled': False,
+            },
+            {
+                'title': 'Payment Confirmed',
+                'description': "We've received your payment",
+                'date': order.date_paid,
+                'icon': '💳',
+                'completed': bool(order.date_paid),
+                'active': order.status == 'paid' and not order.date_dispatched,
+                'cancelled': False,
+            },
+            {
+                'title': 'Processing',
+                'description': "We're preparing your order",
+                'date': None,
+                'icon': '📦',
+                'completed': bool(order.date_dispatched),
+                'active': (order.status == 'paid'
+                          and not order.date_dispatched
+                          and order.date_paid),
+                'cancelled': False,
+            },
+            {
+                'title': 'Shipped',
+                'description': (
+                    f'On its way via {order.courier_booked or "courier"}'
+                    if order.date_dispatched else
+                    'Your order is on the way'
+                ),
+                'date': order.date_dispatched,
+                'icon': '🚚',
+                'completed': bool(order.date_dispatched),
+                'active': bool(order.date_dispatched) and not order.date_delivered,
+                'cancelled': False,
+            },
+            {
+                'title': 'Delivered',
+                'description': 'Enjoy your natural beauty products!',
+                'date': order.date_delivered,
+                'icon': '💚',
+                'completed': bool(order.date_delivered),
+                'active': False,
+                'cancelled': False,
+            },
+        ]
+ 
+    context = {
+        'order': order,
+        'items': items,
+        'subtotal': subtotal,
+        'shipping_cost': shipping_cost,
+        'timeline': timeline,
+    }
+    return render(request, 'payment/order_detail.html', context)  # adjust template path
+
+
+@login_required
+def order_detail2(request, pk):
 	"""
 	Customer-facing order detail page.
 	A user can only view their OWN orders. Anyone trying to access

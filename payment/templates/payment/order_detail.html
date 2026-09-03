@@ -14,39 +14,97 @@
 
 <section class="detail-section">
     <div class="detail-container">
-        <!-- Status Banner -->
-        <div class="detail-status-banner {% if order.status == 'paid' and order.shipped %}shipped{% elif order.status == 'paid' %}processing{% elif order.status == 'cancelled' %}cancelled{% endif %}">
+
+        {# ============================================ #}
+        {# STATUS BANNER — dynamic per fulfillment type  #}
+        {# ============================================ #}
+        <div class="detail-status-banner 
+                    {% if order.status == 'cancelled' %}cancelled
+                    {% elif order.is_collection and order.date_collected %}shipped
+                    {% elif order.is_collection and order.date_dispatched %}processing
+                    {% elif order.status == 'paid' and order.shipped %}shipped
+                    {% elif order.status == 'paid' %}processing
+                    {% endif %}">
+
             <div class="status-banner-icon">
-                {% if order.status == 'paid' and order.shipped %}🚚
-                {% elif order.status == 'paid' %}📦
-                {% elif order.status == 'cancelled' %}❌
-                {% else %}⏳{% endif %}
+                {% if order.status == 'cancelled' %}❌
+                {% elif order.is_collection %}
+                    {% if order.date_collected %}💚
+                    {% elif order.date_dispatched %}🏪
+                    {% elif order.status == 'paid' %}📦
+                    {% else %}⏳{% endif %}
+                {% else %}
+                    {% if order.status == 'paid' and order.shipped %}🚚
+                    {% elif order.status == 'paid' %}📦
+                    {% else %}⏳{% endif %}
+                {% endif %}
             </div>
+
             <div class="status-banner-text">
                 <strong>
-                    {% if order.status == 'paid' and order.shipped %}Shipped & on the way
-                    {% elif order.status == 'paid' %}Being processed
-                    {% elif order.status == 'cancelled' %}Order cancelled
-                    {% else %}Pending{% endif %}
+                    {% if order.status == 'cancelled' %}Order cancelled
+                    {% elif order.is_collection %}
+                        {% if order.date_collected %}Collected — thank you!
+                        {% elif order.date_dispatched %}Ready for collection
+                        {% elif order.status == 'paid' %}Being prepared for collection
+                        {% else %}Pending{% endif %}
+                    {% else %}
+                        {% if order.status == 'paid' and order.shipped %}Shipped & on the way
+                        {% elif order.status == 'paid' %}Being processed
+                        {% else %}Pending{% endif %}
+                    {% endif %}
                 </strong>
+
                 <p>
-                    {% if order.status == 'paid' and order.shipped %}Your order is on its way! You'll receive it within 2-5 business days.
-                    {% elif order.status == 'paid' %}We're preparing your organic products with care.
-                    {% elif order.status == 'cancelled' %}This order has been cancelled. No charges were made.
-                    {% else %}Waiting for payment confirmation.{% endif %}
+                    {% if order.status == 'cancelled' %}
+                        This order has been cancelled. No charges were made.
+                    {% elif order.is_collection %}
+                        {% if order.date_collected %}
+                            You've collected your order — we hope you love it!
+                        {% elif order.date_dispatched %}
+                            Your order is ready at 
+                            {% if order.pickup_point %}<strong>{{ order.pickup_point.name }}</strong>{% else %}the pickup point{% endif %}.
+                            Please bring your order number.
+                        {% elif order.status == 'paid' %}
+                            We're preparing your organic products. You'll get an SMS when they're ready to collect.
+                        {% else %}
+                            Waiting for payment confirmation.
+                        {% endif %}
+                    {% else %}
+                        {% if order.status == 'paid' and order.shipped %}
+                            Your order is on its way! You'll receive it within 2-5 business days.
+                        {% elif order.status == 'paid' %}
+                            We're preparing your organic products with care.
+                        {% else %}
+                            Waiting for payment confirmation.
+                        {% endif %}
+                    {% endif %}
                 </p>
             </div>
-            {% if order.status == 'paid' %}
-            <a href="{% url 'track_order' %}?order_id={{ order.id }}&email={{ order.email|urlencode }}" class="btn-track-shipment">
-                🚚 Track Shipment
-            </a>
+
+            {% if order.status == 'paid' and not order.is_collection %}
+                <a href="{% url 'track_order' %}?order_id={{ order.id }}&email={{ order.email|urlencode }}" 
+                   class="btn-track-shipment">
+                    🚚 Track Shipment
+                </a>
+            {% elif order.status == 'paid' and order.is_collection and order.pickup_point %}
+                <a href="https://www.google.com/maps/search/{{ order.pickup_point.address|urlencode }}" 
+                   target="_blank" rel="noopener" 
+                   class="btn-track-shipment">
+                    📍 Get Directions
+                </a>
             {% endif %}
         </div>
 
         <div class="detail-layout">
             <!-- LEFT: Items + Timeline -->
             <div class="detail-main-column">
-                <!-- Timeline -->
+
+                {# ============================================ #}
+                {# ORDER PROGRESS TIMELINE                       #}
+                {# Timeline steps built in the view — see        #}
+                {# order_details_view.py for the exact structure #}
+                {# ============================================ #}
                 <div class="detail-card">
                     <div class="detail-card-header">
                         <h3>📍 Order Progress</h3>
@@ -78,7 +136,7 @@
                     </div>
                 </div>
 
-                <!-- Items -->
+                <!-- Items (unchanged) -->
                 <div class="detail-card">
                     <div class="detail-card-header">
                         <h3>🛍️ Items ({{ items|length }})</h3>
@@ -113,9 +171,256 @@
                 </div>
             </div>
 
-            <!-- RIGHT: Summary + Shipping -->
+            <!-- RIGHT: Summary + Fulfillment -->
             <div class="detail-side-column">
-                <!-- Order summary -->
+
+                {# ============================================ #}
+                {# ORDER SUMMARY — dynamic label for Shipping    #}
+                {# ============================================ #}
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <h3>💰 Order Summary</h3>
+                    </div>
+                    <div class="summary-rows">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span class="value">R{{ subtotal|floatformat:2 }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>
+                                {% if order.is_collection %}Collection{% else %}Shipping{% endif %}
+                            </span>
+                            <span class="value">
+                                {% if shipping_cost > 0 %}R{{ shipping_cost|floatformat:2 }}
+                                {% else %}<span class="free-tag">FREE</span>{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-total">
+                        <span>Total Paid</span>
+                        <span class="total-value">R{{ order.amount_paid }}</span>
+                    </div>
+                </div>
+
+                {# ============================================ #}
+                {# FULFILLMENT CARD — Shipping OR Collection     #}
+                {# ============================================ #}
+                {% if order.is_collection %}
+
+                    <!-- COLLECTION variant -->
+                    <div class="detail-card">
+                        <div class="detail-card-header">
+                            <h3>🏪 Collect From</h3>
+                        </div>
+                        <div class="shipping-details">
+                            {% if order.pickup_point %}
+                                <div class="contact-line">
+                                    <strong>{{ order.pickup_point.name }}</strong>
+                                </div>
+                                <div class="address-block">
+                                    {{ order.pickup_point.address }}
+                                </div>
+                                {% if order.pickup_point.hours %}
+                                    <div class="contact-line">🕐 {{ order.pickup_point.hours }}</div>
+                                {% endif %}
+                                {% if order.pickup_point.phone %}
+                                    <div class="contact-line">📞 {{ order.pickup_point.phone }}</div>
+                                {% endif %}
+                            {% else %}
+                                <div class="contact-line">
+                                    <em>Pickup point details unavailable — contact support.</em>
+                                </div>
+                            {% endif %}
+
+                            <div class="summary-divider" style="margin: 1rem 0;"></div>
+
+                            <div class="contact-line">
+                                <strong>Collection by:</strong> {{ order.full_name }}
+                            </div>
+                            <div class="contact-line">📧 {{ order.email }}</div>
+                            {% if order.phone %}
+                                <div class="contact-line">📞 {{ order.phone }}</div>
+                            {% endif %}
+
+                            <div class="collection-notice" 
+                                 style="margin-top: 1rem; padding: 0.85rem 1rem; 
+                                        background: rgba(197, 160, 89, 0.08); 
+                                        border-left: 3px solid #c5a059; 
+                                        border-radius: 6px;">
+                                <p style="margin: 0; font-size: 0.85rem; color: #2d5016;">
+                                    <strong>💡 When you collect:</strong> Bring this order number
+                                    (<strong>#{{ order.id }}</strong>) and your ID.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                {% else %}
+
+                    <!-- SHIPPING variant (your original) -->
+                    <div class="detail-card">
+                        <div class="detail-card-header">
+                            <h3>📍 Shipping To</h3>
+                        </div>
+                        <div class="shipping-details">
+                            <div class="contact-line">
+                                <strong>{{ order.full_name }}</strong>
+                            </div>
+                            <div class="contact-line">📧 {{ order.email }}</div>
+                            {% if order.phone %}
+                                <div class="contact-line">📞 {{ order.phone }}</div>
+                            {% endif %}
+                            <div class="address-block">
+                                {{ order.shipping_address|linebreaksbr }}
+                            </div>
+                            {% if order.shipping_service_name %}
+                                <div class="contact-line" style="margin-top: 0.75rem;">
+                                    <strong>Service:</strong> {{ order.shipping_service_name }}
+                                </div>
+                            {% endif %}
+                            {% if order.tracking_number %}
+                                <div class="summary-divider" style="margin: 1rem 0;"></div>
+                                <div class="contact-line">
+                                    <strong>Tracking:</strong> {{ order.tracking_number }}
+                                </div>
+                                {% if order.courier_booked %}
+                                    <div class="contact-line" style="font-size: 0.85rem; color: #888;">
+                                        via {{ order.courier_booked }}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                {% endif %}
+
+                <!-- Help (unchanged) -->
+                <div class="help-box">
+                    <h4>Need help?</h4>
+                    <p>Questions about this order? We're here to help.</p>
+                    <a href="mailto:admin@greenmarvel.co.za?subject=Order%20%23{{ order.id }}" class="help-link">
+                        Contact Support →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!--<section class="detail-hero">
+    <div class="detail-hero-container">
+        <a href="{% url 'order_history' %}" class="back-link">← Back to Orders</a>
+        <div class="detail-hero-badge">📋 ORDER DETAILS</div>
+        <h1 class="detail-hero-title">Order <span>#{{ order.id }}</span></h1>
+        <p class="detail-hero-meta">Placed on {{ order.date_ordered|date:"d F Y, H:i" }}</p>
+    </div>
+</section>
+
+<section class="detail-section">
+    <div class="detail-container">
+    
+        <div class="detail-status-banner {% if order.status == 'paid' and order.shipped %}shipped{% elif order.status == 'paid' %}processing{% elif order.status == 'cancelled' %}cancelled{% endif %}">
+            <div class="status-banner-icon">
+                {% if order.status == 'paid' and order.shipped %}🚚
+                {% elif order.status == 'paid' %}📦
+                {% elif order.status == 'cancelled' %}❌
+                {% else %}⏳{% endif %}
+            </div>
+            <div class="status-banner-text">
+                <strong>
+                    {% if order.status == 'paid' and order.shipped %}Shipped & on the way
+                    {% elif order.status == 'paid' %}Being processed
+                    {% elif order.status == 'cancelled' %}Order cancelled
+                    {% else %}Pending{% endif %}
+                </strong>
+                <p>
+                    {% if order.status == 'paid' and order.shipped %}Your order is on its way! You'll receive it within 2-5 business days.
+                    {% elif order.status == 'paid' %}We're preparing your organic products with care.
+                    {% elif order.status == 'cancelled' %}This order has been cancelled. No charges were made.
+                    {% else %}Waiting for payment confirmation.{% endif %}
+                </p>
+            </div>
+            {% if order.status == 'paid' %}
+            <a href="{% url 'track_order' %}?order_id={{ order.id }}&email={{ order.email|urlencode }}" class="btn-track-shipment">
+                🚚 Track Shipment
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="detail-layout">
+            
+            <div class="detail-main-column">
+           
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <h3>📍 Order Progress</h3>
+                    </div>
+                    <div class="timeline">
+                        {% for step in timeline %}
+                        <div class="timeline-step 
+                                    {% if step.completed %}completed{% endif %} 
+                                    {% if step.active %}active{% endif %}
+                                    {% if step.cancelled %}cancelled-step{% endif %}">
+                            <div class="timeline-marker">
+                                {% if step.completed and not step.cancelled %}
+                                    <span class="marker-check">✓</span>
+                                {% elif step.cancelled %}
+                                    <span class="marker-x">✕</span>
+                                {% else %}
+                                    <span class="marker-icon">{{ step.icon }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="timeline-content">
+                                <h4>{{ step.title }}</h4>
+                                <p>{{ step.description }}</p>
+                                {% if step.date %}
+                                    <span class="timeline-date">{{ step.date|date:"d M Y, H:i" }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+       
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <h3>🛍️ Items ({{ items|length }})</h3>
+                    </div>
+                    <div class="items-list">
+                        {% for item in items %}
+                        <div class="detail-item">
+                            <div class="detail-item-image">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                                {% else %}
+                                    <div class="item-placeholder">🌿</div>
+                                {% endif %}
+                            </div>
+                            <div class="detail-item-info">
+                                <h4>{{ item.product.name }}</h4>
+                                {% if item.product.subtitle %}
+                                    <p class="detail-item-subtitle">{{ item.product.subtitle }}</p>
+                                {% endif %}
+                                <div class="detail-item-meta">
+                                    <span class="meta-badge">Qty: {{ item.quantity }}</span>
+                                    <span class="meta-badge price">R{{ item.price }} each</span>
+                                </div>
+                            </div>
+                            <div class="detail-item-total">
+                                <div class="total-label">Subtotal</div>
+                                <div class="total-amount">R{{ item.price|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+           
+            <div class="detail-side-column">
+      
                 <div class="detail-card">
                     <div class="detail-card-header">
                         <h3>💰 Order Summary</h3>
@@ -140,7 +445,7 @@
                     </div>
                 </div>
 
-                <!-- Shipping address -->
+          
                 <div class="detail-card">
                     <div class="detail-card-header">
                         <h3>📍 Shipping To</h3>
@@ -159,7 +464,6 @@
                     </div>
                 </div>
 
-                <!-- Help -->
                 <div class="help-box">
                     <h4>Need help?</h4>
                     <p>Questions about this order? We're here to help.</p>
@@ -170,7 +474,7 @@
             </div>
         </div>
     </div>
-</section>
+</section>-->
 
 <style>
     /* HERO */

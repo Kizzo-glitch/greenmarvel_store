@@ -23,7 +23,7 @@ urlpatterns = [
     path('order-history/', views.order_history, name='order_history'),
     path('track-order/', views.track_order, name='track_order'),
     #path('track-order/<int:order_id>/', views.track_order, name='track_order'),
-    path('orders/<int:pk>/', views.order_detail, name='order_detail'),
+    path('orders/<int:order_id>/', views.order_detail, name='order_detail'),
     
     #path('upload_payment/', views.upload_payment, name="upload_payment"),
 ]

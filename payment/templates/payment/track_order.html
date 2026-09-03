@@ -2,17 +2,371 @@
 {% load static %}
 
 {% block content %}
+
 <section class="track-section">
     <div class="track-container">
 
-        <!-- HEADER -->
+        {# ============================================ #}
+        {# HEADER — dynamic when an order is loaded     #}
+        {# ============================================ #}
+        <div class="track-header">
+            <div class="track-icon">
+                {% if order and order.is_collection %}🏪{% else %}📦{% endif %}
+            </div>
+            <h1>
+                {% if order and order.is_collection %}
+                    Track Your Collection
+                {% else %}
+                    Track Your Order
+                {% endif %}
+            </h1>
+            <p>
+                {% if order and order.is_collection %}
+                    Here's the status of your collection order.
+                {% elif order %}
+                    Here's the status of your delivery.
+                {% else %}
+                    Enter your order number and email to see the status of your order.
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- LOOKUP FORM (unchanged) -->
+        {% if not order %}
+        <div class="track-card">
+            <form method="get" class="track-form">
+                <div class="form-group">
+                    <label for="order_id">Order Number</label>
+                    <input type="text"
+                           id="order_id"
+                           name="order_id"
+                           value="{{ order_id_input|default:'' }}"
+                           placeholder="e.g. 1234"
+                           required
+                           pattern="[0-9]+"
+                           autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           value="{{ email_input|default:'' }}"
+                           placeholder="The email you used at checkout"
+                           required>
+                </div>
+                {% if error %}
+                <div class="track-error">
+                    <span class="track-error-icon">⚠</span>
+                    {{ error }}
+                </div>
+                {% endif %}
+                <button type="submit" class="track-submit-btn">
+                    Track Order →
+                </button>
+            </form>
+            <div class="track-help">
+                <p>Your order number was emailed to you after checkout. Can't find it?</p>
+                <a href="mailto:admin@greenmarvel.co.za">Email us for help</a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ORDER DETAILS (if found) -->
+        {% if order %}
+        <div class="track-card order-details-card">
+            <div class="order-header">
+                <div>
+                    <h2>Order #{{ order.id }}</h2>
+                    <p class="order-date">Placed on {{ order.date_ordered|date:"d M Y" }}</p>
+                </div>
+                <div class="order-status-pill status-{{ order.status }}">
+                    {% if order.status == 'paid' %}
+                        ✓ PAID
+                    {% elif order.status == 'pending_payment' %}
+                        ⏳ AWAITING PAYMENT
+                    {% elif order.status == 'cancelled' %}
+                        ✕ CANCELLED
+                    {% else %}
+                        {{ order.status|upper }}
+                    {% endif %}
+                </div>
+            </div>
+
+            {# ============================================ #}
+            {# DELIVERY PROGRESS (unchanged — uses          #}
+            {# order.get_progress_step + get_progress_labels #}
+            {# which should already handle both cases)       #}
+            {# ============================================ #}
+            <div class="delivery-progress">
+                {% with progress_step=order.get_progress_step %}
+                {% with progress_labels=order.get_progress_labels %}
+                
+                {# Step 1 #}
+                <div class="progress-step {% if progress_step >= 1 %}completed{% endif %} {% if progress_step == 1 %}active{% endif %}">
+                    <div class="step-icon">
+                        {% if progress_step > 1 %}✓{% else %}1{% endif %}
+                    </div>
+                    <div class="step-label">{{ progress_labels.0.0 }}</div>
+                </div>
+                <div class="progress-line {% if progress_step >= 2 %}completed{% endif %}"></div>
+                
+                {# Step 2 #}
+                <div class="progress-step {% if progress_step >= 2 %}completed{% endif %} {% if progress_step == 2 %}active{% endif %}">
+                    <div class="step-icon">
+                        {% if progress_step > 2 %}✓{% elif progress_step == 2 %}📦{% else %}2{% endif %}
+                    </div>
+                    <div class="step-label">{{ progress_labels.1.0 }}</div>
+                </div>
+                <div class="progress-line {% if progress_step >= 3 %}completed{% endif %}"></div>
+                
+                {# Step 3 — icon dynamic per fulfillment type #}
+                <div class="progress-step {% if progress_step >= 3 %}completed{% endif %} {% if progress_step == 3 %}active{% endif %}">
+                    <div class="step-icon">
+                        {% if progress_step > 3 %}
+                            ✓
+                        {% elif progress_step == 3 %}
+                            {% if order.is_collection %}🏪{% else %}🚚{% endif %}
+                        {% else %}
+                            3
+                        {% endif %}
+                    </div>
+                    <div class="step-label">{{ progress_labels.2.0 }}</div>
+                </div>
+                <div class="progress-line {% if progress_step >= 4 %}completed{% endif %}"></div>
+                
+                {# Step 4 #}
+                <div class="progress-step {% if progress_step >= 4 %}completed{% endif %}">
+                    <div class="step-icon">
+                        {% if progress_step >= 4 %}🎉{% else %}4{% endif %}
+                    </div>
+                    <div class="step-label">{{ progress_labels.3.0 }}</div>
+                </div>
+                
+                {% endwith %}
+                {% endwith %}
+            </div>
+
+            {# ============================================ #}
+            {# COURIER / COLLECTION DETAILS                 #}
+            {# Section heading now dynamic; content already #}
+            {# split by fulfillment in your original.       #}
+            {# ============================================ #}
+            {% if order.status != 'pending_payment' %}
+            <div class="courier-info">
+                <h3>
+                    {% if order.is_collection %}
+                        🏪 Collection Details
+                    {% else %}
+                        📨 Shipping Details
+                    {% endif %}
+                </h3>
+                
+                {# Collection orders: show pickup point + ready status #}
+                {% if order.is_collection %}
+                <div class="courier-grid">
+                    <div class="courier-row">
+                        <span class="courier-label">Pickup Location</span>
+                        <span class="courier-value">
+                            {% if order.pickup_point_code == 'office' %}
+                                <strong>Marvelously Green Office</strong><br>
+                                <small>620 Park Street, Arcadia, Pretoria</small>
+                            {% elif order.pickup_point_code == 'rrk_pharmacy' %}
+                                <strong>RRK Pharmacy</strong><br>
+                                <small>Shop 0006, Apollo Centre, 210 Du Toit St, Arcadia</small>
+                            {% else %}
+                                <em>Pickup point not yet assigned</em>
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if order.date_dispatched %}
+                    <div class="courier-row">
+                        <span class="courier-label">Ready for Collection</span>
+                        <span class="courier-value">{{ order.date_dispatched|date:"d M Y, H:i" }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if order.date_collected %}
+                    <div class="courier-row">
+                        <span class="courier-label">Collected</span>
+                        <span class="courier-value">{{ order.date_collected|date:"d M Y, H:i" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if order.status == 'dispatched' or order.status == 'in_transit' %}
+                <p class="tracking-note">
+                    🎉 Your order is ready! Please bring your order number (<strong>#{{ order.id }}</strong>) and ID when you come to collect.
+                </p>
+                {% elif order.status == 'collected' %}
+                <p class="tracking-note collected-note">
+                    ✅ Order successfully collected. Thank you for choosing Marvelously Green!
+                </p>
+                {% endif %}
+                
+                {# Courier orders (unchanged from your original) #}
+                {% else %}
+                <div class="courier-grid">
+                    {% if order.courier_booked %}
+                    <div class="courier-row">
+                        <span class="courier-label">Courier</span>
+                        <span class="courier-value"><strong>{{ order.courier_booked }}</strong></span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if order.tracking_number %}
+                    <div class="courier-row">
+                        <span class="courier-label">Tracking Number</span>
+                        <span class="courier-value tracking-num">{{ order.tracking_number }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if order.shipping_service_name %}
+                    <div class="courier-row">
+                        <span class="courier-label">Service</span>
+                        <span class="courier-value">{{ order.shipping_service_name }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if order.date_dispatched %}
+                    <div class="courier-row">
+                        <span class="courier-label">Dispatched</span>
+                        <span class="courier-value">{{ order.date_dispatched|date:"d M Y, H:i" }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if order.date_in_transit %}
+                    <div class="courier-row">
+                        <span class="courier-label">In Transit Since</span>
+                        <span class="courier-value">{{ order.date_in_transit|date:"d M Y, H:i" }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if order.date_delivered %}
+                    <div class="courier-row">
+                        <span class="courier-label">Delivered</span>
+                        <span class="courier-value">{{ order.date_delivered|date:"d M Y, H:i" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if order.status == 'dispatched' %}
+                <p class="tracking-note">
+                    📦 Your order has been handed to the courier. Tracking details will be active shortly.
+                </p>
+                {% elif order.status == 'in_transit' %}
+                <p class="tracking-note">
+                    🚚 Your parcel is on its way! Track it directly with {{ order.courier_booked|default:"the courier" }} using the tracking number above.
+                </p>
+                {% elif order.status == 'delivered' %}
+                <p class="tracking-note delivered-note">
+                    🎉 Delivered! We hope you love your products. If anything's not right, please get in touch.
+                </p>
+                {% endif %}
+                {% endif %}
+            </div>
+             
+            {% else %}
+            {# Pending payment — show waiting message (unchanged) #}
+            <div class="not-yet-shipped">
+                <span class="not-yet-icon">⏳</span>
+                <p>
+                    We're waiting for payment confirmation. Once confirmed, your order will be prepared for 
+                    {% if order.is_collection %}collection{% else %}dispatch{% endif %}.
+                </p>
+            </div>
+            {% endif %}
+
+            {# ============================================ #}
+            {# ORDER SUMMARY — dynamic Shipping label       #}
+            {# ============================================ #}
+            <div class="order-summary-section">
+                <h3>📋 Order Summary</h3>
+                <div class="summary-rows">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>R{{ order.amount_paid|floatformat:2 }}</span>
+                    </div>
+                    {% if order.shipping_cost %}
+                    <div class="summary-row">
+                        <span>
+                            {% if order.is_collection %}
+                                Collection ({{ order.shipping_service_name|default:"Pickup" }})
+                            {% else %}
+                                Shipping ({{ order.shipping_service_name|default:"Standard" }})
+                            {% endif %}
+                        </span>
+                        <span>R{{ order.shipping_cost|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="summary-row total">
+                        <span>Total Paid</span>
+                        <span>R{{ order.amount_paid|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {# ============================================ #}
+            {# ADDRESS / PICKUP SECTION — heading + body    #}
+            {# both dynamic                                  #}
+            {# ============================================ #}
+            {% if order.is_collection %}
+                <div class="shipping-address-section">
+                    <h3>🏪 Collect From</h3>
+                    <p class="address-block">
+                        {% if order.pickup_point_code == 'office' %}
+                            <strong>Marvelously Green Office</strong><br>
+                            620 Park Street, Arcadia, Pretoria<br>
+                        {% elif order.pickup_point_code == 'rrk_pharmacy' %}
+                            <strong>RRK Pharmacy</strong><br>
+                            Shop 0006, Apollo Centre<br>
+                            210 Du Toit St, Arcadia<br>
+                        {% else %}
+                            <em>Pickup point not yet assigned</em><br>
+                        {% endif %}
+                        <span class="address-contact">
+                            Collection by: <strong>{{ order.full_name }}</strong> · {{ order.phone }} · {{ order.email }}
+                        </span>
+                    </p>
+                </div>
+            {% else %}
+                <div class="shipping-address-section">
+                    <h3>📍 Delivery Address</h3>
+                    <p class="address-block">
+                        <strong>{{ order.full_name }}</strong><br>
+                        {{ order.shipping_address|linebreaksbr }}<br>
+                        <span class="address-contact">{{ order.phone }} · {{ order.email }}</span>
+                    </p>
+                </div>
+            {% endif %}
+
+            {# ============================================ #}
+            {# ACTIONS — CTA dynamic for collection         #}
+            {# ============================================ #}
+            <div class="track-actions">
+                <a href="{% url 'track_order' %}" class="btn-secondary">← Track another order</a>
+                <a href="mailto:admin@greenmarvel.co.za?subject=Order%20%23{{ order.id }}%20question" class="btn-primary">
+                    Need help? Contact us
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!--<section class="track-section">
+    <div class="track-container">
+
+      
         <div class="track-header">
             <div class="track-icon">📦</div>
             <h1>Track Your Order</h1>
             <p>Enter your order number and email to see the status of your delivery.</p>
         </div>
 
-        <!-- LOOKUP FORM -->
+      
         {% if not order %}
         <div class="track-card">
             <form method="get" class="track-form">
@@ -57,7 +411,7 @@
         </div>
         {% endif %}
 
-        <!-- ORDER DETAILS (if found) -->
+     
         {% if order %}
         <div class="track-card order-details-card">
             <div class="order-header">
@@ -78,7 +432,7 @@
                 </div>
             </div>
 
-            <!-- DELIVERY PROGRESS -->
+       
              <div class="delivery-progress">
     {% with progress_step=order.get_progress_step %}
     {% with progress_labels=order.get_progress_labels %}
@@ -122,29 +476,7 @@
     {% endwith %}
 </div>
 
-            <!--<div class="delivery-progress">
-                <div class="progress-step {% if order.status == 'paid' or order.shipped %}completed{% endif %}">
-                    <div class="step-icon">✓</div>
-                    <div class="step-label">Order placed</div>
-                </div>
-                <div class="progress-line {% if order.shipped %}completed{% endif %}"></div>
-                <div class="progress-step {% if order.shipped %}completed{% endif %}">
-                    <div class="step-icon">📦</div>
-                    <div class="step-label">Dispatched</div>
-                </div>
-                <div class="progress-line"></div>
-                <div class="progress-step">
-                    <div class="step-icon">🚚</div>
-                    <div class="step-label">In transit</div>
-                </div>
-                <div class="progress-line"></div>
-                <div class="progress-step">
-                    <div class="step-icon">🎉</div>
-                    <div class="step-label">Delivered</div>
-                </div>
-            </div>-->
 
-            <!-- COURIER DETAILS -->
              {% if order.status != 'pending_payment' %}
 <div class="courier-info">
     <h3>📨 Shipping Details</h3>
@@ -263,59 +595,8 @@
     </p>
 </div>
 {% endif %}
-            <!--{% if order.shipped %}
-            <div class="courier-info">
-                <h3>📨 Shipping Details</h3>
-                <div class="courier-grid">
-                    {% if order.courier_booked %}
-                    <div class="courier-row">
-                        <span class="courier-label">Courier</span>
-                        <span class="courier-value"><strong>{{ order.courier_booked }}</strong></span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if order.tracking_number %}
-                    <div class="courier-row">
-                        <span class="courier-label">Tracking Number</span>
-                        <span class="courier-value tracking-num">{{ order.tracking_number }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if order.shipping_service_name %}
-                    <div class="courier-row">
-                        <span class="courier-label">Service</span>
-                        <span class="courier-value">{{ order.shipping_service_name }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if order.date_shipped %}
-                    <div class="courier-row">
-                        <span class="courier-label">Dispatched</span>
-                        <span class="courier-value">{{ order.date_shipped|date:"d M Y" }}</span>
-                    </div>
-                    {% endif %}
-                </div>
 
-                <p class="tracking-note">
-                    📱 Track your parcel directly with the courier using the tracking number above.
-                </p>
-            </div>
-            {% else %}
-            <div class="not-yet-shipped">
-                <span class="not-yet-icon">⏳</span>
-                <p>
-                    {% if order.status == 'paid' %}
-                        Your order is being prepared for dispatch. You'll receive an SMS and email with tracking details as soon as it ships.
-                    {% elif order.status == 'pending_payment' %}
-                        We're waiting for payment confirmation. Once confirmed, your order will be prepared for dispatch.
-                    {% else %}
-                        Your order is being processed.
-                    {% endif %}
-                </p>
-            </div>
-            {% endif %}-->
-
-            <!-- ORDER SUMMARY -->
+          
             <div class="order-summary-section">
                 <h3>📋 Order Summary</h3>
                 <div class="summary-rows">
@@ -336,7 +617,7 @@
                 </div>
             </div>
 
-            <!-- SHIPPING ADDRESS -->
+            
             <div class="shipping-address-section">
                 <h3>📍 Delivery Address</h3>
                 <p class="address-block">
@@ -356,7 +637,7 @@
         {% endif %}
 
     </div>
-</section>
+</section>-->
 
 <style>
     .track-section {

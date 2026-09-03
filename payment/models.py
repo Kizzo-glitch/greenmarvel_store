@@ -229,6 +229,74 @@ class Order(models.Model):
 			'in_transit':      'collected' if is_collection else 'delivered',
 		}
 		return progression.get(self.status)
+
+	# ============================================
+	# NEW: Fulfillment type helpers
+	# ============================================
+	@property
+	def is_collection(self):
+		"""True if customer chose collection/pickup at a pickup point."""
+		return (
+			self.shipping_service_code == 'collection'
+			or bool(self.pickup_point_code)
+		)
+ 
+	@property
+	def is_shipping(self):
+		"""True if customer chose delivery (economy/standard/express)."""
+		return not self.is_collection
+ 
+	@property
+	def fulfillment_label(self):
+		"""Human-readable label for the fulfillment type."""
+		return 'Collection' if self.is_collection else 'Delivery'
+ 
+	@property
+	def pickup_point(self):
+		"""
+		Returns the pickup point dict for this order, or None.
+		
+		Uses your existing get_pickup_point() helper from shipping_calculator.
+		Import is inside the method to avoid circular imports at module load.
+		"""
+		if not self.pickup_point_code:
+			return None
+		try:
+			from .shipping_calculator import get_pickup_point
+			return get_pickup_point(self.pickup_point_code)
+		except Exception:
+			return None
+ 
+	@property
+	def current_status_step(self):
+		"""
+		Returns a stable step key for the progress tracker.
+		Values: 'placed', 'paid', 'processing', 'shipped', 'delivered',
+				'ready_for_collection', 'collected'
+		
+		Uses your existing date_* fields to determine progression.
+		"""
+		# Check most-advanced state first, work backwards
+		if self.is_collection:
+			if self.date_collected:
+				return 'collected'
+			if self.status == 'ready_for_collection' or self.date_dispatched:
+				return 'ready_for_collection'
+		else:
+			if self.date_delivered:
+				return 'delivered'
+			if self.date_in_transit:
+				return 'in_transit'
+			if self.date_dispatched:
+				return 'shipped'
+		
+		# Common states (both fulfillment types)
+		if self.date_paid or self.status in ('paid', 'processing'):
+			return 'processing'
+		if self.status == 'paid':
+			return 'paid'
+		return 'placed'
+
 	
 	
 	def __str__(self):
