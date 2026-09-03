@@ -240,8 +240,6 @@ def billing_info(request):
 	# Restore previously-selected pickup point if any
 	selected_pickup_code = request.session.get('pickup_point_code', '')
 
-	import json
-
 	# Build TikTok cart data from your existing cart_products and quantities
 	tiktok_cart = {
 		'items': [
@@ -249,9 +247,9 @@ def billing_info(request):
 				'id': product.id,
 				'name': product.name,
 				'price': float(product.price),
-				'quantity': int(quantities().get(str(product.id), 1)),
+				'quantity': int(quantities.get(str(product.id), 1)),
 			}
-			for product in cart_products()
+			for product in cart_products
 		],
 		'total': float(total_after_discount),
 	}
