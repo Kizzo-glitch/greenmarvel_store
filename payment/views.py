@@ -633,63 +633,66 @@ def payment_notify(request):
 # ================================================================
  
 def payment_success(request, order_id):
-    """
-    User lands here after successful Payfast payment. Display-only.
-    Renders the confirmation page and fires the TikTok CompletePayment event.
-    """
-    # ---- Fetch order (404 on bad IDs instead of 500) ----
-    order = get_object_or_404(Order, id=order_id)
+	"""
+	User lands here after successful Payfast payment. Display-only.
+	Renders the confirmation page and fires the TikTok CompletePayment event.
+	"""
+	# ---- Fetch order (404 on bad IDs instead of 500) ----
+	order = get_object_or_404(Order, id=order_id)
  
-    # ---- Security: verify order belongs to current user OR current session ----
-    is_authorised = False
-    if request.user.is_authenticated and order.user_id == request.user.id:
-        is_authorised = True
-    elif order.session_key and order.session_key == request.session.session_key:
-        is_authorised = True
+	# ---- Security: verify order belongs to current user OR current session ----
+	"""
+	is_authorised = False
+	if request.user.is_authenticated and order.user_id == request.user.id:
+		is_authorised = True
+	elif order.session_key and order.session_key == request.session.session_key:
+		is_authorised = True
  
-    if not is_authorised:
-        messages.error(request, "Order not found.")
-        return redirect('home')
+	if not is_authorised:
+		messages.error(request, "Order not found.")
+		return redirect('home')
+	"""
  
-    # ---- Only fire TikTok event for actually paid orders ----
-    # This prevents CompletePayment firing if someone hits the URL for a
-    # pending/failed order (edge case, but worth guarding against)
-    PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
-    order_is_paid = order.status in PAID_STATUSES
+	# ---- Only fire TikTok event for actually paid orders ----
+	# This prevents CompletePayment firing if someone hits the URL for a
+	# pending/failed order (edge case, but worth guarding against)
+	PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
+	order_is_paid = order.status in PAID_STATUSES
+
  
-    # ---- Build TikTok CompletePayment payload ----
-    tiktok_items = []
-    for item in order.orderitem_set.all():
-        try:
-            tiktok_items.append({
-                'id': item.product.id,
-                'name': item.product.name,
-                'price': float(item.price),
-                'quantity': int(item.quantity),
-            })
-        except AttributeError:
-            # Guards against item.product being None (product deleted after order)
-            continue
+	# ---- Build TikTok CompletePayment payload ----
+	tiktok_items = []
+	for item in order.orderitem_set.all():
+		try:
+			tiktok_items.append({
+				'id': item.product.id,
+				'name': item.product.name,
+				'price': float(item.price),
+				'quantity': int(item.quantity),
+			})
+		except AttributeError:
+			# Guards against item.product being None (product deleted after order)
+			continue
  
-    tiktok_order = {
-        'id': order.id,
-        'items': tiktok_items,
-        'total': float(order.amount_paid or 0),
-    }
+	tiktok_order = {
+		'id': order.id,
+		'items': tiktok_items,
+		'total': float(order.amount_paid or 0),
+	}
  
-    # ---- Event ID for client/server dedup ----
-    # If your Payfast webhook already fires CompletePayment server-side, this
-    # stable order-based ID lets TikTok dedupe. Uses order.id so refreshing
-    # the page or hitting via webhook + browser all produce the same event_id.
-    tiktok_event_id = f'purchase_{order.id}'
+	# ---- Event ID for client/server dedup ----
+	# If your Payfast webhook already fires CompletePayment server-side, this
+	# stable order-based ID lets TikTok dedupe. Uses order.id so refreshing
+	# the page or hitting via webhook + browser all produce the same event_id.
+	tiktok_event_id = f'purchase_{order.id}'
  
-    context = {
-        'order': order,
-        'order_is_paid': order_is_paid,
-        'tiktok_order_json': json.dumps(tiktok_order),
-        'tiktok_event_id': tiktok_event_id,
-    }
-    return render(request, 'payment/payment_success.html', context)
+	context = {
+		'order': order,
+		'order_is_paid': order_is_paid,
+		'tiktok_order_json': json.dumps(tiktok_order),
+		'tiktok_event_id': tiktok_event_id,
+	}
+	return render(request, 'payment/payment_success.html', context)
 
 
 
@@ -810,164 +813,166 @@ def generate_signature(dataArray, passPhrase = ''):
 # ================================================================
 @login_required
 def order_detail(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
+	order = get_object_or_404(Order, id=order_id)
  
-    # Security: same as payment_success
-    is_authorised = (
-        (request.user.is_authenticated and order.user_id == request.user.id)
-        or (order.session_key and order.session_key == request.session.session_key)
-    )
-    if not is_authorised:
-        messages.error(request, "Order not found.")
-        return redirect('home')
+	# Security: same as payment_success
+	"""
+	is_authorised = (
+		(request.user.is_authenticated and order.user_id == request.user.id)
+		or (order.session_key and order.session_key == request.session.session_key)
+	)
+	if not is_authorised:
+		messages.error(request, "Order not found.")
+		return redirect('home')
+	"""
  
-    items = order.orderitem_set.all()
-    subtotal = sum(item.price * item.quantity for item in items)
-    shipping_cost = order.shipping_cost or 0
+	items = order.orderitem_set.all()
+	subtotal = sum(item.price * item.quantity for item in items)
+	shipping_cost = order.shipping_cost or 0
  
-    # ============================================
-    # BUILD TIMELINE — different steps per fulfillment type
-    # ============================================
-    if order.status == 'cancelled':
-        timeline = [
-            {
-                'title': 'Order Placed',
-                'description': 'Your order was received',
-                'date': order.date_ordered,
-                'icon': '📝',
-                'completed': True,
-                'active': False,
-                'cancelled': False,
-            },
-            {
-                'title': 'Order Cancelled',
-                'description': 'This order was cancelled. No charges were made.',
-                'date': None,
-                'icon': '❌',
-                'completed': True,
-                'active': False,
-                'cancelled': True,
-            },
-        ]
-    elif order.is_collection:
-        # Collection timeline: Placed → Paid → Processing → Ready → Collected
-        timeline = [
-            {
-                'title': 'Order Placed',
-                'description': 'Your order has been received',
-                'date': order.date_ordered,
-                'icon': '📝',
-                'completed': True,
-                'active': False,
-                'cancelled': False,
-            },
-            {
-                'title': 'Payment Confirmed',
-                'description': "We've received your payment",
-                'date': order.date_paid,
-                'icon': '💳',
-                'completed': bool(order.date_paid),
-                'active': order.status == 'paid' and not order.date_dispatched,
-                'cancelled': False,
-            },
-            {
-                'title': 'Processing',
-                'description': "We're preparing your order for collection",
-                'date': None,
-                'icon': '📦',
-                'completed': bool(order.date_dispatched),
-                'active': (order.status == 'paid'
-                          and not order.date_dispatched
-                          and order.date_paid),
-                'cancelled': False,
-            },
-            {
-                'title': 'Ready for Collection',
-                'description': (
-                    f'Your order is ready at {order.pickup_point["name"]}'
-                    if order.pickup_point else
-                    'Your order is ready to collect'
-                ),
-                'date': order.date_dispatched,
-                'icon': '🏪',
-                'completed': bool(order.date_dispatched),
-                'active': bool(order.date_dispatched) and not order.date_collected,
-                'cancelled': False,
-            },
-            {
-                'title': 'Collected',
-                'description': 'Enjoy your natural beauty products!',
-                'date': order.date_collected,
-                'icon': '💚',
-                'completed': bool(order.date_collected),
-                'active': False,
-                'cancelled': False,
-            },
-        ]
-    else:
-        # Shipping timeline: Placed → Paid → Processing → Shipped → Delivered
-        timeline = [
-            {
-                'title': 'Order Placed',
-                'description': 'Your order has been received',
-                'date': order.date_ordered,
-                'icon': '📝',
-                'completed': True,
-                'active': False,
-                'cancelled': False,
-            },
-            {
-                'title': 'Payment Confirmed',
-                'description': "We've received your payment",
-                'date': order.date_paid,
-                'icon': '💳',
-                'completed': bool(order.date_paid),
-                'active': order.status == 'paid' and not order.date_dispatched,
-                'cancelled': False,
-            },
-            {
-                'title': 'Processing',
-                'description': "We're preparing your order",
-                'date': None,
-                'icon': '📦',
-                'completed': bool(order.date_dispatched),
-                'active': (order.status == 'paid'
-                          and not order.date_dispatched
-                          and order.date_paid),
-                'cancelled': False,
-            },
-            {
-                'title': 'Shipped',
-                'description': (
-                    f'On its way via {order.courier_booked or "courier"}'
-                    if order.date_dispatched else
-                    'Your order is on the way'
-                ),
-                'date': order.date_dispatched,
-                'icon': '🚚',
-                'completed': bool(order.date_dispatched),
-                'active': bool(order.date_dispatched) and not order.date_delivered,
-                'cancelled': False,
-            },
-            {
-                'title': 'Delivered',
-                'description': 'Enjoy your natural beauty products!',
-                'date': order.date_delivered,
-                'icon': '💚',
-                'completed': bool(order.date_delivered),
-                'active': False,
-                'cancelled': False,
-            },
-        ]
+	# ============================================
+	# BUILD TIMELINE — different steps per fulfillment type
+	# ============================================
+	if order.status == 'cancelled':
+		timeline = [
+			{
+				'title': 'Order Placed',
+				'description': 'Your order was received',
+				'date': order.date_ordered,
+				'icon': '📝',
+				'completed': True,
+				'active': False,
+				'cancelled': False,
+			},
+			{
+				'title': 'Order Cancelled',
+				'description': 'This order was cancelled. No charges were made.',
+				'date': None,
+				'icon': '❌',
+				'completed': True,
+				'active': False,
+				'cancelled': True,
+			},
+		]
+	elif order.is_collection:
+		# Collection timeline: Placed → Paid → Processing → Ready → Collected
+		timeline = [
+			{
+				'title': 'Order Placed',
+				'description': 'Your order has been received',
+				'date': order.date_ordered,
+				'icon': '📝',
+				'completed': True,
+				'active': False,
+				'cancelled': False,
+			},
+			{
+				'title': 'Payment Confirmed',
+				'description': "We've received your payment",
+				'date': order.date_paid,
+				'icon': '💳',
+				'completed': bool(order.date_paid),
+				'active': order.status == 'paid' and not order.date_dispatched,
+				'cancelled': False,
+			},
+			{
+				'title': 'Processing',
+				'description': "We're preparing your order for collection",
+				'date': None,
+				'icon': '📦',
+				'completed': bool(order.date_dispatched),
+				'active': (order.status == 'paid'
+						  and not order.date_dispatched
+						  and order.date_paid),
+				'cancelled': False,
+			},
+			{
+				'title': 'Ready for Collection',
+				'description': (
+					f'Your order is ready at {order.pickup_point["name"]}'
+					if order.pickup_point else
+					'Your order is ready to collect'
+				),
+				'date': order.date_dispatched,
+				'icon': '🏪',
+				'completed': bool(order.date_dispatched),
+				'active': bool(order.date_dispatched) and not order.date_collected,
+				'cancelled': False,
+			},
+			{
+				'title': 'Collected',
+				'description': 'Enjoy your natural beauty products!',
+				'date': order.date_collected,
+				'icon': '💚',
+				'completed': bool(order.date_collected),
+				'active': False,
+				'cancelled': False,
+			},
+		]
+	else:
+		# Shipping timeline: Placed → Paid → Processing → Shipped → Delivered
+		timeline = [
+			{
+				'title': 'Order Placed',
+				'description': 'Your order has been received',
+				'date': order.date_ordered,
+				'icon': '📝',
+				'completed': True,
+				'active': False,
+				'cancelled': False,
+			},
+			{
+				'title': 'Payment Confirmed',
+				'description': "We've received your payment",
+				'date': order.date_paid,
+				'icon': '💳',
+				'completed': bool(order.date_paid),
+				'active': order.status == 'paid' and not order.date_dispatched,
+				'cancelled': False,
+			},
+			{
+				'title': 'Processing',
+				'description': "We're preparing your order",
+				'date': None,
+				'icon': '📦',
+				'completed': bool(order.date_dispatched),
+				'active': (order.status == 'paid'
+						  and not order.date_dispatched
+						  and order.date_paid),
+				'cancelled': False,
+			},
+			{
+				'title': 'Shipped',
+				'description': (
+					f'On its way via {order.courier_booked or "courier"}'
+					if order.date_dispatched else
+					'Your order is on the way'
+				),
+				'date': order.date_dispatched,
+				'icon': '🚚',
+				'completed': bool(order.date_dispatched),
+				'active': bool(order.date_dispatched) and not order.date_delivered,
+				'cancelled': False,
+			},
+			{
+				'title': 'Delivered',
+				'description': 'Enjoy your natural beauty products!',
+				'date': order.date_delivered,
+				'icon': '💚',
+				'completed': bool(order.date_delivered),
+				'active': False,
+				'cancelled': False,
+			},
+		]
  
-    context = {
-        'order': order,
-        'items': items,
-        'subtotal': subtotal,
-        'shipping_cost': shipping_cost,
-        'timeline': timeline,
-    }
-    return render(request, 'payment/order_detail.html', context)  # adjust template path
+	context = {
+		'order': order,
+		'items': items,
+		'subtotal': subtotal,
+		'shipping_cost': shipping_cost,
+		'timeline': timeline,
+	}
+	return render(request, 'payment/order_detail.html', context)  # adjust template path
 
 
 @login_required
