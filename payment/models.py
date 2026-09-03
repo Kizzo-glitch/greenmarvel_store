@@ -303,7 +303,6 @@ class Order(models.Model):
 		return f'Order - {str(self.id)}'
 
 
-
 # Auto Add shipping Date
 @receiver(pre_save, sender=Order)
 def set_shipped_date_on_update(sender, instance, **kwargs):

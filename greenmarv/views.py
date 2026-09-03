@@ -20,7 +20,11 @@ from django.views.decorators.csrf import csrf_protect
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
-
+import hashlib
+import logging
+from .tiktok_events_api import track_complete_payment
+ 
+logger = logging.getLogger(__name__)
 
 
 # ============================================================
@@ -345,6 +349,79 @@ def newsletter_subscribe(request):
         'message': "Welcome to the community!",
     })
  
+
+ 
+@csrf_protect
+@require_POST
+def tiktok_track(request):
+    """
+    Generic client-side event forwarder.
+    Called by tiktok_events.js after every client-side event fires.
+    Forwards the event to TikTok Events API server-side with the same
+    event_id so TikTok can dedupe.
+    """
+    try:
+        payload = json.loads(request.body)
+    except (ValueError, json.JSONDecodeError):
+        return JsonResponse({'error': 'invalid JSON'}, status=400)
+ 
+    event_name = payload.get('event')
+    event_id = payload.get('event_id')
+    event_data = payload.get('data', {})
+ 
+    if not event_name or not event_id:
+        return JsonResponse({'error': 'missing event or event_id'}, status=400)
+ 
+    # Skip CompletePayment — the Payfast webhook already handles it
+    # server-side. If we forwarded again here, we'd risk double-firing.
+    if event_name == 'CompletePayment':
+        return JsonResponse({'ok': True, 'skipped': 'handled by webhook'})
+ 
+    # Build user_data (TikTok needs at least IP + user agent to match users)
+    ip = (
+        request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+        or request.META.get('REMOTE_ADDR', '')
+    )
+    user_data = {
+        'ip': ip,
+        'user_agent': request.META.get('HTTP_USER_AGENT', ''),
+        'ttp': request.COOKIES.get('_ttp', ''),
+        'ttclid': request.session.get('ttclid', ''),
+    }
+    
+    # If user is authenticated, add hashed external_id for better matching
+    if request.user.is_authenticated:
+        user_data['external_id'] = hashlib.sha256(
+            str(request.user.id).encode()
+        ).hexdigest()
+        if request.user.email:
+            user_data['email'] = hashlib.sha256(
+                request.user.email.lower().encode()
+            ).hexdigest()
+ 
+    # Forward to TikTok Events API using your existing helper
+    # Adjust the function name to match your existing helper in tiktok_events_api.py
+    try:
+        
+        track_complete_payment(
+            event_name=event_name,
+            event_data=event_data,
+            event_id=event_id,
+            user_data=user_data,
+        )
+    except ImportError:
+        logger.warning(
+            "TikTok Events API helper not found — event %s not forwarded server-side",
+            event_name
+        )
+    except Exception as e:
+        # Log but don't fail — client-side event already fired
+        logger.exception("TikTok server-side forward failed for %s: %s", event_name, e)
+ 
+    return JsonResponse({'ok': True})
+ 
+ 
+
 
 # ================================================================
 # Legal Pages

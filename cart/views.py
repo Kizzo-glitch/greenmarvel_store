@@ -163,79 +163,6 @@ def cart_summary(request):
 	)
 
 
-def cart_summary2(request):
-	cart = Cart(request)
-	cart_products = cart.get_prods
-	quantities = cart.get_quants
-
-	discount_amount = Decimal('0.00')
-	total_after_discount = Decimal('0.00')
-	commission = Decimal('0.00')
-	applied_promo = None
-	discount_code = None
-
-	# ---- Step 1: Check POST for discount code ----
-	if request.method == "POST" and 'discount_code' in request.POST:
-		discount_code = request.POST.get('discount_code').strip()
-		try:
-			discount = DiscountCode.objects.get(code=discount_code, is_active=True)
-			base_total = cart.cart_total()
-			discount_amount = (
-				Decimal(discount.discount_percentage) / 100 * base_total
-			).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-			total_after_discount = (base_total - discount_amount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-
-			if discount.influencer:
-				commission = (
-					Decimal(discount.influencer.commission_rate) / 100 * base_total
-				).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-
-			applied_promo = f"Code: {discount.code}"
-
-		except ObjectDoesNotExist:
-			messages.error(request, "Invalid discount code")
-			base_total = cart.cart_total()
-			total_after_discount = base_total
-
-	# ---- Step 2: Heritage Day promo (only if no discount code used) ----
-	else:
-		base_total = cart.cart_total()
-		try:
-			heritage_special = Promotion.objects.get(name="Heritage Day Buy 3", is_active=True)
-		except Promotion.DoesNotExist:
-			heritage_special = None
-
-		if heritage_special:
-			# Use heritage total and set applied promo
-			heritage_total = cart.heritage_total()
-			total_after_discount = heritage_total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-			applied_promo = "Heritage Day: Cheapest Item Free"
-		else:
-			total_after_discount = base_total
-
-	# ---- Step 3: Save key values to session ----
-	request.session['total_after_discount'] = str(total_after_discount)
-	request.session['commission'] = str(commission)
-	request.session['discount_code'] = discount_code
-	request.session['applied_promo'] = applied_promo
-
-	# ---- Step 4: Render ----
-	return render(
-		request,
-		"cart_summary.html",
-		{
-			"cart_products": cart_products,
-			"quantities": quantities,
-			"base_total": base_total,
-			"discount_amount": discount_amount,
-			"total_after_discount": total_after_discount,
-			"commission": commission,
-			"applied_promo": applied_promo,
-		},
-	)
-
-
-
 
 def notify_influencer(influencer, totals, discount_percentage, total_after_discount, discount_code, commission_rate, commission):
 	subject = "Your Discount Code Was Used!"
@@ -253,7 +180,7 @@ def notify_influencer(influencer, totals, discount_percentage, total_after_disco
 	send_mail(
 		subject,
 		message,
-		settings.EMAIL_HOST_USER,  # Replace with your store's email
+		settings.EMAIL_HOST_USER,  
 		[influencer.email],
 		fail_silently=False,
 	)

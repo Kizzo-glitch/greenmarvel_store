@@ -104,7 +104,7 @@ def track_complete_payment(order, request=None):
     # ============================================
     contents = []
     try:
-        for item in order.items.all():
+        for item in order.orderitem_set.all():
             contents.append({
                 "content_id":   str(item.product.id),
                 "content_type": "product",

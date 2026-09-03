@@ -17,6 +17,8 @@ urlpatterns = [
     path('product/<slug:slug>/', views.product_detail, name='product_detail'),
     path('shop/', views.shop_all, name='shop'),
     path('search/', views.search, name='search'),
+
+    path('tiktok/track/', views.tiktok_track, name='tiktok_track'),
     
     # Legal pages
     path('terms-of-service/', views.terms_of_service, name='terms_of_service'),

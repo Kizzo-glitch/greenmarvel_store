@@ -130,7 +130,9 @@ def _save_shipping_to_session(request, cleaned_data):
 		for field, value in cleaned_data.items()
 	}
 
-
+# ============================================================
+# BILLING INFO — Step 3 of 4 (Shipping Review + Payment Setup)
+# ============================================================
 def billing_info(request):
 	shipping_info = request.session.get('shipping_info')
 	if not shipping_info:
@@ -273,120 +275,9 @@ def billing_info(request):
 	})
  
 
-
-# ============================================================
-# BILLING INFO — Step 3 of 4 (Shipping Review + Payment Setup)
-# ============================================================
-def billing_info6(request):
-	"""
-	Show address review, courier rates (three tiers), and proceed-to-payment button.
-	Reads shipping_info from session (set in checkout). Doesn't re-collect address.
-	"""
-	# Guard: must have completed checkout first
-	shipping_info = request.session.get('shipping_info')
-	if not shipping_info:
-		messages.warning(request, "Please complete your shipping details first.")
-		return redirect('checkout')
-	
-	cart = Cart(request)
-	cart_products = cart.get_prods()
-	quantities = cart.get_quants()
-	
-	base_total = cart.cart_total()
-	total_after_discount = Decimal(
-		request.session.get('total_after_discount', str(base_total))
-	)
-	
-	# Calculate parcel weight from cart
-	total_weight_kg = calculate_parcel_weight(cart_products, quantities)
-	
-	# ============================================
-	# POST: customer clicked "Pay Now"
-	# ============================================
-	if request.method == "POST":
-		selected_code = request.POST.get('selected_service_code', '').strip()
-		selected_price = request.POST.get('selected_price', '0')
-		selected_service = request.POST.get('selected_service_name', '').strip()
-		terms_accepted = request.POST.get('terms')
-		
-		if not terms_accepted:
-			messages.error(request, "Please accept the Terms of Service to continue.")
-			# fall through to re-render
-		elif selected_code not in ('economy', 'standard', 'express'):
-			messages.error(request, "Please select a valid shipping option.")
-		else:
-			# Save selection to session
-			try:
-				price_decimal = Decimal(selected_price)
-			except (TypeError, ValueError):
-				price_decimal = Decimal('0')
-			
-			request.session['shipping_service_code'] = selected_code
-			request.session['shipping_cost'] = str(price_decimal)
-			request.session['shipping_service_name'] = selected_service
-			
-			return redirect('process_order')
-	
-	# ============================================
-	# GET / fall-through: render the review page
-	# ============================================
-	province = shipping_info.get('shipping_province') or shipping_info.get('province') or ''
-	
-	raw_options = get_shipping_options(
-		province=province,
-		weight_kg=total_weight_kg,
-		order_total=total_after_discount,
-	)
-	
-	# Adapt to the template's `rates` structure (preserves old UI variable names)
-	rates = []
-	for opt in raw_options:
-		rates.append({
-			'service_code':   opt['service_code'],
-			'service_level':  opt['service_name'],
-			'service_name':   opt['service_name'],
-			'rate':           opt['price'],
-			'description':    opt['description'],
-			'subtext':        opt['subtext'],
-			'icon':           opt['icon'],
-			'is_free':        opt['is_free'],
-			'is_cheapest':    opt['is_cheapest'],
-			'is_fastest':     opt['is_fastest'],
-			'is_recommended': opt['is_recommended'],
-		})
-	
-	# Pre-select the previously chosen option, or default to economy
-	selected_service_code = request.session.get('shipping_service_code', 'economy')
-	shipping_cost = Decimal('0')
-	for r in rates:
-		if r['service_code'] == selected_service_code:
-			shipping_cost = r['rate']
-			break
-	else:
-		# Fallback: use first option's rate
-		if rates:
-			shipping_cost = rates[0]['rate']
-			selected_service_code = rates[0]['service_code']
-	
-	# Mark which one is currently selected for the template
-	for r in rates:
-		r['is_selected'] = (r['service_code'] == selected_service_code)
-	
-	total_with_shipping = total_after_discount + shipping_cost
-	
-	return render(request, 'payment/billing_info.html', {
-		'cart_products': cart_products,
-		'quantities': quantities,
-		'shipping_info': shipping_info,
-		'rates': rates,
-		'totals': total_after_discount,
-		'shipping_cost': shipping_cost,
-		'total_with_shipping': total_with_shipping,
-		'selected_service_code': selected_service_code,
-		'free_shipping_threshold': FREE_SHIPPING_THRESHOLD,
-	})
-
-
+# ================================================================
+# PROCESS ORDER — saves as pending_payment, redirects to Payfast
+# ================================================================
 def process_order(request):
 	"""
 	Build the Order record (status='pending_payment') and render the Payfast handoff page.
@@ -581,190 +472,6 @@ def _get_actual_courier_cost(service_code, province):
  
 
 
-def checkout2(request):
-	# Get the cart
-	cart = Cart(request)
-	cart_products = cart.get_prods
-	quantities = cart.get_quants
-	total_weight = cart.cart_weight()
-
-	# Retrieve discounted total from session
-	discount_code = request.session.get('discount_code')
-	#total_after_discount = cart.cart_total(discount_code=discount_code)
-	total_after_discount = request.session.get('total_after_discount')
-	
-
-	if request.user.is_authenticated:
-		# Checkout as logged in user
-		# Shipping User
-		shipping_user = ShippingAddress.objects.get(user__id=request.user.id)
-		# Shipping Form
-		shipping_form = ShippingForm(request.POST or None, instance=shipping_user)
-		return render(request, "payment/checkout.html", {
-			"cart_products":cart_products, 
-			"quantities":quantities, 
-			"total_weight":total_weight,
-			"totals": total_after_discount, 
-			"shipping_form":shipping_form, 
-			'shipping_user': shipping_user 
-			})
-	else:
-		# Checkout as guest
-		shipping_form = ShippingForm(request.POST or None)
-		return render(request, "payment/checkout.html", {
-			"cart_products":cart_products, 
-			"quantities":quantities, 
-			"total_weight":total_weight,
-			"totals": total_after_discount,  
-			"shipping_form":shipping_form
-			})
-
-
-
-def billing_info2(request):
-	if request.method == 'POST':
-		# Initialize cart, product details, and calculate total weight and total amount
-		cart = Cart(request)
-		cart_products = cart.get_prods
-		quantities = cart.get_quants
-		total_after_discount = Decimal(request.session.get('total_after_discount', '0'))
-		total_weight = cart.cart_weight()
-
-		# Define collection address
-		collection_address = {
-			"type": "business",
-			"company": "Green Marvel",
-			"street_address": "620 Park Street",
-			"local_area": "Arcadia",
-			"city": "Pretoria",
-			"zone": "Gauteng",
-			"country": "ZA",
-			"code": "0083",
-			"lat": -25.444674,
-			"lng": 28.131676
-		}
-
-		# Retrieve and set delivery address from session
-		my_shipping = request.POST
-		request.session['my_shipping'] = my_shipping
-		if my_shipping:
-			delivery_address = {
-				"type": "residential",
-				"company": my_shipping.get("shipping_full_name", ""),
-				"street_address": my_shipping.get("shipping_address1", ""),
-				"local_area": my_shipping.get("shipping_apartment", ""),
-				"city": my_shipping.get("shipping_city", ""),
-				"zone": my_shipping.get("shipping_province", ""),
-				"country": my_shipping.get("shipping_country", "ZA"),
-				"code": my_shipping.get("shipping_zipcode", ""),
-				"lat": float(my_shipping.get("lat", -25.8066558)),
-				"lng": float(my_shipping.get("lng", 28.334732))
-			}
-		else:
-			messages.error(request, "Shipping address not found.")
-			return redirect('cart_summary')
-
-		# Define parcels based on cart items
-		parcels = [
-			{
-				"submitted_length_cm": 20,
-				"submitted_width_cm": 20,
-				"submitted_height_cm": 20,
-				"submitted_weight_kg": float(total_weight)
-			}
-		]
-
-		# Check if free shipping applies
-		total_items = len(cart)
-		free_shipping_applies = False
-
-		# Rule 1: Cart value >= R600
-		if total_after_discount >= 600:
-			free_shipping_applies = True
-
-		# Rule 2: Festive promo – 3 or more products
-		#if total_items >= 3:
-		#	free_shipping_applies = True
-
-
-		if free_shipping_applies:
-			shipping_cost = Decimal(0)  # Free shipping
-			total_with_shipping = total_after_discount
-		else:
-			# Prepare data payload for Shiplogic
-			declared_value = float(total_after_discount)
-			data = {
-				"collection_address": collection_address,
-				"delivery_address": delivery_address,
-				"parcels": parcels,
-				"declared_value": declared_value,
-			}
-
-			# Call send_delivery_request with the API details
-			api_url =  "https://api.shiplogic.com/v2/rates"   
-			api_key = settings.COURIER_GUY_API_KEY 
-			shiplogic_response = send_delivery_request(api_url, api_key, data)
-
-			if shiplogic_response:
-				# Extract rates and calculate shipping cost
-				rates = []
-				for rate in shiplogic_response.get("rates", []):
-					formatted_rate = round(rate["rate"], 2)
-					formatted_rate_excluding_vat = round(rate["rate_excluding_vat"], 2)
-
-					delivery_date_from = rate["service_level"]["delivery_date_from"].split("T")[0]
-					delivery_date_to = rate["service_level"]["delivery_date_to"].split("T")[0]
-
-					rates.append({
-						"rate": formatted_rate,
-						"rate_excluding_vat": formatted_rate_excluding_vat,
-						"service_level": rate["service_level"]["name"],
-						"service_code": rate["service_level"]["code"],
-						"delivery_date_from": delivery_date_from,
-						"delivery_date_to": delivery_date_to,
-						"extras": rate.get("extras", [])
-					})
-				shipping_cost = Decimal(shiplogic_response["rates"][0]["rate"]) if rates else Decimal(0)
-				total_with_shipping = total_after_discount + shipping_cost
-
-				# Store shipping and total information in the session
-				request.session['shipping_cost'] = float(shipping_cost)
-				request.session['total_with_shipping'] = float(total_with_shipping)
-
-				# Pass data to the template
-				return render(request, "payment/billing_info.html", {
-					"cart_products": cart_products,
-					"quantities": quantities,
-					"totals": total_after_discount,
-					"total_with_shipping": total_with_shipping,
-					"shipping_info": my_shipping,
-					"shipping_cost": shipping_cost,
-					"rates": rates,
-					"message": shiplogic_response.get("message", "No message")
-				})
-
-			else:
-				messages.error(request, "Failed to retrieve shipping rates from Shiplogic.")
-				return redirect("cart_summary")
-
-		# If free shipping applies, pass data to the template
-		request.session['shipping_cost'] = float(shipping_cost)
-		request.session['total_with_shipping'] = float(total_with_shipping)
-		return render(request, "payment/billing_info.html", {
-			"cart_products": cart_products,
-			"quantities": quantities,
-			"totals": total_after_discount,
-			"total_with_shipping": total_with_shipping,
-			"shipping_info": my_shipping,
-			"shipping_cost": shipping_cost,
-			"rates": [],  # No rates since free shipping applies
-			"message": "Free shipping applied!"
-		})
-
-	messages.error(request, "Invalid request method.")
-	return redirect('index')
-
-
 def send_delivery_request(api_url, api_key, data):
 	try:
 		headers = {"Content-Type": "application/json"}
@@ -785,138 +492,6 @@ def send_delivery_request(api_url, api_key, data):
 		return None
 
 
-
-# ================================================================
-# PROCESS ORDER — saves as pending_payment, redirects to Payfast
-# ================================================================
-def process_order2(request):
-	if not request.POST:
-		return redirect('cart_summary')
- 
-	# Get the cart + session data
-	cart = Cart(request)
-	cart_products = cart.get_prods
-	quantities = cart.get_quants
-	total_after_discount = request.session.get('total_after_discount')
-	total_with_shipping = request.session.get('total_with_shipping')
-	my_shipping = request.session.get('my_shipping')
- 
-	if not my_shipping:
-		messages.error(request, "Your shipping information has expired. Please try again.")
-		return redirect('cart_summary')
- 
-	# Gather Order Info
-	full_name = my_shipping['shipping_full_name']
-	email = my_shipping['shipping_email']
-	phone = my_shipping['shipping_phone']
- 
-	shipping_address = (
-		f"{phone}\n{my_shipping['shipping_address1']}\n"
-		f"{my_shipping.get('shipping_apartment', '')}\n"
-		f"{my_shipping['shipping_city']}\n{my_shipping['shipping_province']}\n"
-		f"{my_shipping['shipping_zipcode']}\n{my_shipping['shipping_country']}"
-	)
- 
-	amount_paid = total_with_shipping
- 
-	# ============================================================
-	# Create Order with status='pending_payment' (NOT confirmed yet)
-	# ============================================================
-	create_order = Order(
-		full_name=full_name,
-		email=email,
-		phone=phone,
-		shipping_address=shipping_address,
-		amount_paid=amount_paid,
-		status='pending_payment',  
-	)
- 
-	if request.user.is_authenticated:
-		create_order.user = request.user
-	else:
-		if not request.session.session_key:
-			request.session.create()
-		create_order.session_key = request.session.session_key
- 
-	create_order.save()
-	order_id = create_order.pk
- 
-	# ============================================================
-	# Create Order Items — unified for authenticated + guest
-	# ============================================================
-	user = request.user if request.user.is_authenticated else None
- 
-	for product in cart_products():
-		price = product.sale_price if product.is_sale else product.price
- 
-		for key, value in quantities().items():
-			if int(key) == product.id:
-				OrderItem.objects.create(
-					order_id=order_id,
-					product_id=product.id,
-					user=user,  
-					quantity=value,
-					price=price,
-				)
- 
-	# ============================================================
-	# Create PayfastPayment record
-	# ============================================================
-	name_parts = create_order.full_name.strip().split()
-	name_first = name_parts[0] if name_parts else ''
-	name_last = name_parts[-1] if len(name_parts) > 1 else ''
- 
-	payment = PayfastPayment.objects.create(
-		order_id=order_id,
-		amount=amount_paid,
-		status='Pending',
-		name_first=name_first,
-		name_last=name_last,
-		email=email,
-		phone=phone,
-	)
- 
-	# ============================================================
-	# Build Payfast payload
-	# ============================================================
-	data = {
-		'merchant_id': settings.PAYFAST_MERCHANT_ID,
-		'merchant_key': settings.PAYFAST_MERCHANT_KEY,
-		'return_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_success/',  
-		'cancel_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_cancel/',
-		'notify_url': 'https://greenmarvelstore-production.up.railway.app/payment/payment_notify/',
- 
-		'name_first': payment.name_first,
-		'name_last': payment.name_last,
-		'email_address': payment.email,
- 
-		'm_payment_id': payment.order_id,
-		'amount': payment.amount,
-		'item_name': f'Green Marvel Order #{order_id}',
-	}
- 
-	signature = generate_signature(data, settings.PAYFAST_PASSPHRASE)
-	data['signature'] = signature
- 
-	payfast_url = "https://www.payfast.co.za/eng/process?" #"https://sandbox.payfast.co.za/eng/process?" 
-	payment_url = payfast_url + urllib.parse.urlencode(data)
- 
-	# ============================================================
-	# Clear cart from session ONLY — don't delete the Order yet
-	# The order exists as pending_payment and waits for Payfast ITN
-	# ============================================================
-	if 'session_key' in request.session:
-		del request.session['session_key']
- 
-	if request.user.is_authenticated:
-		Profile.objects.filter(user__id=request.user.id).update(old_cart="")
- 
-	return redirect(payment_url)
-
-# ================================================================
-# PAYMENT_NOTIFY — the Payfast ITN webhook
-# This is where the order becomes REAL
-# ================================================================
 
 # ================================================================
 # PAYFAST SIGNATURE VERIFICATION — robust version
@@ -954,7 +529,10 @@ def build_payfast_signature(data, passphrase=None):
 	
 	return hashlib.md5(querystring.encode()).hexdigest(), querystring
 
-
+# ================================================================
+# PAYMENT_NOTIFY — the Payfast ITN webhook
+# This is where the order becomes REAL
+# ================================================================
 
 @csrf_exempt
 @require_POST
@@ -1114,6 +692,8 @@ def payment_success(request, order_id):
     return render(request, 'payment/payment_success.html', context)
 
 
+
+
 def payment_cancel(request):
 	"""User lands here if they cancel at Payfast."""
 	return render(request, 'payment/payment_cancel.html')
@@ -1185,26 +765,6 @@ def send_admin_order_alert_sms(order):
 			# Don't let one failed SMS stop the others
 			print(f"[SMS] Failed to send to {formatted}: {e}", flush=True)
 
-
-def send_admin_order_alert_sms2(order):
-	"""Alert admin that a new paid order has come in."""
-	admin_phone = getattr(settings, 'ADMIN_SMS_PHONE', None)
-	if not admin_phone:
-		return  # Silently skip if not configured
- 
-	admin_phone = _format_sa_phone(admin_phone)
-	if not admin_phone:
-		return
- 
-	message = (
-		f"🔔 New Marvelously Green Order!\n"
-		f"Order #{order.id}\n"
-		f"Customer: {order.full_name}\n"
-		f"Amount: R{order.amount_paid}\n"
-		f"Phone: {order.phone}"
-	)
- 
-	send_sms_smsportal(admin_phone, message)
  
  
 
@@ -1243,7 +803,6 @@ def generate_signature(dataArray, passPhrase = ''):
 	if passPhrase != '':
 		payload += f"&passphrase={passPhrase}"
 	return hashlib.md5(payload.encode()).hexdigest()
-
 
 
 # ================================================================
