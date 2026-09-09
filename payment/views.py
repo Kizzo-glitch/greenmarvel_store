@@ -22,6 +22,7 @@ import requests
 import logging
 
 from cart.cart import Cart
+from payment.sms_helpers import send_admin_order_alert_sms, send_order_confirmation_sms
 from .forms import ShippingForm, PaymentForm
 from .models import ShippingAddress, Order, OrderItem, PayfastPayment, CourierGuy
 from .utils import send_sms_smsportal, get_shipping_rates
@@ -627,84 +628,11 @@ def payment_notify(request):
 	return HttpResponse(status=200)
 
 
-# ================================================================
-# PAYMENT SUCCESS / CANCEL — user-facing landing pages
-# These DON'T change order status (that's the webhook's job)
-# ================================================================
- 
-def payment_success(request, order_id):
-	"""
-	User lands here after successful Payfast payment. Display-only.
-	Renders the confirmation page and fires the TikTok CompletePayment event.
-	"""
-	# ---- Fetch order (404 on bad IDs instead of 500) ----
-	order = get_object_or_404(Order, id=order_id)
- 
-	# ---- Security: verify order belongs to current user OR current session ----
-	"""
-	is_authorised = False
-	if request.user.is_authenticated and order.user_id == request.user.id:
-		is_authorised = True
-	elif order.session_key and order.session_key == request.session.session_key:
-		is_authorised = True
- 
-	if not is_authorised:
-		messages.error(request, "Order not found.")
-		return redirect('home')
-	"""
- 
-	# ---- Only fire TikTok event for actually paid orders ----
-	# This prevents CompletePayment firing if someone hits the URL for a
-	# pending/failed order (edge case, but worth guarding against)
-	PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
-	order_is_paid = order.status in PAID_STATUSES
-
- 
-	# ---- Build TikTok CompletePayment payload ----
-	tiktok_items = []
-	for item in order.orderitem_set.all():
-		try:
-			tiktok_items.append({
-				'id': item.product.id,
-				'name': item.product.name,
-				'price': float(item.price),
-				'quantity': int(item.quantity),
-			})
-		except AttributeError:
-			# Guards against item.product being None (product deleted after order)
-			continue
- 
-	tiktok_order = {
-		'id': order.id,
-		'items': tiktok_items,
-		'total': float(order.amount_paid or 0),
-	}
- 
-	# ---- Event ID for client/server dedup ----
-	# If your Payfast webhook already fires CompletePayment server-side, this
-	# stable order-based ID lets TikTok dedupe. Uses order.id so refreshing
-	# the page or hitting via webhook + browser all produce the same event_id.
-	tiktok_event_id = f'purchase_{order.id}'
- 
-	context = {
-		'order': order,
-		'order_is_paid': order_is_paid,
-		'tiktok_order_json': json.dumps(tiktok_order),
-		'tiktok_event_id': tiktok_event_id,
-	}
-	return render(request, 'payment/payment_success.html', context)
-
-
-
-
-def payment_cancel(request):
-	"""User lands here if they cancel at Payfast."""
-	return render(request, 'payment/payment_cancel.html')
- 
  
 # ================================================================
 # SMS NOTIFICATION HELPERS
 # ================================================================
+'''
 def send_order_confirmation_sms(order):
 	"""Send order confirmation SMS to the customer.""" 
 	if not order.phone:
@@ -767,33 +695,9 @@ def send_admin_order_alert_sms(order):
 		except Exception as e:
 			# Don't let one failed SMS stop the others
 			print(f"[SMS] Failed to send to {formatted}: {e}", flush=True)
-
+'''
  
  
-
-def _format_sa_phone(phone):
-	"""
-	Convert South African phone number to SMSPortal format (27XXXXXXXXX).
-	Accepts: 0831234567, +27831234567, 27831234567, 27 83 123 4567, etc.
-	"""
-	if not phone:
-		return None
- 
-	# Strip all non-digit characters
-	digits = ''.join(c for c in str(phone) if c.isdigit())
- 
-	if not digits:
-		return None
- 
-	# Handle different SA formats
-	if digits.startswith('27') and len(digits) == 11:
-		return digits  # Already 27XXXXXXXXX
-	elif digits.startswith('0') and len(digits) == 10:
-		return '27' + digits[1:]  # 0XXXXXXXXX -> 27XXXXXXXXX
-	elif len(digits) == 9:
-		return '27' + digits  # XXXXXXXXX -> 27XXXXXXXXX
-	else:
-		return None  # Unknown format
 
 #Generate Payfast Signature
 def generate_signature(dataArray, passPhrase = ''):
@@ -811,11 +715,175 @@ def generate_signature(dataArray, passPhrase = ''):
 # ================================================================
 # CUSTOMER VIEW
 # ================================================================
+# ================================================================
+# PAYMENT SUCCESS / CANCEL — user-facing landing pages
+# These DON'T change order status (that's the webhook's job)
+# ================================================================
+ 
+def payment_success(request, order_id):
+	"""
+	User lands here after successful Payfast payment. Display-only.
+	Renders the confirmation page and fires the TikTok CompletePayment event.
+	"""
+	# ---- Fetch order (404 on bad IDs instead of 500) ----
+	order = get_object_or_404(Order, id=order_id)
+ 
+	# ---- Security: verify order belongs to current user OR current session ----
+	# ---- Currently problematic if the user loses their session cookie during the Payfast redirect.
+	"""
+	is_authorised = False
+	if request.user.is_authenticated and order.user_id == request.user.id:
+		is_authorised = True
+	elif order.session_key and order.session_key == request.session.session_key:
+		is_authorised = True
+ 
+	if not is_authorised:
+		messages.error(request, "Order not found.")
+		return redirect('home')
+	"""
+ 
+	# ---- Only fire TikTok event for actually paid orders ----
+	# This prevents CompletePayment firing if someone hits the URL for a
+	# pending/failed order (edge case, but worth guarding against)
+	PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
+	order_is_paid = order.status in PAID_STATUSES
+
+ 
+	# ---- Build TikTok CompletePayment payload ----
+	tiktok_items = []
+	for item in order.orderitem_set.all():
+		try:
+			tiktok_items.append({
+				'id': item.product.id,
+				'name': item.product.name,
+				'price': float(item.price),
+				'quantity': int(item.quantity),
+			})
+		except AttributeError:
+			# Guards against item.product being None (product deleted after order)
+			continue
+ 
+	tiktok_order = {
+		'id': order.id,
+		'items': tiktok_items,
+		'total': float(order.amount_paid or 0),
+	}
+ 
+	# ---- Event ID for client/server dedup ----
+	# If your Payfast webhook already fires CompletePayment server-side, this
+	# stable order-based ID lets TikTok dedupe. Uses order.id so refreshing
+	# the page or hitting via webhook + browser all produce the same event_id.
+	tiktok_event_id = f'purchase_{order.id}'
+ 
+	context = {
+		'order': order,
+		'order_is_paid': order_is_paid,
+		'tiktok_order_json': json.dumps(tiktok_order),
+		'tiktok_event_id': tiktok_event_id,
+	}
+	return render(request, 'payment/payment_success.html', context)
+
+#===============================================================
+# This is a more robust version of payment_success that allows for session-based access and recently-paid orders, 
+# in case the user loses their session cookie during the Payfast redirect. 
+# It checks three authorization paths: logged-in user ownership, session key match, 
+# and recently-paid order within 30 minutes.
+# TODO: Consider merging this with the above payment_success function or refactoring for clarity.
+# ================================================================
+'''
+def payment_success(request, order_id):
+    """
+    User lands here after successful Payfast payment.
+    Auth check accepts:
+      1. Logged-in user who owns the order
+      2. Session key match
+      3. Recently-paid order (within 30 min) — survives Payfast cookie loss
+    """
+    order = get_object_or_404(Order, id=order_id)
+ 
+    # ---- Authorization ----
+    is_authorised = False
+    
+    # Path 1: authenticated user owns the order
+    if request.user.is_authenticated and order.user_id == request.user.id:
+        is_authorised = True
+    
+    # Path 2: session key matches (works when Payfast preserves cookies)
+    elif order.session_key and order.session_key == request.session.session_key:
+        is_authorised = True
+    
+    # Path 3: recently-paid order — grants access for 30 min after payment
+    # This survives Payfast redirects that drop the session cookie.
+    # Safe because:
+    #   - Only accessible to someone who has the exact order URL
+    #     (Payfast just redirected them here — they're the payer)
+    #   - Time-limited to 30 minutes
+    #   - Requires the order to be in a paid state
+    else:
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
+        recently_paid_window = timezone.now() - timedelta(minutes=30)
+        
+        if (order.status in PAID_STATUSES 
+            and order.date_paid 
+            and order.date_paid > recently_paid_window):
+            is_authorised = True
+ 
+    if not is_authorised:
+        messages.error(request, "Order not found.")
+        return redirect('home')
+ 
+    # ---- Only fire TikTok event for paid orders ----
+    PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
+    order_is_paid = order.status in PAID_STATUSES
+ 
+    # ---- Build TikTok CompletePayment payload ----
+    tiktok_items = []
+    for item in order.orderitem_set.all():
+        try:
+            tiktok_items.append({
+                'id': item.product.id,
+                'name': item.product.name,
+                'price': float(item.price),
+                'quantity': int(item.quantity),
+            })
+        except AttributeError:
+            continue
+ 
+    tiktok_order = {
+        'id': order.id,
+        'items': tiktok_items,
+        'total': float(order.amount_paid or 0),
+    }
+ 
+    # Use "purchase_" prefix to match the webhook (avoids dedup issue)
+    tiktok_event_id = f'purchase_{order.id}'
+ 
+    context = {
+        'order': order,
+        'order_is_paid': order_is_paid,
+        'tiktok_order_json': json.dumps(tiktok_order),
+        'tiktok_event_id': tiktok_event_id,
+    }
+    return render(request, 'payment/payment_success.html', context)
+'''
+
+
+# Cancelled page (user clicked "Cancel" at Payfast)
+def payment_cancel(request):
+	"""User lands here if they cancel at Payfast."""
+	return render(request, 'payment/payment_cancel.html')
+ 
+
+#===============================================================
+# ORDER DETAIL — user-facing order summary page
 @login_required
 def order_detail(request, order_id):
 	order = get_object_or_404(Order, id=order_id)
  
-	# Security: same as payment_success
+	# Security: same as payment_success | Currently problematic
 	"""
 	is_authorised = (
 		(request.user.is_authenticated and order.user_id == request.user.id)
@@ -974,7 +1042,7 @@ def order_detail(request, order_id):
 	}
 	return render(request, 'payment/order_detail.html', context)  # adjust template path
 
-
+'''
 @login_required
 def order_detail2(request, pk):
 	"""
@@ -1089,7 +1157,7 @@ def orders_admin(request, pk):
 		"subtotal": subtotal,
 		"shipping_cost": shipping_cost,
 	})
-
+'''
 
 
 
@@ -1158,7 +1226,7 @@ def successful_payments(request):
 	return render(request, 'payment/successful_payments.html', context)
 
 
-
+'''
 #Process Order and Initiate Payfast payment
 def process_order3(request):
 	if request.POST:
@@ -1328,7 +1396,7 @@ def process_order3(request):
 					del request.session[key]
 
 			return redirect(payment_url)
-			
+'''			
 
 def notify_influencer(influencer, total_before_discount, discount_percentage, total_after_discount, discount_code, commission_rate, commission):
 	subject = "Your Discount Code Was Used!"

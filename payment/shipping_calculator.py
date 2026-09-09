@@ -38,7 +38,7 @@ PICKUP_POINTS = {
     'office': {
         'name':    'Marvelously Green Office',
         'address': '620 Park Street, Arcadia, Pretoria, 0083',
-        'hours':   'Mon–Fri, 09:00–16:00',
+        'hours':   'Mon–Sat, 09:00–16:00',
         'icon':    '🏢',
         'note':    'Same-day collection available for orders placed before 12:00',
     },
