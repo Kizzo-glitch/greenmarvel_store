@@ -6,7 +6,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from .forms import SignUpForm, UpdateUserForm, ChangePasswordForm, UserInfoForm
 from django import forms
-from django.db.models import Q
+
+from django.db.models import Case, Value, When, BooleanField, Q
 import json
 from cart.cart import Cart
 
@@ -239,25 +240,38 @@ def product(request,pk):
 	return render(request, 'product.html', {'product':product})
 
 def shop_all(request):
+	# Annotate products: True (1) if it's a combo, False (0) if it's individual
+	all_products = Product.objects.annotate(
+		is_combo=Case(
+			When(name__icontains="combo", then=Value(True)),
+			default=Value(False),
+			output_field=BooleanField(),
+		)
+	).order_by('is_combo', 'name') # Orders by False first (individuals), then True (combos)
+
+	return render(request, 'shop.html', {'products': all_products})
+
+def shop_all2(request):
 	# Fetch all products, ordered by name or date added
-	all_products = Product.objects.all().order_by("-is_sale")
+	#all_products = Product.objects.all().order_by("-is_sale")
+	all_products = Product.objects.all().order_by(name__icontains="-combo")
 	return render(request, 'shop.html', {'products': all_products})
 
 
 def product_detail(request, slug):
-    """
-    Serve a single product page.
-    URL: /product/<slug>/  e.g. /product/vitality-hair-spray/
-    """
-    product = get_object_or_404(Product, slug=slug)
-    
-    # Fetch related products for the "You might also like" section
-    related_products = Product.objects.exclude(id=product.id).order_by('?')[:3]
-    
-    return render(request, 'product_detail.html', {
-        'product':          product,
-        'related_products': related_products,
-    })
+	"""
+	Serve a single product page.
+	URL: /product/<slug>/  e.g. /product/vitality-hair-spray/
+	"""
+	product = get_object_or_404(Product, slug=slug)
+	
+	# Fetch related products for the "You might also like" section
+	related_products = Product.objects.exclude(id=product.id).order_by('?')[:3]
+	
+	return render(request, 'product_detail.html', {
+		'product':          product,
+		'related_products': related_products,
+	})
 
 
 def about(request):
@@ -291,134 +305,134 @@ WELCOME_CODE = 'WELCOME2026'
 @require_POST
 @csrf_protect
 def newsletter_subscribe(request):
-    email = request.POST.get('email', '').strip().lower()
+	email = request.POST.get('email', '').strip().lower()
  
-    # Validation (unchanged)
-    if not email:
-        return JsonResponse({'success': False, 'message': 'Please enter your email address.'}, status=400)
-    try:
-        validate_email(email)
-    except ValidationError:
-        return JsonResponse({'success': False, 'message': 'Please enter a valid email address.'}, status=400)
+	# Validation (unchanged)
+	if not email:
+		return JsonResponse({'success': False, 'message': 'Please enter your email address.'}, status=400)
+	try:
+		validate_email(email)
+	except ValidationError:
+		return JsonResponse({'success': False, 'message': 'Please enter a valid email address.'}, status=400)
  
-    # ============================================
-    # NEW: Fetch the welcome code dynamically
-    # ============================================
-    try:
-        welcome_code = DiscountCode.objects.get(code='WELCOME2026', is_active=True).code
-    except DiscountCode.DoesNotExist:
-        # Fallback if the code was accidentally disabled or renamed
-        # Log this because it means the welcome flow is broken
-        print("⚠️  WELCOME2026 code not found or inactive — subscribers can't claim discount")
-        welcome_code = None
+	# ============================================
+	# NEW: Fetch the welcome code dynamically
+	# ============================================
+	try:
+		welcome_code = DiscountCode.objects.get(code='WELCOME2026', is_active=True).code
+	except DiscountCode.DoesNotExist:
+		# Fallback if the code was accidentally disabled or renamed
+		# Log this because it means the welcome flow is broken
+		print("⚠️  WELCOME2026 code not found or inactive — subscribers can't claim discount")
+		welcome_code = None
  
-    # Check if already subscribed (unchanged)
-    existing = NewsletterSubscriber.objects.filter(email=email).first()
-    if existing:
-        if existing.is_active:
-            return JsonResponse({
-                'success': True,
-                'code': welcome_code,
-                'message': "You're already subscribed! Here's your code again.",
-            })
-        else:
-            existing.is_active = True
-            existing.save()
-            return JsonResponse({
-                'success': True,
-                'code': welcome_code,
-                'message': 'Welcome back! Your subscription has been reactivated.',
-            })
+	# Check if already subscribed (unchanged)
+	existing = NewsletterSubscriber.objects.filter(email=email).first()
+	if existing:
+		if existing.is_active:
+			return JsonResponse({
+				'success': True,
+				'code': welcome_code,
+				'message': "You're already subscribed! Here's your code again.",
+			})
+		else:
+			existing.is_active = True
+			existing.save()
+			return JsonResponse({
+				'success': True,
+				'code': welcome_code,
+				'message': 'Welcome back! Your subscription has been reactivated.',
+			})
  
-    # Create new subscriber (unchanged)
-    referer = request.META.get('HTTP_REFERER', '')
-    source_page = referer.split('/')[-1] if referer else 'home'
+	# Create new subscriber (unchanged)
+	referer = request.META.get('HTTP_REFERER', '')
+	source_page = referer.split('/')[-1] if referer else 'home'
  
-    try:
-        NewsletterSubscriber.objects.create(
-            email=email,
-            signup_channel='email',
-            source_page=source_page[:100],
-        )
-    except Exception as e:
-        print(f"Newsletter signup error for {email}: {e}")
-        return JsonResponse({'success': False, 'message': 'Something went wrong. Please try again.'}, status=500)
+	try:
+		NewsletterSubscriber.objects.create(
+			email=email,
+			signup_channel='email',
+			source_page=source_page[:100],
+		)
+	except Exception as e:
+		print(f"Newsletter signup error for {email}: {e}")
+		return JsonResponse({'success': False, 'message': 'Something went wrong. Please try again.'}, status=500)
  
-    return JsonResponse({
-        'success': True,
-        'code': welcome_code,
-        'message': "Welcome to the community!",
-    })
+	return JsonResponse({
+		'success': True,
+		'code': welcome_code,
+		'message': "Welcome to the community!",
+	})
  
 
 ''' 
 @csrf_protect
 @require_POST
 def tiktok_track(request):
-    """
-    Generic client-side event forwarder.
-    Called by tiktok_events.js after every client-side event fires.
-    Forwards the event to TikTok Events API server-side with the same
-    event_id so TikTok can dedupe.
-    """
-    try:
-        payload = json.loads(request.body)
-    except (ValueError, json.JSONDecodeError):
-        return JsonResponse({'error': 'invalid JSON'}, status=400)
+	"""
+	Generic client-side event forwarder.
+	Called by tiktok_events.js after every client-side event fires.
+	Forwards the event to TikTok Events API server-side with the same
+	event_id so TikTok can dedupe.
+	"""
+	try:
+		payload = json.loads(request.body)
+	except (ValueError, json.JSONDecodeError):
+		return JsonResponse({'error': 'invalid JSON'}, status=400)
  
-    event_name = payload.get('event')
-    event_id = payload.get('event_id')
-    event_data = payload.get('data', {})
+	event_name = payload.get('event')
+	event_id = payload.get('event_id')
+	event_data = payload.get('data', {})
  
-    if not event_name or not event_id:
-        return JsonResponse({'error': 'missing event or event_id'}, status=400)
+	if not event_name or not event_id:
+		return JsonResponse({'error': 'missing event or event_id'}, status=400)
  
-    # Skip CompletePayment — the Payfast webhook already handles it
-    # server-side. If we forwarded again here, we'd risk double-firing.
-    if event_name == 'CompletePayment':
-        return JsonResponse({'ok': True, 'skipped': 'handled by webhook'})
+	# Skip CompletePayment — the Payfast webhook already handles it
+	# server-side. If we forwarded again here, we'd risk double-firing.
+	if event_name == 'CompletePayment':
+		return JsonResponse({'ok': True, 'skipped': 'handled by webhook'})
  
-    # Build user_data (TikTok needs at least IP + user agent to match users)
-    ip = (
-        request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
-        or request.META.get('REMOTE_ADDR', '')
-    )
-    user_data = {
-        'ip': ip,
-        'user_agent': request.META.get('HTTP_USER_AGENT', ''),
-        'ttp': request.COOKIES.get('_ttp', ''),
-        'ttclid': request.session.get('ttclid', ''),
-    }
-    
-    # If user is authenticated, add hashed external_id for better matching
-    if request.user.is_authenticated:
-        user_data['external_id'] = hashlib.sha256(
-            str(request.user.id).encode()
-        ).hexdigest()
-        if request.user.email:
-            user_data['email'] = hashlib.sha256(
-                request.user.email.lower().encode()
-            ).hexdigest()
+	# Build user_data (TikTok needs at least IP + user agent to match users)
+	ip = (
+		request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+		or request.META.get('REMOTE_ADDR', '')
+	)
+	user_data = {
+		'ip': ip,
+		'user_agent': request.META.get('HTTP_USER_AGENT', ''),
+		'ttp': request.COOKIES.get('_ttp', ''),
+		'ttclid': request.session.get('ttclid', ''),
+	}
+	
+	# If user is authenticated, add hashed external_id for better matching
+	if request.user.is_authenticated:
+		user_data['external_id'] = hashlib.sha256(
+			str(request.user.id).encode()
+		).hexdigest()
+		if request.user.email:
+			user_data['email'] = hashlib.sha256(
+				request.user.email.lower().encode()
+			).hexdigest()
  
-    # Forward to TikTok Events API using your existing helper
-    # Adjust the function name to match your existing helper in tiktok_events_api.py
-    try:
-        _send_event(
+	# Forward to TikTok Events API using your existing helper
+	# Adjust the function name to match your existing helper in tiktok_events_api.py
+	try:
+		_send_event(
 			event_name=event_name,
 			event_id=event_id,
 			properties=properties,
 			user_data=user_data,
 		)
-    except ImportError:
-        logger.warning(
-            "TikTok Events API helper not found — event %s not forwarded server-side",
-            event_name
-        )
-    except Exception as e:
-        # Log but don't fail — client-side event already fired
-        logger.exception("TikTok server-side forward failed for %s: %s", event_name, e)
+	except ImportError:
+		logger.warning(
+			"TikTok Events API helper not found — event %s not forwarded server-side",
+			event_name
+		)
+	except Exception as e:
+		# Log but don't fail — client-side event already fired
+		logger.exception("TikTok server-side forward failed for %s: %s", event_name, e)
  
-    return JsonResponse({'ok': True})
+	return JsonResponse({'ok': True})
  
  '''
 
@@ -436,51 +450,51 @@ def tiktok_track(request):
 @csrf_protect
 @require_POST
 def tiktok_track(request):
-    """
-    Generic client-side event forwarder.
-    Called by tiktok_events.js after every browser-side event fires.
-    """
-    try:
-        payload = json.loads(request.body)
-    except (ValueError, json.JSONDecodeError):
-        return JsonResponse({'error': 'invalid JSON'}, status=400)
+	"""
+	Generic client-side event forwarder.
+	Called by tiktok_events.js after every browser-side event fires.
+	"""
+	try:
+		payload = json.loads(request.body)
+	except (ValueError, json.JSONDecodeError):
+		return JsonResponse({'error': 'invalid JSON'}, status=400)
 
-    event_name = payload.get('event')
-    event_id = payload.get('event_id')
-    event_data = payload.get('data', {})
+	event_name = payload.get('event')
+	event_id = payload.get('event_id')
+	event_data = payload.get('data', {})
 
-    if not event_name or not event_id:
-        return JsonResponse({'error': 'missing event or event_id'}, status=400)
+	if not event_name or not event_id:
+		return JsonResponse({'error': 'missing event or event_id'}, status=400)
 
-    # Skip CompletePayment — the Payfast webhook handles it exclusively
-    # to avoid double-firing with a different event_id format
-    if event_name == 'CompletePayment':
-        return JsonResponse({'ok': True, 'skipped': 'handled by webhook'})
+	# Skip CompletePayment — the Payfast webhook handles it exclusively
+	# to avoid double-firing with a different event_id format
+	if event_name == 'CompletePayment':
+		return JsonResponse({'ok': True, 'skipped': 'handled by webhook'})
 
-    # Build user_data from the request (IP, UA, cookies, session)
-    user_data = build_user_data_from_request(request)
+	# Build user_data from the request (IP, UA, cookies, session)
+	user_data = build_user_data_from_request(request)
 
-    # Convert client-side payload into TikTok Events API properties format
-    # tiktok_events.js sends: { contents: [...], value, currency, content_type }
-    # TikTok Events API expects the same structure
-    properties = {
-        "contents":     event_data.get('contents', []),
-        "value":        event_data.get('value', 0),
-        "currency":     event_data.get('currency', 'ZAR'),
-        "content_type": event_data.get('content_type', 'product'),
-    }
-    # Pass through order_id if present (unusual for browser events but safe)
-    if 'order_id' in event_data:
-        properties['order_id'] = event_data['order_id']
+	# Convert client-side payload into TikTok Events API properties format
+	# tiktok_events.js sends: { contents: [...], value, currency, content_type }
+	# TikTok Events API expects the same structure
+	properties = {
+		"contents":     event_data.get('contents', []),
+		"value":        event_data.get('value', 0),
+		"currency":     event_data.get('currency', 'ZAR'),
+		"content_type": event_data.get('content_type', 'product'),
+	}
+	# Pass through order_id if present (unusual for browser events but safe)
+	if 'order_id' in event_data:
+		properties['order_id'] = event_data['order_id']
 
-    _send_event(
-        event_name=event_name,
-        event_id=event_id,
-        properties=properties,
-        user_data=user_data,
-    )
+	_send_event(
+		event_name=event_name,
+		event_id=event_id,
+		properties=properties,
+		user_data=user_data,
+	)
 
-    return JsonResponse({'ok': True})
+	return JsonResponse({'ok': True})
 
 
 # ============================================================
