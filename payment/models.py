@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, pre_save
-from greenmarv.models import Product
+from greenmarv.models import Influencer, Product
 from django.dispatch import receiver 
 import datetime
 from decimal import Decimal
@@ -76,6 +76,10 @@ class Order(models.Model):
 	amount_paid = models.DecimalField(max_digits=7, decimal_places=2)
 	total_weight = models.DecimalField(default=0, max_digits=7, decimal_places=2)
 	session_key = models.CharField(max_length=100, null=True, blank=True)
+
+	influencer = models.ForeignKey(Influencer, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders',
+        help_text="Set automatically from session if customer arrived via "
+                  "an influencer referral link. Leave blank for organic orders.",)
 	
 	date_ordered = models.DateTimeField(auto_now_add=True)
 	date_paid = models.DateTimeField(null=True, blank=True)	

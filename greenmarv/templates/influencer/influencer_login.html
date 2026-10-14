@@ -1,0 +1,167 @@
+{% extends "base1.html" %}
+{% load static %}
+
+{% block title %}Influencer sign in — Marvelously Green{% endblock %}
+
+{% block content %}
+<section class="inf-login-section">
+    <div class="inf-login-card">
+
+        <div class="inf-login-header">
+            <div class="inf-login-badge">🌿 INFLUENCER PORTAL</div>
+            <h1>Welcome back</h1>
+            <p>Sign in to see your dashboard, track your commission, and copy your link.</p>
+        </div>
+
+        <form method="post" class="inf-login-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="inf-login-error">
+                {{ form.non_field_errors.0 }}
+            </div>
+            {% endif %}
+
+            <label for="id_username">Username</label>
+            <input type="text"
+                   name="username"
+                   id="id_username"
+                   required
+                   autofocus
+                   autocomplete="username">
+
+            <label for="id_password">Password</label>
+            <input type="password"
+                   name="password"
+                   id="id_password"
+                   required
+                   autocomplete="current-password">
+
+            <button type="submit" class="inf-login-btn">Sign in →</button>
+        </form>
+
+        <div class="inf-login-help">
+            <p>Not an influencer yet?</p>
+            <p>
+                Email <a href="mailto:info@greenmarvel.co.za">info@greenmarvel.co.za</a> 
+                to apply to join the programme.
+            </p>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    .inf-login-section {
+        min-height: calc(100vh - 100px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        background: linear-gradient(135deg, #1b3022 0%, #2d5016 100%);
+    }
+    .inf-login-card {
+        width: 100%;
+        max-width: 420px;
+        background: white;
+        border-radius: 20px;
+        padding: 2rem 1.5rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        border: 1px solid #c5a059;
+    }
+    .inf-login-header {
+        text-align: center;
+        margin-bottom: 1.75rem;
+    }
+    .inf-login-badge {
+        display: inline-block;
+        color: #c5a059;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        padding: 0.4rem 0.9rem;
+        background: rgba(197, 160, 89, 0.1);
+        border-radius: 20px;
+        margin-bottom: 1rem;
+    }
+    .inf-login-header h1 {
+        color: #1b3022;
+        font-size: 1.65rem;
+        margin: 0 0 0.5rem 0;
+        font-weight: 800;
+    }
+    .inf-login-header p {
+        color: #666;
+        font-size: 0.9rem;
+        margin: 0;
+        line-height: 1.5;
+    }
+    .inf-login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+    .inf-login-form label {
+        color: #2d5016;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-top: 0.5rem;
+    }
+    .inf-login-form input {
+        padding: 0.85rem 1rem;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 1rem;
+        background: #fafbf9;
+        color: #1b3022;
+    }
+    .inf-login-form input:focus {
+        outline: none;
+        border-color: #c5a059;
+        background: white;
+    }
+    .inf-login-btn {
+        margin-top: 1.25rem;
+        padding: 0.95rem;
+        background: linear-gradient(135deg, #2d5016, #1b3022);
+        color: #c5a059;
+        border: 1px solid #c5a059;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 800;
+        cursor: pointer;
+        letter-spacing: 1px;
+        transition: all 0.3s;
+    }
+    .inf-login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(27, 48, 34, 0.3);
+    }
+    .inf-login-error {
+        background: #fef2f2;
+        color: #c0392b;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+        border-left: 3px solid #c0392b;
+    }
+    .inf-login-help {
+        margin-top: 1.75rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid #f0f0f0;
+        text-align: center;
+        color: #888;
+        font-size: 0.85rem;
+    }
+    .inf-login-help p {
+        margin: 0.3rem 0;
+    }
+    .inf-login-help a {
+        color: #2d5016;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}

@@ -1,11 +1,12 @@
 from django.urls import path
 from django.views.generic import TemplateView
+from django.contrib.auth.views import LoginView, LogoutView
 from . import views
 
 
 urlpatterns = [
     path('', views.home, name='home'),
-    #path('home2/', views.home2, name='home2'),
+    
     path('about/', views.about, name='about'),   
     path('login/', views.login_user, name='login'),
     path('logout/', views.logout_user, name='logout'),
@@ -25,6 +26,17 @@ urlpatterns = [
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('cookie-policy/', views.cookie_policy, name='cookie_policy'),
     path('shipping-policy/', views.shipping_policy, name='shipping_policy'),
+
+    # Influencer landing pages
+    path('with/<slug:slug>/', views.influencer_landing, name='influencer_landing',),
+    path('with/<slug:slug>/<slug:product_slug>/', views.influencer_landing, name='influencer_landing_product',),
+    # ============================================
+    # INFLUENCER AUTH + DASHBOARD
+    # ============================================
+    path('influencer-login/',LoginView.as_view(template_name='influencer/influencer_login.html',
+            redirect_authenticated_user=True,), name='influencer_login',),
+    path('influencer-logout/', LogoutView.as_view(next_page='home'), name='influencer_logout',),
+    path('influencer-dashboard/', views.influencer_dashboard,name='influencer_dashboard',),
 
     path('faqs/', TemplateView.as_view(template_name='legal/faqs.html'), name='faqs'),
     path('subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),

@@ -42,7 +42,7 @@ def _calc_free_shipping(total):
 	return amount_needed, False, progress_pct
 
 
-def cart_summary(request):
+"""def cart_summary2(request):
 	cart = Cart(request)
 	cart_products = cart.get_prods
 	quantities = cart.get_quants
@@ -160,8 +160,162 @@ def cart_summary(request):
 			# TikTok cart data
 			"tiktok_cart_json": ctiktok_cart_json,
 		},
-	)
+	)"""
 
+def cart_summary(request):
+    cart = Cart(request)
+    cart_products = cart.get_prods()        # ← parens — consistent with billing_info
+    quantities = cart.get_quants()           # ← parens — consistent with billing_info
+ 
+    # Initialize all variables upfront
+    base_total = cart.cart_total()
+    discount_amount = Decimal('0.00')
+    total_after_discount = base_total
+    commission = Decimal('0.00')
+    applied_promo = None
+    discount_code_str = None
+ 
+    # ============================================
+    # Step 1: Determine which code (if any) to apply
+    # Order of precedence:
+    #   1. POST (customer just typed a code)
+    #   2. Session (set by /with/<slug>/ influencer landing)
+    # ============================================
+    if request.method == "POST" and 'discount_code' in request.POST:
+        # Customer typed a code in the input box
+        discount_code_str = request.POST.get('discount_code', '').strip()
+        show_messages = True
+    else:
+        # On GET, check if a code was pre-applied via influencer link
+        discount_code_str = request.session.get('discount_code')
+        show_messages = False  # don't toast on every page refresh
+ 
+    # ============================================
+    # Step 2: Apply the discount code (if any)
+    # ============================================
+    if discount_code_str:
+        result = _apply_discount_code(discount_code_str, base_total, request, show_messages)
+        if result:
+            discount_amount = result['discount_amount']
+            total_after_discount = result['total_after_discount']
+            commission = result['commission']
+            applied_promo = result['applied_promo']
+ 
+    # ============================================
+    # Step 3: Heritage Day promo fallback (only if no code applied)
+    # ============================================
+    if not applied_promo:
+        try:
+            heritage_special = Promotion.objects.get(
+                name="Heritage Day Buy 3", is_active=True
+            )
+        except Promotion.DoesNotExist:
+            heritage_special = None
+ 
+        if heritage_special:
+            heritage_total = cart.heritage_total()
+            total_after_discount = heritage_total.quantize(
+                Decimal('0.01'), rounding=ROUND_HALF_UP
+            )
+            applied_promo = "Heritage Day: Cheapest Item Free"
+ 
+    # ============================================
+    # Step 4: Free-shipping nudge
+    # ============================================
+    amount_needed_for_free_shipping, qualifies_for_free_shipping, free_shipping_progress_pct = \
+        _calc_free_shipping(total_after_discount)
+ 
+    # ============================================
+    # Step 5: Save key values to session
+    # ============================================
+    request.session['total_after_discount'] = str(total_after_discount)
+    request.session['commission'] = str(commission)
+    request.session['discount_code'] = discount_code_str
+    request.session['applied_promo'] = applied_promo
+ 
+    # ============================================
+    # Step 6: Build TikTok cart data
+    # ============================================
+    tiktok_cart = {
+        'items': [
+            {
+                'id': product.id,
+                'name': product.name,
+                'price': float(product.price),
+                'quantity': int(quantities.get(str(product.id), 1)),  # no parens — already a dict
+            }
+            for product in cart_products                               # no parens — already a queryset
+        ],
+        'total': float(total_after_discount),
+    }
+    tiktok_cart_json = json.dumps(tiktok_cart)   # fixed typo
+ 
+    # ============================================
+    # Step 7: Render
+    # ============================================
+    return render(request, "cart_summary.html", {
+        "cart_products": cart_products,
+        "quantities": quantities,
+        "base_total": base_total,
+        "discount_amount": discount_amount,
+        "total_after_discount": total_after_discount,
+        "commission": commission,
+        "applied_promo": applied_promo,
+        "free_shipping_threshold": FREE_SHIPPING_THRESHOLD,
+        "amount_needed_for_free_shipping": amount_needed_for_free_shipping,
+        "qualifies_for_free_shipping": qualifies_for_free_shipping,
+        "free_shipping_progress_pct": free_shipping_progress_pct,
+        "tiktok_cart_json": tiktok_cart_json,
+    })
+ 
+ 
+# ================================================================
+# HELPER: Apply a discount code and return the computed values
+# ================================================================
+def _apply_discount_code(code_str, base_total, request, show_messages=True):
+    """
+    Look up the code, calculate discount + commission, return a dict.
+    Returns None if code is invalid.
+    """
+    try:
+        discount = DiscountCode.objects.get(code=code_str, is_active=True)
+    except ObjectDoesNotExist:
+        if show_messages:
+            messages.error(request, "Invalid discount code")
+        else:
+            # Silently clear bad session code so it doesn't nag every page
+            request.session.pop('discount_code', None)
+        return None
+ 
+    discount_amount = (
+        Decimal(discount.discount_percentage) / 100 * base_total
+    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+ 
+    total_after_discount = (base_total - discount_amount).quantize(
+        Decimal('0.01'), rounding=ROUND_HALF_UP
+    )
+ 
+    commission = Decimal('0.00')
+    if discount.influencer:
+        commission = (
+            Decimal(discount.influencer.commission_rate) / 100 * base_total
+        ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+ 
+    # Nicer label — attributes to influencer if there is one
+    if discount.influencer:
+        applied_promo = f"Via {discount.influencer.name} — Code: {discount.code}"
+    else:
+        applied_promo = f"Code: {discount.code}"
+ 
+    if show_messages:
+        messages.success(request, f"Discount code '{discount.code}' applied!")
+ 
+    return {
+        'discount_amount':      discount_amount,
+        'total_after_discount': total_after_discount,
+        'commission':           commission,
+        'applied_promo':        applied_promo,
+    }
 
 
 def notify_influencer(influencer, totals, discount_percentage, total_after_discount, discount_code, commission_rate, commission):
