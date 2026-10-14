@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, F
 from django.contrib import messages
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
@@ -22,7 +22,8 @@ import requests
 import logging
 
 from cart.cart import Cart
-from payment.sms_helpers import send_admin_order_alert_sms, send_order_confirmation_sms
+from greenmarv.views import get_referred_influencer
+from payment.sms_helpers import _format_sa_phone, send_admin_order_alert_sms, send_order_confirmation_sms
 from .forms import ShippingForm, PaymentForm
 from .models import ShippingAddress, Order, OrderItem, PayfastPayment, CourierGuy
 from .utils import send_sms_smsportal, get_shipping_rates
@@ -352,6 +353,12 @@ def process_order(request):
 		service_code=shipping_service_code,
 		province=shipping_info.get('shipping_province', ''),
 	)
+
+	# Get the discount code from session (set by cart_summary or /with/<slug>/)
+	discount_code_str = request.session.get('discount_code', '') or ''
+	
+	# Attribution to influencer 
+	attributed_influencer = get_referred_influencer(request)
 	
 	order = Order.objects.create(
 		user=request.user if request.user.is_authenticated else None,
@@ -370,6 +377,11 @@ def process_order(request):
 
 		# Pickup point (only filled if collection)
 		pickup_point_code=pickup_point_code,
+
+		# Influencer attribution (if any)
+		influencer=attributed_influencer,
+		# store the discount code so payment_notify can read it later
+		discount_code=discount_code_str,
 	)
 	
 	# Create OrderItem records for each cart line
@@ -603,14 +615,19 @@ def payment_notify(request):
 			# Send notifications
 			send_order_confirmation_sms(order)
 			send_admin_order_alert_sms(order)
+			
+			if order.discount_code:
+				credit_discount_code_usage(order, order.discount_code)
  
-			logger.info(f"Order {order_id} confirmed as paid")
+			notify_influencer_sms(order)
+
 			try:
 				track_complete_payment(order, request=request)
 			except Exception as e:
 				# Log but don't raise — payment must succeed regardless
 				logger.error(f"TikTok event tracking failed for order #{order.id}: {e}")
 			
+			logger.info(f"Order {order_id} confirmed as paid")
 			return HttpResponse(status=200)
  
 	elif payment_status == 'CANCELLED':
@@ -628,6 +645,72 @@ def payment_notify(request):
 	return HttpResponse(status=200)
 
 
+def credit_discount_code_usage(order, discount_code_str):
+    """
+    Increment usage stats on a DiscountCode after an order is paid.
+    Uses F() for atomic increment — safe against race conditions.
+    """
+    if not discount_code_str:
+        return
+    
+    try:
+        DiscountCode.objects.filter(code=discount_code_str).update(
+            usage_count=F('usage_count') + 1,
+            total_before_discount=F('total_before_discount') + Decimal(str(order.amount_paid)),
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(
+            f"Failed to credit discount code '{discount_code_str}' "
+            f"for order #{order.id}: {e}"
+        )
+
+
+def notify_influencer_sms(order):
+    """
+    SMS an influencer that their referral led to a sale.
+    Fires ONLY if the order has an attributed influencer with a phone number.
+    """
+    if not order.influencer:
+        return  # Organic order, nobody to notify
+
+    influencer = order.influencer
+    if not influencer.phone:
+        logger.info(
+            f"Influencer {influencer.name} has no phone — skipping SMS for order #{order.id}"
+        )
+        return
+
+    phone = _format_sa_phone(influencer.phone)
+    if not phone:
+        return
+
+    # Calculate commission from product subtotal (not shipping)
+    subtotal = sum(
+        item.price * item.quantity
+        for item in order.orderitem_set.all()
+    )
+    commission = (
+        subtotal * Decimal(str(influencer.commission_rate)) / Decimal('100')
+    ).quantize(Decimal('0.01'))
+
+    message = (
+        f"🎉 Great news {influencer.name.split()[0]}! "
+        f"Someone just placed Order #{order.id} "
+        f"(R{subtotal:.2f}) via your link. "
+        f"Your commission: R{commission:.2f}. "
+        f"🌿 Marvelously Green"
+    )
+
+    result = send_sms_smsportal(phone, message)
+    if result.get('success'):
+        logger.info(
+            f"Influencer SMS sent to {influencer.name} ({phone}) for order #{order.id}"
+        )
+    else:
+        logger.error(
+            f"Influencer SMS failed for {influencer.name} on order #{order.id}: {result}"
+        )
 
 # ================================================================
 # SMS NOTIFICATION HELPERS
@@ -792,82 +875,82 @@ def payment_success(request, order_id):
 # ================================================================
 '''
 def payment_success(request, order_id):
-    """
-    User lands here after successful Payfast payment.
-    Auth check accepts:
-      1. Logged-in user who owns the order
-      2. Session key match
-      3. Recently-paid order (within 30 min) — survives Payfast cookie loss
-    """
-    order = get_object_or_404(Order, id=order_id)
+	"""
+	User lands here after successful Payfast payment.
+	Auth check accepts:
+	  1. Logged-in user who owns the order
+	  2. Session key match
+	  3. Recently-paid order (within 30 min) — survives Payfast cookie loss
+	"""
+	order = get_object_or_404(Order, id=order_id)
  
-    # ---- Authorization ----
-    is_authorised = False
-    
-    # Path 1: authenticated user owns the order
-    if request.user.is_authenticated and order.user_id == request.user.id:
-        is_authorised = True
-    
-    # Path 2: session key matches (works when Payfast preserves cookies)
-    elif order.session_key and order.session_key == request.session.session_key:
-        is_authorised = True
-    
-    # Path 3: recently-paid order — grants access for 30 min after payment
-    # This survives Payfast redirects that drop the session cookie.
-    # Safe because:
-    #   - Only accessible to someone who has the exact order URL
-    #     (Payfast just redirected them here — they're the payer)
-    #   - Time-limited to 30 minutes
-    #   - Requires the order to be in a paid state
-    else:
-        from django.utils import timezone
-        from datetime import timedelta
-        
-        PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
-        recently_paid_window = timezone.now() - timedelta(minutes=30)
-        
-        if (order.status in PAID_STATUSES 
-            and order.date_paid 
-            and order.date_paid > recently_paid_window):
-            is_authorised = True
+	# ---- Authorization ----
+	is_authorised = False
+	
+	# Path 1: authenticated user owns the order
+	if request.user.is_authenticated and order.user_id == request.user.id:
+		is_authorised = True
+	
+	# Path 2: session key matches (works when Payfast preserves cookies)
+	elif order.session_key and order.session_key == request.session.session_key:
+		is_authorised = True
+	
+	# Path 3: recently-paid order — grants access for 30 min after payment
+	# This survives Payfast redirects that drop the session cookie.
+	# Safe because:
+	#   - Only accessible to someone who has the exact order URL
+	#     (Payfast just redirected them here — they're the payer)
+	#   - Time-limited to 30 minutes
+	#   - Requires the order to be in a paid state
+	else:
+		from django.utils import timezone
+		from datetime import timedelta
+		
+		PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
+		recently_paid_window = timezone.now() - timedelta(minutes=30)
+		
+		if (order.status in PAID_STATUSES 
+			and order.date_paid 
+			and order.date_paid > recently_paid_window):
+			is_authorised = True
  
-    if not is_authorised:
-        messages.error(request, "Order not found.")
-        return redirect('home')
+	if not is_authorised:
+		messages.error(request, "Order not found.")
+		return redirect('home')
  
-    # ---- Only fire TikTok event for paid orders ----
-    PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
-    order_is_paid = order.status in PAID_STATUSES
+	# ---- Only fire TikTok event for paid orders ----
+	PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
+	order_is_paid = order.status in PAID_STATUSES
  
-    # ---- Build TikTok CompletePayment payload ----
-    tiktok_items = []
-    for item in order.orderitem_set.all():
-        try:
-            tiktok_items.append({
-                'id': item.product.id,
-                'name': item.product.name,
-                'price': float(item.price),
-                'quantity': int(item.quantity),
-            })
-        except AttributeError:
-            continue
+	# ---- Build TikTok CompletePayment payload ----
+	tiktok_items = []
+	for item in order.orderitem_set.all():
+		try:
+			tiktok_items.append({
+				'id': item.product.id,
+				'name': item.product.name,
+				'price': float(item.price),
+				'quantity': int(item.quantity),
+			})
+		except AttributeError:
+			continue
  
-    tiktok_order = {
-        'id': order.id,
-        'items': tiktok_items,
-        'total': float(order.amount_paid or 0),
-    }
+	tiktok_order = {
+		'id': order.id,
+		'items': tiktok_items,
+		'total': float(order.amount_paid or 0),
+	}
  
-    # Use "purchase_" prefix to match the webhook (avoids dedup issue)
-    tiktok_event_id = f'purchase_{order.id}'
+	# Use "purchase_" prefix to match the webhook (avoids dedup issue)
+	tiktok_event_id = f'purchase_{order.id}'
  
-    context = {
-        'order': order,
-        'order_is_paid': order_is_paid,
-        'tiktok_order_json': json.dumps(tiktok_order),
-        'tiktok_event_id': tiktok_event_id,
-    }
-    return render(request, 'payment/payment_success.html', context)
+	context = {
+		'order': order,
+		'order_is_paid': order_is_paid,
+		'tiktok_order_json': json.dumps(tiktok_order),
+		'tiktok_event_id': tiktok_event_id,
+	}
+	return render(request, 'payment/payment_success.html', context)
 '''
 
 
@@ -1398,27 +1481,6 @@ def process_order3(request):
 			return redirect(payment_url)
 '''			
 
-def notify_influencer(influencer, total_before_discount, discount_percentage, total_after_discount, discount_code, commission_rate, commission):
-	subject = "Your Discount Code Was Used!"
-	message = (
-		f"Hello {influencer.name}, \n\n"
-		f"Your discount code: {discount_code}, was used for a purchase of R{total_before_discount}. "
-		f"The customer received a {discount_percentage}% discount.\n"
-		f"Which reduced their order to R{total_after_discount} .\n\n"
-		f"At the commission rate of: {commission_rate}%."
-		f"Your commission for this order is: R{commission}.\n"
-		f"Thank you for your contribution!.\n\n"
-		f"Regards,\n"
-		f"The Green Marvel Sales Team"
-		)
-
-	send_mail(
-		subject,
-		message,
-		settings.EMAIL_HOST_USER,  # Replace with your store's email
-		[influencer.email],
-		fail_silently=False,
-	)
 
 
 

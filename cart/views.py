@@ -318,27 +318,6 @@ def _apply_discount_code(code_str, base_total, request, show_messages=True):
     }
 
 
-def notify_influencer(influencer, totals, discount_percentage, total_after_discount, discount_code, commission_rate, commission):
-	subject = "Your Discount Code Was Used!"
-	message = (
-		f"Hello {influencer.name}, \n\n"
-		f"Your discount code: {discount_code}, was used for a purchase of R{totals:.2f}. "
-		f"The customer received a {discount_percentage}% discount.\n"
-		f"Which reduced their order to R{total_after_discount} .\n"
-		f"At the commission rate of: {commission_rate}%.\n"
-		f"Your commission for this order is: R{commission:.2f}.\n"
-		f"Thank you for your contribution!.\n"
-		f"Green Marvel Sales Team"
-		)
-
-	send_mail(
-		subject,
-		message,
-		settings.EMAIL_HOST_USER,  
-		[influencer.email],
-		fail_silently=False,
-	)
-
 
 def cart_add(request):
 	# Get the Cart

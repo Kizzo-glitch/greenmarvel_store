@@ -83,6 +83,9 @@ class Order(models.Model):
 	commission_paid_out_at = models.DateTimeField(null=True, blank=True,
         help_text="When the commission on this order was paid to the "
                   "influencer. Null = still owed. Only applies if influencer is set.",)
+	discount_code = models.CharField(max_length=20, blank=True, default='',
+        help_text="Discount code applied to this order at checkout. "
+                  "Used for commission/stats attribution.",)
 	
 	date_ordered = models.DateTimeField(auto_now_add=True)
 	date_paid = models.DateTimeField(null=True, blank=True)	

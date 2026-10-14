@@ -143,6 +143,7 @@ class OrderAdmin(admin.ModelAdmin):
         'courier_booked',           
         'tracking_number',         
         'date_ordered',
+        'discount_code',  
     )
     
     list_filter = (
@@ -151,6 +152,7 @@ class OrderAdmin(admin.ModelAdmin):
         'pickup_point_code',   
         'date_ordered',
         'shipped',
+        'discount_code',
     )
     
     search_fields = (
@@ -159,6 +161,7 @@ class OrderAdmin(admin.ModelAdmin):
         'email',
         'phone',
         'tracking_number',
+        'discount_code',
     )
     
     readonly_fields = (
@@ -173,7 +176,7 @@ class OrderAdmin(admin.ModelAdmin):
             'fields': ('user', 'full_name', 'email', 'phone', 'shipping_address'),
         }),
         ('Order Details', {
-            'fields': ('amount_paid', 'status', 'date_ordered', 'date_paid'),
+            'fields': ('amount_paid', 'status', 'date_ordered', 'date_paid', 'discount_code'),
         }),
         ('Shipping / Collection', {
             'fields': (
