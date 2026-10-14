@@ -55,7 +55,7 @@ def create_dashboard_account(modeladmin, request, queryset):
       4. Show the password in admin message (fallback if SMS fails)
     """
     site_url = getattr(settings, 'SITE_URL', 'https://greenmarvel.co.za').rstrip('/')
-    login_url = f"{site_url}/influencer_login/"
+    login_url = f"{site_url}/influencer/influencer_login/"
  
     created = 0
     already_had = 0
