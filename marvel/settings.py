@@ -212,6 +212,7 @@ SMS_CLIENT_ID = os.getenv('SMS_CLIENT_ID')
 SITE_URL = 'https://greenmarvel.co.za'
 LOGIN_URL = 'login'
 
+
 TIKTOK_PIXEL_ID = os.environ.get('TIKTOK_PIXEL_ID', '')
 TIKTOK_ACCESS_TOKEN = os.environ.get('TIKTOK_ACCESS_TOKEN', '')
 #TIKTOK_TEST_EVENT_CODE = os.environ.get('TIKTOK_TEST_EVENT_CODE', '')  

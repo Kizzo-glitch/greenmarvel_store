@@ -33,10 +33,10 @@ urlpatterns = [
     # ============================================
     # INFLUENCER AUTH + DASHBOARD
     # ============================================
-    path('influencer-login/',LoginView.as_view(template_name='influencer/influencer_login.html',
-            redirect_authenticated_user=True,), name='influencer_login',),
-    path('influencer-logout/', LogoutView.as_view(next_page='home'), name='influencer_logout',),
-    path('influencer-dashboard/', views.influencer_dashboard,name='influencer_dashboard',),
+    path('influencer/login/', LoginView.as_view(template_name='influencer/login.html', redirect_authenticated_user=True,
+        next_page='influencer_dashboard',), name='influencer_login',),
+    path('influencer/logout/', LogoutView.as_view(next_page='home'), name='influencer_logout',),
+    path('influencer/dashboard/', views.influencer_dashboard,name='influencer_dashboard',),
 
     path('faqs/', TemplateView.as_view(template_name='legal/faqs.html'), name='faqs'),
     path('subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),
