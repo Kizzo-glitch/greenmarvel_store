@@ -33,7 +33,7 @@ urlpatterns = [
     # ============================================
     # INFLUENCER AUTH + DASHBOARD
     # ============================================
-    path('influencer/login/', LoginView.as_view(template_name='influencer/login.html', redirect_authenticated_user=True,
+    path('influencer/login/', LoginView.as_view(template_name='influencer/influencer_login.html', redirect_authenticated_user=True,
         next_page='influencer_dashboard',), name='influencer_login',),
     path('influencer/logout/', LogoutView.as_view(next_page='home'), name='influencer_logout',),
     path('influencer/dashboard/', views.influencer_dashboard,name='influencer_dashboard',),
