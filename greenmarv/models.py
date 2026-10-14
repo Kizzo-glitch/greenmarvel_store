@@ -9,6 +9,8 @@ from django.db import models
 from django.core.validators import EmailValidator
 from django.conf import settings
 import hashlib
+from decimal import Decimal
+from django.db.models import Sum
  
 
 
