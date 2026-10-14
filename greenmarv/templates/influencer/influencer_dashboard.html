@@ -89,6 +89,39 @@
             </div>
         </div>
 
+        <div class="inf-payout-card">
+            <div class="inf-payout-header">
+                <div>
+                    <p class="inf-payout-eyebrow">PENDING PAYOUT</p>
+                    <p class="inf-payout-value">R{{ payout_summary.pending|floatformat:2 }}</p>
+                </div>
+                {% if payout_summary.pending > 0 %}
+                <div class="inf-payout-pulse">💰</div>
+                {% endif %}
+            </div>
+            
+            <div class="inf-payout-details">
+                <div class="inf-payout-row">
+                    <span>Total earned (all time)</span>
+                    <strong>R{{ payout_summary.total|floatformat:2 }}</strong>
+                </div>
+                <div class="inf-payout-row">
+                    <span>Already paid out</span>
+                    <strong>R{{ payout_summary.paid|floatformat:2 }}</strong>
+                </div>
+                {% if payout_summary.last_paid_at %}
+                <div class="inf-payout-row inf-payout-row-sub">
+                    <span>Last payout</span>
+                    <strong>{{ payout_summary.last_paid_at|date:"d M Y" }}</strong>
+                </div>
+                {% endif %}
+            </div>
+    
+            <p class="inf-payout-note">
+                💚 Payouts happen on the 1st of every month.
+            </p>
+        </div>
+
         {# ============================================ #}
         {# SHARE LINK + CODE                             #}
         {# ============================================ #}
@@ -616,6 +649,86 @@
         }
         .inf-header h1 {
             font-size: 1.65rem;
+        }
+    }
+</style>
+
+
+<style>
+    /* ============================================
+       PAYOUT CARD — Phase 5
+       ============================================ */
+    .inf-payout-card {
+        background: linear-gradient(135deg, #fdfaf3, #ffffff);
+        border: 1.5px solid #c5a059;
+        border-radius: 20px;
+        padding: 1.5rem 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+    .inf-payout-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+    .inf-payout-eyebrow {
+        color: #888;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        margin: 0 0 0.3rem 0;
+    }
+    .inf-payout-value {
+        color: #c5a059;
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0;
+        line-height: 1;
+    }
+    .inf-payout-pulse {
+        font-size: 2rem;
+        animation: payoutPulse 2s ease-in-out infinite;
+    }
+    @keyframes payoutPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+    }
+    .inf-payout-details {
+        padding: 0.9rem 0;
+        border-top: 1px dashed rgba(197, 160, 89, 0.3);
+        border-bottom: 1px dashed rgba(197, 160, 89, 0.3);
+        margin-bottom: 0.75rem;
+    }
+    .inf-payout-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.3rem 0;
+        font-size: 0.88rem;
+        color: #555;
+    }
+    .inf-payout-row strong {
+        color: #1b3022;
+        font-weight: 700;
+    }
+    .inf-payout-row-sub {
+        font-size: 0.78rem;
+        color: #888;
+        padding-top: 0.5rem;
+        border-top: 1px solid #f0f0f0;
+        margin-top: 0.3rem;
+    }
+    .inf-payout-note {
+        color: #666;
+        font-size: 0.78rem;
+        font-style: italic;
+        text-align: center;
+        margin: 0;
+    }
+ 
+    @media (min-width: 600px) {
+        .inf-payout-value {
+            font-size: 2.5rem;
         }
     }
 </style>

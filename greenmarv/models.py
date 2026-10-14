@@ -133,7 +133,7 @@ class Influencer(models.Model):
 	# ============================================
 	# NEW: URL slug for /with/<slug>/ links
 	# ============================================
-	slug = models.SlugField(max_length=50, unique=True, blank=True,  # auto-filled on save if blank
+	slug = models.SlugField(max_length=50, unique=True, blank=True,  
 		help_text="URL identifier — used in greenmarvel.co.za/with/<slug>/. "
 				  "Keep short + memorable (e.g. 'veronica').",
 	)
@@ -195,11 +195,11 @@ class Influencer(models.Model):
  
 	@property
 	def referral_url_path(self):
-		"""Return the path portion of their referral link: /with/<slug>/"""
+		"""Return the path portion of their referral link safely."""
+		if not self.slug:
+			return ""
 		return f"/with/{self.slug}/"
 	
-	def __str__(self):
-		return self.name
 
  
 class DiscountCode(models.Model):
@@ -314,6 +314,7 @@ class InfluencerClick(models.Model):
 		
 		salt = salt or getattr(settings, 'INFLUENCER_IP_SALT', settings.SECRET_KEY)
 		return hashlib.sha256(f"{ip_address}:{salt}".encode('utf-8')).hexdigest()
+
 
 # ================================================================
 # NEWSLETTER SUBSCRIPTION — Backend

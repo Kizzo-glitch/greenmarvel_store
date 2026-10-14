@@ -80,6 +80,9 @@ class Order(models.Model):
 	influencer = models.ForeignKey(Influencer, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders',
         help_text="Set automatically from session if customer arrived via "
                   "an influencer referral link. Leave blank for organic orders.",)
+	commission_paid_out_at = models.DateTimeField(null=True, blank=True,
+        help_text="When the commission on this order was paid to the "
+                  "influencer. Null = still owed. Only applies if influencer is set.",)
 	
 	date_ordered = models.DateTimeField(auto_now_add=True)
 	date_paid = models.DateTimeField(null=True, blank=True)	

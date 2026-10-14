@@ -1,16 +1,117 @@
-from django.contrib import admin
+from django.contrib import admin,messages
+
+from payment.sms_helpers import _format_sa_phone
+from payment.utils import send_sms_smsportal
 from .models import ShippingAddress, Order, OrderItem, PayfastPayment, CourierGuy
 from django.contrib.auth.models import User
 from django.utils import timezone
 
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
-#from .models import Order, OrderItem
+
+from decimal import Decimal
+
+
+
 
 admin.site.register(ShippingAddress)
 admin.site.register(PayfastPayment)
 admin.site.register(CourierGuy)
 
+
+
+
+# ================================================================
+# 2. ORDER ADMIN — "Mark commission as paid" bulk action
+# ================================================================
+ 
+@admin.action(description="💰 Mark commission as paid out to influencer")
+def mark_commission_paid(modeladmin, request, queryset):
+    """
+    Bulk-mark attributed orders as having had their commission paid out.
+    Only operates on orders that:
+      - Have an influencer attributed
+      - Are already paid (status='paid' or beyond)
+      - Haven't already had commission paid out
+    
+    Also sends an SMS to each influencer with their payout total.
+    """
+    PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
+ 
+    # Filter down to eligible orders
+    eligible = queryset.filter(
+        influencer__isnull=False,
+        status__in=PAID_STATUSES,
+        commission_paid_out_at__isnull=True,
+    )
+ 
+    if not eligible.exists():
+        messages.warning(
+            request,
+            "No eligible orders selected. Orders must be: attributed to an "
+            "influencer, paid, and not already paid out."
+        )
+        return
+ 
+    # Group by influencer so we can SMS each one their total payout
+    now = timezone.now()
+    payout_by_influencer = {}  # influencer_id → list of (order, commission)
+ 
+    for order in eligible.select_related('influencer').prefetch_related('orderitem_set'):
+        subtotal = sum(
+            item.price * item.quantity
+            for item in order.orderitem_set.all()
+        )
+        commission = (
+            subtotal * Decimal(str(order.influencer.commission_rate)) / Decimal('100')
+        ).quantize(Decimal('0.01'))
+ 
+        payout_by_influencer.setdefault(order.influencer, []).append((order, commission))
+ 
+    # Mark paid + SMS each influencer
+    marked = 0
+    sms_sent = 0
+ 
+    for influencer, order_commissions in payout_by_influencer.items():
+        order_ids = [oc[0].id for oc in order_commissions]
+        total_commission = sum(oc[1] for oc in order_commissions)
+ 
+        # Bulk update timestamps
+        Order.objects.filter(id__in=order_ids).update(commission_paid_out_at=now)
+        marked += len(order_ids)
+ 
+        # SMS the influencer
+        if _sms_payout_notification(influencer, total_commission, len(order_ids)):
+            sms_sent += 1
+ 
+    messages.success(
+        request,
+        f"💰 Marked {marked} order{'s' if marked > 1 else ''} as paid out · "
+        f"{sms_sent} influencer{'s' if sms_sent > 1 else ''} notified by SMS"
+    )
+ 
+ 
+def _sms_payout_notification(influencer, total_commission, order_count):
+    """SMS the influencer that their payout has gone out. Returns True if sent."""
+    if not influencer.phone:
+        return False
+ 
+    phone = _format_sa_phone(influencer.phone)
+    if not phone:
+        return False
+ 
+    message = (
+        f"💰 {influencer.name.split()[0]}, your Marvelously Green commission "
+        f"has been paid out! Total: R{total_commission:.2f} "
+        f"covering {order_count} order{'s' if order_count > 1 else ''}. "
+        f"Thank you for your amazing work! 🌿"
+    )
+ 
+    try:
+        result = send_sms_smsportal(phone, message)
+        return result.get('success', False)
+    except Exception:
+        return False
 
 
 
@@ -25,6 +126,7 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    actions = [mark_commission_paid] 
     """
     Admin view for orders, showing shipping selection and margin per order.
     """
@@ -34,8 +136,8 @@ class OrderAdmin(admin.ModelAdmin):
         'full_name',
         'status_badge',
         'amount_paid_display',
-        'shipping_service_badge',     # NEW: shows tier
-        'pickup_point_display',        # NEW: shows pickup point if collection
+        'shipping_service_badge',     
+        'pickup_point_display',        
         'shipping_service_badge',  
         'shipping_margin_display',  
         'courier_booked',           
@@ -118,6 +220,7 @@ class OrderAdmin(admin.ModelAdmin):
         return mark_safe('<span style="color:#999;">?</span>')
     pickup_point_display.short_description = 'Pickup'
     pickup_point_display.admin_order_field = 'pickup_point_code'
+
     
     # ============================================
     # CUSTOM COLUMN RENDERS

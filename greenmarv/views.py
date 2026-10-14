@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
 from .models import (Product, Profile, DiscountCode, 
-                     NewsletterSubscriber, Influencer, InfluencerClick)
+					 NewsletterSubscriber, Influencer, InfluencerClick)
 from .forms import SignUpForm, UpdateUserForm, ChangePasswordForm, UserInfoForm
 from django import forms
 
@@ -38,6 +38,7 @@ from django.conf import settings
 
 import hashlib
 import logging
+from .commission_calculations import _calculate_paid_commission, _calculate_pending_commission
 
 from .tiktok_events_api import _send_event, build_user_data_from_request
  
@@ -456,245 +457,245 @@ def tiktok_track(request):
 # VIEW: /with/<slug>/
 # ================================================================
 def influencer_landing(request, slug, product_slug=None):
-    """
-    Capture an influencer referral and redirect the visitor.
-    
-    URLs:
-        /with/<slug>/                     → home
-        /with/<slug>/<product_slug>/      → that product's detail page
-    
-    Side effects:
-        - Logs an InfluencerClick row
-        - Writes request.session['referral'] with attribution
-        - Writes request.session['discount_code'] with the auto-apply code
-        - Adds a messages.success() for the toast
-    """
-    # ============================================
-    # 1. Resolve influencer (404 if slug invalid)
-    # ============================================
-    try:
-        influencer = Influencer.objects.get(slug=slug, is_active=True)
-    except Influencer.DoesNotExist:
-        logger.info(f"Influencer landing: unknown or inactive slug '{slug}'")
-        raise Http404("This referral link isn't active.")
+	"""
+	Capture an influencer referral and redirect the visitor.
+	
+	URLs:
+		/with/<slug>/                     → home
+		/with/<slug>/<product_slug>/      → that product's detail page
+	
+	Side effects:
+		- Logs an InfluencerClick row
+		- Writes request.session['referral'] with attribution
+		- Writes request.session['discount_code'] with the auto-apply code
+		- Adds a messages.success() for the toast
+	"""
+	# ============================================
+	# 1. Resolve influencer (404 if slug invalid)
+	# ============================================
+	try:
+		influencer = Influencer.objects.get(slug=slug, is_active=True)
+	except Influencer.DoesNotExist:
+		logger.info(f"Influencer landing: unknown or inactive slug '{slug}'")
+		raise Http404("This referral link isn't active.")
  
-    # ============================================
-    # 2. Resolve product (if deep link)
-    # ============================================
-    product = None
-    if product_slug:
-        try:
-            product = Product.objects.get(slug=product_slug)
-        except Product.DoesNotExist:
-            logger.info(
-                f"Influencer landing: valid influencer '{slug}' but unknown "
-                f"product '{product_slug}' — redirecting to home instead"
-            )
-            # Soft fail: still attribute the referral, just land on home
-            # rather than 404ing out of a legit influencer's link
+	# ============================================
+	# 2. Resolve product (if deep link)
+	# ============================================
+	product = None
+	if product_slug:
+		try:
+			product = Product.objects.get(slug=product_slug)
+		except Product.DoesNotExist:
+			logger.info(
+				f"Influencer landing: valid influencer '{slug}' but unknown "
+				f"product '{product_slug}' — redirecting to home instead"
+			)
+			# Soft fail: still attribute the referral, just land on home
+			# rather than 404ing out of a legit influencer's link
  
-    # ============================================
-    # 3. Log the click (non-blocking)
-    # ============================================
-    try:
-        # Ensure session key exists for anonymous visitors
-        if not request.session.session_key:
-            request.session.save()
+	# ============================================
+	# 3. Log the click (non-blocking)
+	# ============================================
+	try:
+		# Ensure session key exists for anonymous visitors
+		if not request.session.session_key:
+			request.session.save()
  
-        client_ip = _get_client_ip(request)
-        referrer = _get_referrer_domain(request)
+		client_ip = _get_client_ip(request)
+		referrer = _get_referrer_domain(request)
  
-        InfluencerClick.objects.create(
-            influencer=influencer,
-            product_slug=product_slug or '',
-            user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
-            ip_hash=InfluencerClick.hash_ip(client_ip),
-            session_key=request.session.session_key or '',
-            referrer_domain=referrer,
-        )
-    except Exception as e:
-        # Click logging must never block the redirect
-        logger.error(f"Failed to log influencer click for '{slug}': {e}")
+		InfluencerClick.objects.create(
+			influencer=influencer,
+			product_slug=product_slug or '',
+			user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
+			ip_hash=InfluencerClick.hash_ip(client_ip),
+			session_key=request.session.session_key or '',
+			referrer_domain=referrer,
+		)
+	except Exception as e:
+		# Click logging must never block the redirect
+		logger.error(f"Failed to log influencer click for '{slug}': {e}")
  
-    # ============================================
-    # 4. Save referral attribution to session
-    # ============================================
-    request.session[SESSION_KEY_REFERRAL] = {
-        'influencer_id':   influencer.id,
-        'influencer_slug': influencer.slug,
-        'applied_at':      timezone.now().isoformat(),
-    }
+	# ============================================
+	# 4. Save referral attribution to session
+	# ============================================
+	request.session[SESSION_KEY_REFERRAL] = {
+		'influencer_id':   influencer.id,
+		'influencer_slug': influencer.slug,
+		'applied_at':      timezone.now().isoformat(),
+	}
  
-    # ============================================
-    # 5. Auto-apply their active discount code (if any)
-    # ============================================
-    active_code = influencer.active_discount_code
-    if active_code:
-        request.session['discount_code'] = active_code.code
-        
-        # Pre-calculate the discount amount so cart_summary picks it up
-        # NOTE: we don't set total_after_discount here because cart contents
-        # might change between landing and checkout. cart_summary recalculates
-        # on each visit using the code we just stored.
+	# ============================================
+	# 5. Auto-apply their active discount code (if any)
+	# ============================================
+	active_code = influencer.active_discount_code
+	if active_code:
+		request.session['discount_code'] = active_code.code
+		
+		# Pre-calculate the discount amount so cart_summary picks it up
+		# NOTE: we don't set total_after_discount here because cart contents
+		# might change between landing and checkout. cart_summary recalculates
+		# on each visit using the code we just stored.
  
-        _show_discount_toast(request, influencer, active_code)
-    else:
-        # No code attached — still show a warm welcome
-        _show_referral_toast(request, influencer)
+		_show_discount_toast(request, influencer, active_code)
+	else:
+		# No code attached — still show a warm welcome
+		_show_referral_toast(request, influencer)
  
-    # ============================================
-    # 6. Redirect
-    # ============================================
-    if product:
-        # Deep link → product detail
-        # Adjust URL name to match your actual product_detail URL
-        try:
-            return redirect('product_detail', slug=product.slug)
-        except Exception:
-            # Fallback if URL name/kwargs differ in your project
-            return redirect('home')
-    else:
-        return redirect('home')
+	# ============================================
+	# 6. Redirect
+	# ============================================
+	if product:
+		# Deep link → product detail
+		# Adjust URL name to match your actual product_detail URL
+		try:
+			return redirect('product_detail', slug=product.slug)
+		except Exception:
+			# Fallback if URL name/kwargs differ in your project
+			return redirect('home')
+	else:
+		return redirect('home')
  
  
 # ================================================================
 # HELPERS
 # ================================================================
 def _show_discount_toast(request, influencer, discount_code):
-    """Toast shown when influencer has a discount code to auto-apply."""
-    # Format the discount for the message
-    if discount_code.discount_percentage:
-        discount_str = f"{discount_code.discount_percentage}%"
-    elif discount_code.amount_off:
-        discount_str = f"R{discount_code.amount_off:.0f}"
-    else:
-        discount_str = "a discount"
-    
-    messages.success(
-        request,
-        f"Welcome via {influencer.name}! ✨ {discount_str} off has been "
-        f"applied to your cart — use code {discount_code.code} at checkout."
-    )
+	"""Toast shown when influencer has a discount code to auto-apply."""
+	# Format the discount for the message
+	if discount_code.discount_percentage:
+		discount_str = f"{discount_code.discount_percentage}%"
+	elif discount_code.amount_off:
+		discount_str = f"R{discount_code.amount_off:.0f}"
+	else:
+		discount_str = "a discount"
+	
+	messages.success(
+		request,
+		f"Welcome via {influencer.name}! ✨ {discount_str} off has been "
+		f"applied to your cart — use code {discount_code.code} at checkout."
+	)
  
  
 def _show_referral_toast(request, influencer):
-    """Toast shown when influencer has no active discount code."""
-    messages.success(
-        request,
-        f"Welcome via {influencer.name}! 🌿 Browse away — "
-        f"your visit has been credited to them."
-    )
+	"""Toast shown when influencer has no active discount code."""
+	messages.success(
+		request,
+		f"Welcome via {influencer.name}! 🌿 Browse away — "
+		f"your visit has been credited to them."
+	)
  
  
 def _get_client_ip(request):
-    """Extract real IP, respecting proxy headers (Railway puts customer IP in XFF)."""
-    xff = request.META.get('HTTP_X_FORWARDED_FOR', '')
-    if xff:
-        return xff.split(',')[0].strip()
-    return request.META.get('REMOTE_ADDR', '')
+	"""Extract real IP, respecting proxy headers (Railway puts customer IP in XFF)."""
+	xff = request.META.get('HTTP_X_FORWARDED_FOR', '')
+	if xff:
+		return xff.split(',')[0].strip()
+	return request.META.get('REMOTE_ADDR', '')
  
  
 def _get_referrer_domain(request):
-    """
-    Extract just the hostname from the HTTP Referer header.
-    Lets us answer "did this click come from TikTok, Instagram or direct?"
-    without storing the full URL (which could leak private page paths).
-    """
-    referer = request.META.get('HTTP_REFERER', '')
-    if not referer:
-        return ''
-    try:
-        parsed = urlparse(referer)
-        return parsed.hostname[:200] if parsed.hostname else ''
-    except Exception:
-        return ''
+	"""
+	Extract just the hostname from the HTTP Referer header.
+	Lets us answer "did this click come from TikTok, Instagram or direct?"
+	without storing the full URL (which could leak private page paths).
+	"""
+	referer = request.META.get('HTTP_REFERER', '')
+	if not referer:
+		return ''
+	try:
+		parsed = urlparse(referer)
+		return parsed.hostname[:200] if parsed.hostname else ''
+	except Exception:
+		return ''
  
  
 # ================================================================
 # UTILITY — used by cart_summary + process_order views in Phase 3
 # ================================================================
 def get_valid_referral(request):
-    """
-    Return the active referral dict from session, or None if expired/missing.
-    
-    Call this from:
-        - cart_summary (to show "attributed to X" in order summary)
-        - process_order (to set Order.influencer when creating the record)
-    
-    Returns:
-        dict with 'influencer_id', 'influencer_slug', 'applied_at'
-        OR None if no referral or referral is older than 30 days.
-    """
-    referral = request.session.get(SESSION_KEY_REFERRAL)
-    if not referral:
-        return None
+	"""
+	Return the active referral dict from session, or None if expired/missing.
+	
+	Call this from:
+		- cart_summary (to show "attributed to X" in order summary)
+		- process_order (to set Order.influencer when creating the record)
+	
+	Returns:
+		dict with 'influencer_id', 'influencer_slug', 'applied_at'
+		OR None if no referral or referral is older than 30 days.
+	"""
+	referral = request.session.get(SESSION_KEY_REFERRAL)
+	if not referral:
+		return None
  
-    try:
-        applied_at = timezone.datetime.fromisoformat(referral['applied_at'])
-    except (ValueError, KeyError, TypeError):
-        # Corrupted session data — clear it
-        request.session.pop(SESSION_KEY_REFERRAL, None)
-        return None
+	try:
+		applied_at = timezone.datetime.fromisoformat(referral['applied_at'])
+	except (ValueError, KeyError, TypeError):
+		# Corrupted session data — clear it
+		request.session.pop(SESSION_KEY_REFERRAL, None)
+		return None
  
-    # Check 30-day window
-    expiry = applied_at + timedelta(days=REFERRAL_WINDOW_DAYS)
-    if timezone.now() > expiry:
-        # Expired — silently clear and return nothing
-        request.session.pop(SESSION_KEY_REFERRAL, None)
-        logger.info(
-            f"Referral expired for session: slug='{referral.get('influencer_slug')}', "
-            f"applied {(timezone.now() - applied_at).days} days ago"
-        )
-        return None
+	# Check 30-day window
+	expiry = applied_at + timedelta(days=REFERRAL_WINDOW_DAYS)
+	if timezone.now() > expiry:
+		# Expired — silently clear and return nothing
+		request.session.pop(SESSION_KEY_REFERRAL, None)
+		logger.info(
+			f"Referral expired for session: slug='{referral.get('influencer_slug')}', "
+			f"applied {(timezone.now() - applied_at).days} days ago"
+		)
+		return None
  
-    return referral
+	return referral
  
  
 def get_referred_influencer(request):
-    """
-    Convenience: return the Influencer object this session was referred by, or None.
-    Returns None if the influencer was deactivated between landing and checkout.
-    """
-    referral = get_valid_referral(request)
-    if not referral:
-        return None
-    try:
-        return Influencer.objects.get(id=referral['influencer_id'], is_active=True)
-    except Influencer.DoesNotExist:
-        return None
+	"""
+	Convenience: return the Influencer object this session was referred by, or None.
+	Returns None if the influencer was deactivated between landing and checkout.
+	"""
+	referral = get_valid_referral(request)
+	if not referral:
+		return None
+	try:
+		return Influencer.objects.get(id=referral['influencer_id'], is_active=True)
+	except Influencer.DoesNotExist:
+		return None
 
 
 # ================================================================
 # DECORATOR — only logged-in influencers with a profile can access
 # ================================================================
 def influencer_required(view_func):
-    """
-    Require: user is authenticated AND has an Influencer profile linked
-    AND the Influencer is marked is_active.
-    """
-    @wraps(view_func)
-    @login_required(login_url='influencer_login')
-    def wrapper(request, *args, **kwargs):
-        try:
-            influencer = request.user.influencer_profile
-        except Influencer.DoesNotExist:
-            messages.warning(
-                request,
-                "This area is for Marvelously Green influencers only."
-            )
-            return redirect('home')
+	"""
+	Require: user is authenticated AND has an Influencer profile linked
+	AND the Influencer is marked is_active.
+	"""
+	@wraps(view_func)
+	@login_required(login_url='influencer_login')
+	def wrapper(request, *args, **kwargs):
+		try:
+			influencer = request.user.influencer_profile
+		except Influencer.DoesNotExist:
+			messages.warning(
+				request,
+				"This area is for Marvelously Green influencers only."
+			)
+			return redirect('home')
  
-        if not influencer.is_active:
-            messages.warning(
-                request,
-                "Your influencer account is inactive. Please contact us."
-            )
-            return redirect('home')
+		if not influencer.is_active:
+			messages.warning(
+				request,
+				"Your influencer account is inactive. Please contact us."
+			)
+			return redirect('home')
  
-        # Stash the influencer on the request for easy access in the view
-        request.influencer = influencer
-        return view_func(request, *args, **kwargs)
-    return wrapper
+		# Stash the influencer on the request for easy access in the view
+		request.influencer = influencer
+		return view_func(request, *args, **kwargs)
+	return wrapper
 
 
 
@@ -705,151 +706,172 @@ def influencer_required(view_func):
 # ================================================================
 @influencer_required
 def influencer_dashboard(request):
-    """
-    Mobile-first dashboard showing clicks, orders, revenue, commission.
-    
-    Query params:
-        ?period=this_month | last_month | all_time   (default: this_month)
-    """
-    influencer = request.influencer
-    period = request.GET.get('period', 'this_month')
-    
-    # ============================================
-    # Resolve date range from period
-    # ============================================
-    now = timezone.now()
-    period_label = ''
-    
-    if period == 'last_month':
-        # First day of last month → first day of this month
-        first_this = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        last_month_end = first_this - timedelta(seconds=1)
-        start = last_month_end.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        end = first_this
-        period_label = start.strftime('%B %Y')
-    elif period == 'all_time':
-        start = None
-        end = None
-        period_label = 'All time'
-    else:  # this_month (default)
-        start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        end = now
-        period = 'this_month'
-        period_label = now.strftime('%B %Y')
+	"""
+	Mobile-first dashboard showing clicks, orders, revenue, commission.
+	
+	Query params:
+		?period=this_month | last_month | all_time   (default: this_month)
+	"""
+	influencer = request.influencer
+	period = request.GET.get('period', 'this_month')
+	
+	# ============================================
+	# Resolve date range from period
+	# ============================================
+	now = timezone.now()
+	period_label = ''
+	
+	if period == 'last_month':
+		# First day of last month → first day of this month
+		first_this = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+		last_month_end = first_this - timedelta(seconds=1)
+		start = last_month_end.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+		end = first_this
+		period_label = start.strftime('%B %Y')
+	elif period == 'all_time':
+		start = None
+		end = None
+		period_label = 'All time'
+	else:  # this_month (default)
+		start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+		end = now
+		period = 'this_month'
+		period_label = now.strftime('%B %Y')
  
-    # ============================================
-    # Compute stats
-    # ============================================
-    stats = _calculate_stats(influencer, start, end)
+	# ============================================
+	# Compute stats
+	# ============================================
+	stats = _calculate_stats(influencer, start, end)
  
-    # ============================================
-    # Recent attributed orders (always most-recent 10)
-    # Not filtered by period — the table is a quick reference
-    # ============================================
-    PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
-    recent_orders = (
-        Order.objects
-             .filter(influencer=influencer, status__in=PAID_STATUSES)
-             .order_by('-date_paid')[:10]
-    )
+	# ============================================
+	# Recent attributed orders (always most-recent 10)
+	# Not filtered by period — the table is a quick reference
+	# ============================================
+	PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
+	recent_orders = (
+		Order.objects
+			 .filter(influencer=influencer, status__in=PAID_STATUSES)
+			 .order_by('-date_paid')[:10]
+	)
  
-    # Enrich each order with per-order commission (for the table)
-    recent_orders_enriched = []
-    for order in recent_orders:
-        subtotal = sum(
-            item.price * item.quantity
-            for item in order.orderitem_set.all()
-        )
-        commission = (
-            subtotal * Decimal(str(influencer.commission_rate)) / Decimal('100')
-        ).quantize(Decimal('0.01'))
-        
-        recent_orders_enriched.append({
-            'order':      order,
-            'subtotal':   subtotal,
-            'commission': commission,
-            'item_count': order.orderitem_set.count(),
-        })
+	# Enrich each order with per-order commission (for the table)
+	recent_orders_enriched = []
+	for order in recent_orders:
+		subtotal = sum(
+			item.price * item.quantity
+			for item in order.orderitem_set.all()
+		)
+		commission = (
+			subtotal * Decimal(str(influencer.commission_rate)) / Decimal('100')
+		).quantize(Decimal('0.01'))
+		
+		recent_orders_enriched.append({
+			'order':      order,
+			'subtotal':   subtotal,
+			'commission': commission,
+			'item_count': order.orderitem_set.count(),
+		})
  
-    # ============================================
-    # Build their sharable link
-    # ============================================
-    site_url = getattr(settings, 'SITE_URL', 'https://greenmarvel.co.za').rstrip('/')
-    referral_url = f"{site_url}{influencer.referral_url_path}"
+	# ============================================
+	# Build their sharable link
+	# ============================================
+	site_url = getattr(settings, 'SITE_URL', 'https://greenmarvel.co.za').rstrip('/')
+	referral_url = f"{site_url}{influencer.referral_url_path}"
+
+		# Add to the dashboard view, before context:
+	pending_commission = _calculate_pending_commission(influencer)
+	paid_commission = _calculate_paid_commission(influencer)
+	
+	# Find the most recent payout date
+	last_payout = (
+		Order.objects
+			.filter(influencer=influencer, commission_paid_out_at__isnull=False)
+			.order_by('-commission_paid_out_at')
+			.values_list('commission_paid_out_at', flat=True)
+			.first()
+	)
+	
+	payout_summary = {
+		'pending':      pending_commission,
+		'paid':         paid_commission,
+		'total':        pending_commission + paid_commission,
+		'last_paid_at': last_payout,
+	}
  
-    # ============================================
-    # Context
-    # ============================================
-    context = {
-        'influencer':             influencer,
-        'period':                 period,
-        'period_label':           period_label,
-        'stats':                  stats,
-        'recent_orders':          recent_orders_enriched,
-        'referral_url':           referral_url,
-        'active_discount_code':   influencer.active_discount_code,
-    }
-    return render(request, 'influencer/dashboard.html', context)
+	# ============================================
+	# Context
+	# ============================================
+	context = {
+		'influencer':             influencer,
+		'period':                 period,
+		'period_label':           period_label,
+		'stats':                  stats,
+		'recent_orders':          recent_orders_enriched,
+		'referral_url':           referral_url,
+		'active_discount_code':   influencer.active_discount_code,
+		'payout_summary': payout_summary,
+	}
+	return render(request, 'influencer/influencer_dashboard.html', context)
  
  
 # ================================================================
 # HELPER — compute all stats for one influencer in a date range
 # ================================================================
 def _calculate_stats(influencer, start, end):
-    """
-    Returns a dict with:
-        clicks, orders, products_sold, revenue, commission, aov, conversion_rate
-    All numbers are for the given date range (None = all time).
-    """
-    PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
-    
-    # Build querysets with optional date filtering
-    clicks_qs = InfluencerClick.objects.filter(influencer=influencer)
-    orders_qs = Order.objects.filter(influencer=influencer, status__in=PAID_STATUSES)
-    
-    if start and end:
-        clicks_qs = clicks_qs.filter(clicked_at__gte=start, clicked_at__lt=end)
-        orders_qs = orders_qs.filter(date_paid__gte=start, date_paid__lt=end)
+	"""
+	Returns a dict with:
+		clicks, orders, products_sold, revenue, commission, aov, conversion_rate
+	All numbers are for the given date range (None = all time).
+	"""
+	PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
+	
+	# Build querysets with optional date filtering
+	clicks_qs = InfluencerClick.objects.filter(influencer=influencer)
+	orders_qs = Order.objects.filter(influencer=influencer, status__in=PAID_STATUSES)
+	
+	if start and end:
+		clicks_qs = clicks_qs.filter(clicked_at__gte=start, clicked_at__lt=end)
+		orders_qs = orders_qs.filter(date_paid__gte=start, date_paid__lt=end)
  
-    # Clicks
-    clicks_count = clicks_qs.count()
+	# Clicks
+	clicks_count = clicks_qs.count()
  
-    # Orders + revenue + products sold
-    orders_count = orders_qs.count()
-    
-    revenue = Decimal('0.00')
-    products_sold = 0
-    for order in orders_qs.prefetch_related('orderitem_set'):
-        for item in order.orderitem_set.all():
-            revenue += item.price * item.quantity
-            products_sold += item.quantity
+	# Orders + revenue + products sold
+	orders_count = orders_qs.count()
+	
+	revenue = Decimal('0.00')
+	products_sold = 0
+	for order in orders_qs.prefetch_related('orderitem_set'):
+		for item in order.orderitem_set.all():
+			revenue += item.price * item.quantity
+			products_sold += item.quantity
  
-    # Commission (based on product subtotal, not shipping)
-    commission = (
-        revenue * Decimal(str(influencer.commission_rate)) / Decimal('100')
-    ).quantize(Decimal('0.01'))
+	# Commission (based on product subtotal, not shipping)
+	commission = (
+		revenue * Decimal(str(influencer.commission_rate)) / Decimal('100')
+	).quantize(Decimal('0.01'))
  
-    # Average order value (based on product subtotal)
-    if orders_count > 0:
-        aov = (revenue / orders_count).quantize(Decimal('0.01'))
-    else:
-        aov = Decimal('0.00')
+	# Average order value (based on product subtotal)
+	if orders_count > 0:
+		aov = (revenue / orders_count).quantize(Decimal('0.01'))
+	else:
+		aov = Decimal('0.00')
  
-    # Conversion rate — orders / clicks
-    if clicks_count > 0:
-        conversion_rate = round((orders_count / clicks_count) * 100, 1)
-    else:
-        conversion_rate = 0.0
+	# Conversion rate — orders / clicks
+	if clicks_count > 0:
+		conversion_rate = round((orders_count / clicks_count) * 100, 1)
+	else:
+		conversion_rate = 0.0
  
-    return {
-        'clicks':          clicks_count,
-        'orders':          orders_count,
-        'products_sold':   products_sold,
-        'revenue':         revenue.quantize(Decimal('0.01')),
-        'commission':      commission,
-        'aov':             aov,
-        'conversion_rate': conversion_rate,
-    }
+	return {
+		'clicks':          clicks_count,
+		'orders':          orders_count,
+		'products_sold':   products_sold,
+		'revenue':         revenue.quantize(Decimal('0.01')),
+		'commission':      commission,
+		'aov':             aov,
+		'conversion_rate': conversion_rate,
+	}
  
 
 
