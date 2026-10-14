@@ -222,6 +222,7 @@ class DiscountCode(models.Model):
 		blank=True,
 		help_text="Fixed Rand amount off. Use this OR discount_percentage.",
 	)
+	"""
 	usage_count = models.PositiveIntegerField(
 		default=0,
 		help_text="Number of times this code has been used.",
@@ -234,6 +235,7 @@ class DiscountCode(models.Model):
 		default=0,
 		help_text="Cumulative Rand value of orders that used this code.",
 	)
+	"""
 	is_active = models.BooleanField(default=False)
  
 	# Optional but useful — track when the code was created
@@ -243,7 +245,25 @@ class DiscountCode(models.Model):
 		if self.influencer:
 			return f'{self.code} ({self.discount_percentage}% via {self.influencer.name})'
 		return f'{self.code} ({self.discount_percentage}%)'
-
+	
+	@property
+	def usage_count(self):
+		from .models import Order  # inside to avoid circular import
+		PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
+		return Order.objects.filter(
+			discount_code=self.code,
+			status__in=PAID_STATUSES,
+		).count()
+	
+	@property
+	def total_before_discount(self):
+		from .models import Order
+		PAID_STATUSES = ('paid', 'dispatched', 'in_transit', 'delivered', 'collected')
+		total = Order.objects.filter(
+			discount_code=self.code,
+			status__in=PAID_STATUSES,
+		).aggregate(total=Sum('amount_paid'))['total']
+		return total or Decimal('0.00')
 
 
 # ============================================================
